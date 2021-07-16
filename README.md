@@ -3,7 +3,7 @@
 
 26-30 July, 2021. See you in Zoom!
 
-This repository is a placeholder for materials around the forthcoming workshop.
+This repository is a placeholder for materials around the forthcoming workshop. Files and a table of contents will be added as materials are created.
 
 
 ## Things to install
