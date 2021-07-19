@@ -1,0 +1,417 @@
+---
+title: | 
+  | \includegraphics{logotip.pdf}
+  |
+  | KOSTAT-UNFPA Summer Seminar on Population
+  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
+  | \vspace{0.3cm} \huge \textbf{Day 1:  Introduction to Rstudio, R, and RMarkdown}\vspace{0.6cm}
+  | 
+fontsize: 11pt
+geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
+  = 1.35cm, footskip = 1.6cm
+output:
+  pdf_document:
+    number_sections: yes
+  html_document2: default
+  html_document:
+    number_sections: yes
+    toc: yes
+  pdf_document2: default
+  header-includes:
+    - \usepackage{titling}
+    - \usepackage{fancyhdr}
+    - \pagestyle{fancy}
+    - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
+    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[LO]{{Day 1: Introduction to Rstudio, R, and RMarkdown}}
+    - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
+bibliography: bibliography.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(pw)
+rm(us)
+```
+
+\noindent\makebox[\textwidth][c]{
+  \begin{minipage}[t]{0.45\textwidth}
+    \centering
+    \Large{Instructor: Tim Riffe} \\
+    \vspace{0.1cm}\large{\texttt{tim.riffe@gmail.com}}
+   
+    \vspace{.5cm}
+    \Large{Assistant: Rustam Tursun-Zade}
+    \vspace{0.1cm}\large{\texttt{rustam.tursunzade@gmail.com}}
+  \end{minipage}
+}
+
+
+\vspace{0.8cm}
+\begin{center}
+\large{26 July 2021}
+\end{center}
+\vspace{0.8cm}
+
+
+\tableofcontents
+
+# About the instructor
+
+Hi, I'm Tim Riffe, a US-American demographer living and working at the University of the Basque Country, thanks to a program that brought me here called Ikerbasque. I did my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley then working as a research scientist with the Max Planck Institute for Demographic Research. I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. Around three years ago I began adopting the tidyverse approach in my work and teaching.
+
+Rustam Tursun-Zade is an aspiring PhD student, with lots of experience in cancer epidemiology and demography. He also did the European Doctoral School of Demography (2019-2020), and he's an advanced *tidyverse* wizard, and he's able to assist also if there are character or locale issues that arise when using `R` in different language settings.
+
+# About this workshop
+
+In this workshop we have several direct and indirect objectives. The **direct objectives** are to teach you what you need to comfortably work with data in `R`, including how to:
+
+* read in new data
+* reformat data
+* reshape data
+* merge data together
+* summarize 
+* calculate within groups 
+* create your own functions
+* flexible visualization using `ggplot2`
+
+The **indirect objectives** are to teach you:
+
+* Flexible reporting with `R markdown`
+* Reproducible analyses
+* Confidence with data
+* a bit of `git` version control maybe.
+* demographic thinking via examples, including:
+  * life tables
+  * standardization
+  * decomposition
+  * Lexis surfaces
+  * others
+
+Each day of the workshop will have a prepared handout, this being the first one. The handout sets out the lesson plan for the day, including code examples. When convenient, I will follow this verbatim, however, most code will generally be derived in a live session. When appropriate, I'll also share improvised / derived code with you via a Google Doc. The hope is that you will be able to follow along with me. Code will be presented in small units, or *chunks*, and commented live both verbally and in writing, as we progress. This will indirectly introduce you to markdown. In case on any day we do not arrive at the end of a lesson plan, the day's handout is also a reproducible tutorial that you can follow on your own. The markdown document created progressively through the day will be tidied up and posted to the course repository each day after class.
+
+We will have frequent short breaks, very likely inspired by the loud church bells that will interrupt the session on my end every hour.
+
+## Course materials
+
+All material is available in a public `github` repository, here: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1)
+
+The handout for each day is available in its R markdown format and as a built pdf document, following the naming convention `01_handout.Rmd` (pretty document called `01_handout.pdf`), etc. The session materials are also given in `.Rmd` and pdf formats, with the naming convention `01_session.Rmd` (`01_session.pdf`). These will be available after class each day, or by the following morning at the latest. Exercises may be given in the handout for each day, and solutions either provided or derived the following day in a markdown document called e.g. `01_solutions.Rmd` (`01_solutions.pdf`). The `README` file will be updated daily as well as new items are added.
+
+Our Google Doc pastebin is here: [https://tinyurl.com/6ec2zfyy](https://tinyurl.com/6ec2zfyy) . This link gives edit permissions, so you could also use it to paste code that isn't working, or to pose questions. We'll try to not let this get cluttered up.
+
+## Additional help
+
+If you do not manage to ask a question during the session (either verbally, or in the chat), you have some other options: paste the question in the Google Doc. Post an `issue` on the repository [https://github.com/timriffe/KOSTAT_Workshop1/issues](https://github.com/timriffe/KOSTAT_Workshop1/issues)- in that case I encourage you to make the problem [reproducible](https://stackoverflow.com/help/minimal-reproducible-example) so that it's more direct for us to troubleshoot. Alternatively, you can ask us informally by email (both the instructor and assistant). Please please please ask questions or ask me to slow down or stop or "*scroll up to show the code again*" if necessary. If you have a question then very likely someone else has the same question, so please ask and don't worry about interrupting me. 
+
+# Tour of Rstudio
+
+I presume by now you have `RStudio` installed. If not, go here [https://www.rstudio.com/products/rstudio/download/preview/ ](https://www.rstudio.com/products/rstudio/download/preview/ ) and install the *preview* version. We're using this version because some issues specific to some operating systems are resolved there. 
+
+When you open `RStudio` you see four main panels (panes):
+
+\begin{centering}
+\includegraphics[]{RStudioScreenshot.png}
+\end{centering}
+
+## Editor
+
+The editor pane is where we create text documents, such as `.R` scripts and `.Rmd` R markdown documents containing both text and code. It usually makes sense for this to be the **biggest** pane. We will type in here most of the time. Typing code in the editor is inert.
+
+## Console
+
+The `R` console is literally a live `R` session. You can *send* code here from the editor by selecting it and pressing `Ctrl + Enter`. This is true for scripts and for markdown code chunks (to be explained). I will demonstrate different ways of doing this. You can also type code directly in the console and execute it by pressing `Enter`. This pane may also contain other tabs for things like the `Terminal` (i.e. the black box), `R Markdown`, but we won't use these probably.
+
+## History
+This panel just shows you the console output from code that has been executed. You can minimize this panel, as it's usually a waste of space.
+
+## everything else
+This includes useful things like:
+
+* Environment: allows you to browse and view data objects that you have in memory in `R`
+* Files: a file browser, can be more convenient than having a second one open
+* Plots: viewing window for plots created live
+* Packages: a helpful way to install packages sometimes
+* Help: a viewer for function and package help files
+* Git: You might see me manage github things here
+
+Although this is a useful panel, it does not need to be that big.
+
+# Step-by-step get started
+
+## Use an `Rstudio` *project* for this course
+
+We should all work on this course within an `RStudio` *project*. This defines a nice neat space to stash files for the course, and it makes file path specification much much easier. It also makes the entire course material portable, which helps with course reproducbility in the medium term. I give three alternatives for getting started with the course project. I will demonstrate these approaches in the session.
+
+1. In `RStudio` select `File` - `New Project` - `New Directory` - `New Project` - type in `KOSTAT_Workshop1` and pick out a directory location you won't forget - `Create Project`. This will create a new empty project that you can put materials in for this course. This ought to work for everyone.
+
+2. Alternatively, if you have `git` installed, you can do:
+
+`File` - `New Project` - `Version Control` - `git` - paste `https://github.com/timriffe/KOSTAT_Workshop1.git` into the `url` box, and select a directory location you won't forget - `Create Project`. This will create a new project that is a *clone* of the materials currently shared in this workshop's `github` repository. This is not necessary, but it might be nice if you want to get started with `git`.
+
+3. Alternatively, if you don't have `git` installed and do not want to install it, but still want to start with all materials shared, go to [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1) in your browser, click on the green button named `Code`, and select `Download ZIP`. Unpack the zip in a directory location you won't forget and be sure to call the folder `KOSTAT_Workshop1`. Then, in `RStudio` select `File` - `New Project` - `Existing directory` - select the folder `KOSTAT_Workshop1` that you just created - `Create project`.
+
+No matter which method you've done, you'll now be in a project view, which is convenient.
+
+## Start a new markdown document
+
+Given we're in a new project, we can now create files in it. Let's make a new markdown file for this session. You can call yours whatever you want. To do this, do `File` - `New File` - `R Markdown` - this opens a dialogue where you can specify a document title, say `"Monday class notes"`. If you have `LaTeX` installed, you can select `PDF` as the output type, otherwise choose `html` or `Word` as you like. Click `OK` and a new unnamed `.Rmd` file will be created with a template in it to help you get started with markdown. Save the file in the standard way, calling it something like `01_notes.Rmd` or similar. I will call mine `01_session.Rmd`, but you should use a different name for yours. I will demonstrate these approaches in the session, and this will be where the entire class today will take place :-)
+
+### *build* the template provided
+
+The document that has been created for you has a template structure that serves to orient you in the ways of markdown. Before looking at its parts, let's build the document. In the top icons you'll see one called `Knit` with a tiny picture of a ball of yarn... Click that and a new file will be created. If your markdown file is saved as `01_notes.Rmd` then the new file will be called `01_notes.pdf` or `01_notes.docx` or `01_notes.html` and it may or may not automatically open for you to view it. Pretty cool eh? See how the document has parts that are just normal text, others that are nicely formatted code, and others that are the results of that code having been executed (console output or perhaps a figure?). I hope you'll agree this sort of document will be an excellent note-taking environment for this course. Indeed, it's the only environment we'll use. In the document
+
+### Code chunks
+
+`R` code in a markdown document can be considered *live* `R` code. It is written in chunks inside the following construct
+\begin{verbatim}
+```{ r }
+# anything inside here is R code
+
+``` 
+\end{verbatim}
+
+To crate a blank code chunk, type `Ctrl + Alt + i` (mac: `Cmd + Option + i`. Remember this! Otherwise, you need to find the *back-tic* key on your keyboard! On my keyboard it is in the far upper left corner, but in yours it might not be.
+
+Create a chunk and type `1+1` in it:
+
+```{r}
+1+1
+```
+Place you cursor on the line and press `Ctrl + Enter` (mac: `Cmd + Enter`). This executes the code in the console, but does not *create* anything. If you `Knit` the document again then you'll see the code chunk featured, along with the console output `[1] 2`, where `[1]` is the line number of the output (unimportant) and `2` is the actual result. Alternatively, in the top right corner of the chunk itself, you'll see a little green `play` arrow. Clicking that executes the chunk.
+
+If you have more than one chunk, then knitting the document executes them in order. What happens in earlier chunks can affect what goes on in later chunks: they are sequentially dependent (potentially). 
+
+Other features of code chunks and how to control them will be demonstrated live over the course of this week, but not explicitly covered. You can learn more about code chunks here: [https://rmarkdown.rstudio.com/lesson-3.html](https://rmarkdown.rstudio.com/lesson-3.html)
+
+### `YAML` header
+
+Your template document will also have a header looking something like this:
+
+\begin{verbatim}
+
+---
+title: "01_notes"
+author: "Your name"
+date: "7/26/2021"
+output: pdf_document
+---
+
+\end{verbatim}
+
+These are just control parameters for the document. This is not `R` and it's also not `R markdown`! Let's not stress about it, but instead just note that you can control how the document gets created with more parameters, and this may be interesting to know. You can find out more here [https://r4ds.had.co.nz/r-markdown.html](https://r4ds.had.co.nz/r-markdown.html). Or check out this `R` package that helps you write them with a more advanced interface [https://cran.r-project.org/web/packages/ymlthis/vignettes/introduction-to-ymlthis.html](https://cran.r-project.org/web/packages/ymlthis/vignettes/introduction-to-ymlthis.html).
+
+### The text in between
+
+Note that whatever you write in between code chunks is rather flexible: it could be just normal text, no frills, or it could have markup elements like itemization, italics, etc using native markdown, or it could be native `LaTeX` if you have that installed and are outputting to `pdf`, or it could be native `html` if you're outputting to `html`. If you're outputting to `Word` you can even use another manually created Word document as a template for formatting preferences or to follow institutional formatting guidelines. To learn how to do that look here: [https://bookdown.org/yihui/rmarkdown-cookbook/word-template.html](https://bookdown.org/yihui/rmarkdown-cookbook/word-template.html).
+
+I will be using such options from time to time, and will not make a very big deal out of it. For now, just know that you have quite a lot of control over this document, if you want to, but the default settings are pretty useful.
+
+## Moving forward with this project
+
+You can of course create more markdown files, each building to a different destination object. The important thing for us is that you do so *inside* the project you've defined for this workshop. When in doubt: `File` - `Open project` - navigate to and select `KOSTAT_Workshop1.Rproj` - `Open project`. (double clicking `KOTAT_Workshop1.Rproj` inside your usual file browser will also open the project in `RStudio`. That's it, you can always get back to this workspace once you've set it up, and you can set up other project spaces for other projects of yours.
+
+# R basics
+
+Now that we're situated in a document, and know how to make code chunks, let's see what you can do inside them!
+
+## Functions live in packages
+
+`R` is a *functional* programming language, meaning stuff gets done using functions. We can get by with the functions provided with basic `R`, or else we can load more specialized functions from particular `packages`. To load a package, use the function `install.packages()`. Start a new chunk (`Ctrl + Alt + i`) and type `install.packages("tidyverse")` to install the package called `tidyverse`. Execute the code by typing `Ctrl + Enter` with your cursor on the line, or by clicking the green play arrow for the chunk.
+
+```{r, eval = FALSE}
+install.packages("tidyverse")
+```
+
+Having run this code chunk once, let's now comment out the `install.packages()` line so that we don't inadvertently re-install the package each time we build this document! To comment out code, and to make notes in code in general, use the hash `#` to mark which lines to ignore.
+
+```{r}
+# comment out line so it doesn't re-run each time we build!
+# install.packages("tidyverse")
+```
+
+We have now used the function `install.packges()`. The name of the function is everything before the parentheses `install.packages`, and the part in the parentheses `()` is the function input parameters, or arguments. In this case, we just had to give a character string telling which package we want. By default, this function will look in the main `R` package repositories, called `CRAN`, here: [https://cran.r-project.org/](https://cran.r-project.org/). Anything posted to that archive has passed a big set of standardized checks and can be considered safe. The code you find there may or may not have been subjected to methodological review. On the other hand, the code you find in packages there is absolutely free and open, meaning you have the ability to see how it works. 
+
+We will make use of various packages from there. Let's install a few more. Remember to comment these lines out after you run them!
+
+```{r, eval = FALSE}
+# Functions for generalized demographic decomposition
+install.packages("DemoDecomp")
+
+# Functions for reading in assorted data files, e.g. read_csv()
+install.packages("readr")
+
+# read_excel() reads in data from an .xlsx file
+install.packages("readxl")
+
+# nice date handling functions
+install.packages("lubridate")
+
+# nice axis scales
+install.packages("scales")
+
+# great color palettes
+install.packages("colorspace")
+```
+
+To *load* the packages, i.e. make their functions available to you in your `R` session, use `library()`:
+
+```{r, message = FALSE}
+library(tidyverse)
+library(readr)
+library(readxl)
+library(lubridate)
+library(scales)
+library(colorspace)
+library(DemoDecomp)
+```
+
+## Help files
+
+Often when trying to use a function, you'll not be sure about all of the options it might have. To get a glimpse of the documentation provided for `library()`, type `?library` in the console. This will open up the help file in the `Help` panel of `RStudio`. Most functions in `R` have help files, and often but not always these are useful. They just take some getting used to. The main sections to pay attention to are:
+
+* **Description** for a short human language summary of what the function is supposed to do.
+* **Arguments** for a description of each argument
+* **Details** for any gory details the author thinks you might want to know
+* **Value** tells you what the function gives back
+* **Examples** show some real world examples of the function being used. If you copy and paste them, they ought to run. This is very useful information.
+
+I will be using many functions that may be unfamiliar to you, and which I may only introduce briefly. for more information, you can always get to the help file using `?function_name`.
+
+Also, `RStudio` has a very helpful autocomplete functionality that gives helpful hints when typing out function and argument names. Making use of this will make your life easier, and you'll see me exploiting this quite a lot.
+
+## basic arithmetic
+
+`R` has most common arithmetic and matrix operators (more than I list here)
+
+* `+` 
+* `-`
+* `*` standard multiplication
+* `/`
+* `^` standard power
+* `%*%` *matrix* multiplication
+
+```{r}
+1 + 5
+1 - 5
+2 * 5
+2 / 5
+2 ^ 5
+```
+
+There are also many functions to help with such things (these and many many more):
+
+* `sum()`
+* `mean()`
+* `prod()`
+* `cumsum()`
+* `cumprod()`
+* `exp()` i.e. $e^x$
+* `log()` natural log by default.
+
+Note `c()` includes numbers in a *vector*. The first three functions return a scalar, whereas the others return a vector of results that is the same length as the input! These are said to be *vectorized.*
+```{r}
+# return scalars
+sum(c(2, 5, 7))
+mean(c(2, 5, 7))
+prod(c(2, 5, 7))
+
+# return vectors same length
+cumsum(c(2, 5, 7))
+cumprod(c(2, 5, 7))
+exp(c(2, 5, 7))
+log(c(2, 5, 7))
+```
+
+You can also have fancy expressions, making intelligent use of parentheses, just like in standard mathematics, standard *order of operations* applies.
+
+```{r}
+.07 / (1 + (1 - .5) * .7)
+```
+## Objects
+
+You can make your life easier by using objects in `R`. 
+
+### vectors and matrices
+
+Take the vector `c(2,5,7)`: rather than typing this out, we can *assign* it to an object using `<-`. Here we declare an object whose name is `a`, and this object is a vector with three integers in a particular order. Once defined, this object will persist in this `R` session. Execute this chunk and have a look at the `Environment` tab in `RStudio`. You'll see a new object called `a`, and since it's small, you can even see the whole thing right there.
+
+```{r}
+a <- c(2, 5, 7)
+exp(a)
+log(a)
+```
+```{r}
+# data storage mode
+typeof(a)
+
+# kind of R object
+class(a)
+
+# ask if it's a vector
+is.vector(a)
+
+# how many elements?
+length(a)
+```
+
+You can create many objects in an `R` session. They can all be different sizes and types. Sessions can become large and cluttered in this way. From time to time, we'll have a glance at the `Environment` tab to check out what our session is looking like. From time to time, we'll do some house-keeping so that the session environment doesn't get cluttered. You can remove an object using `rm()`
+
+```{r}
+rm(a)
+```
+
+A vector like `a` is the most basic kind of `R` object. Vectors can also be character, logical, and other kinds of things:
+
+```{r}
+b <- c("A", "b", "C")
+d <- c(TRUE, FALSE, FALSE)
+```
+
+A matrix is just a vector with two dimensions. Here we create a `matrix` using the `matrix()` function, by giving a vector of 6 elements and specifying we want two columns `ncol = 2`. The matrix is filled column-wise, unless you tell it otherwise
+
+```{r}
+a <- c(2,5,7,3,6,8)
+A <- matrix(a, ncol = 2)
+A
+B <- matrix(a, ncol = 2, byrow = TRUE)
+B
+
+# dimensions in rows, columns
+dim(A)
+
+# or more specifically:
+nrow(A)
+ncol(A)
+```
+
+Much of statistics in `R` is implemented using matrix algebra. Here `t()` is the matrix transpose.
+
+```{r}
+A %*% t(B)
+```
+
+Traditionally, we would spend much more time in a course like this covering that, but we will skip many other details to be abke to spend more time on data analysis. 
+
+### `data.frame` 
+
+Matrices may eventually become a fundamental part of the way you use `R`, but in this course we will emphasize data analysis using `data.frame`s, which is `R`-speak for rectangular tables with flexible data types. We can create one manually using `data.frame()`. Columns are comma-separated.
+
+```{r}
+DF <- data.frame(
+           x = c("a","a","a","b","b","b","b"),
+           y = c(2, 5, 7, 8 ,1, 9, 0)
+           )
+DF
+```
+
+If you had those vectors sitting around, you could just create the `data.frame` in a more economical way:
+
+```{r}
+x <- rep(c("a","b"), times = c(3,4))
+y <- c(2, 5, 7, 8 ,1, 9, 0) 
+data.frame(x, y)
+```
+
+The main rules for `data.frame` is that the columns are all the same length, and that each cell has just one value. The columns can be different data types. This kind of object will form the foundation of the `tidy` data approach, which we will follow using a cousin of the `data.frame`, `tibble`s. You can treat these as synonyms. 
+
