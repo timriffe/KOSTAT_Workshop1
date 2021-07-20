@@ -58,7 +58,7 @@ rm(us)
 
 # About the instructor
 
-Hi, I'm Tim Riffe, a US-American demographer living and working at the University of the Basque Country, thanks to a program that brought me here called Ikerbasque. I did my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley then working as a research scientist with the Max Planck Institute for Demographic Research. I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. Around three years ago I began adopting the tidyverse approach in my work and teaching.
+Hi, I'm Tim Riffe, a US-American demographer living and working at the University of the Basque Country (Spain), thanks to a program that brought me here called Ikerbasque. I did my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley (USA) then working as a research scientist with the Max Planck Institute for Demographic Research (Germany). I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. Around three years ago I began adopting the tidyverse approach in my work and teaching.
 
 Rustam Tursun-Zade is an aspiring PhD student, with lots of experience in cancer epidemiology and demography. He also did the European Doctoral School of Demography (2019-2020), and he's an advanced *tidyverse* wizard, and he's able to assist also if there are character or locale issues that arise when using `R` in different language settings.
 
@@ -280,7 +280,7 @@ I will be using many functions that may be unfamiliar to you, and which I may on
 
 Also, `RStudio` has a very helpful autocomplete functionality that gives helpful hints when typing out function and argument names. Making use of this will make your life easier, and you'll see me exploiting this quite a lot.
 
-## basic arithmetic
+## Basic arithmetic
 
 `R` has most common arithmetic and matrix operators (more than I list here)
 
@@ -414,4 +414,49 @@ data.frame(x, y)
 ```
 
 The main rules for `data.frame` is that the columns are all the same length, and that each cell has just one value. The columns can be different data types. This kind of object will form the foundation of the `tidy` data approach, which we will follow using a cousin of the `data.frame`, `tibble`s. You can treat these as synonyms. 
+
+### Functions
+
+Functions are little programs we write that takes a defined input and converts it to an output. They are also objects with names. Functions from packages are objects that aren't necessarily shown in your environment viewer, whereas functions *you* write are visible there. You can see the code that a function applies by typing a function name into the console (without the parentheses). The `DemoDecomp` package has a function called `horiuchi()`. Type `horiuchi` in the console to see the function body:
+
+```{r}
+horiuchi
+```
+
+Briefly, this is an implementation of a popular demographic decomposition method. For now, just convince yourself that rather than needing to type out all this code each time you want to use this decomposition method (hypothetically), it's far easier and faster to use the `horiuchi()` function and not need to remember it or re-derive it.
+
+**Wednesday** we will spend an entire session learning to write our own functions.
+
+# Teaser
+
+This set of basic introductions suffices for this course. Know that the world of basic (or `Base`) `R` is extensive, and that the kind of code we'll be writing (`tidyverse` code) has been built on top of it with the aim of simplifying our interface with data. This feat has removed much of the need to *program* in order to do complex tasks in `R`. 
+
+To motivate you, imagine the following multistage task:
+
+## Data (imagine)
+
+You are given a data set containing a daily time series of COVID-19 cases, hospital admissions, urgent care admissions, and deaths by age, sex, and Spanish provinces. Population denominators are delivered in a different data set using different age groups for Spanish autonomous communities (these are aggregates of provinces). A third data source tells you which province is in which autonomous community. A fourth data set gives code equivalencies for provinces and autonomous communities, because *of course* the different data sources use different location coding systems.
+
+## Objective (imagine)
+
+Calculate *weekly* time series of **age-sex-standardized rates** of cases, hospitalizations, urgent care admissions, and deaths for each autonomous community and visualize these in *ridgeplots* that look something like this (except with labels in your language of course):
+
+\begin{centering}
+\includegraphics[]{def.png}
+\end{centering}
+
+By the end of this week, you will be able to handle all of the data loading, data joining, tabulation and calculation and `ggplot2` operations needed to complete a task of this complexity. Further the code to do so will be *parsimonious* and it will be *legible*, and you will be empowered to undertake data analysis tasks of approximately 
+
+# Excercises 
+
+1. Look at some of the files offered by the World Population Prospects, here: [https://population.un.org/wpp/Download/Standard/Population/](https://population.un.org/wpp/Download/Standard/Population/). There is no need to register to use these data, and we will be using some of it tomorrow, **Tuesday**. Download a file or two and have a look at what's inside.
+
+2. Register to be a user of the Human Mortality Database (HMD), here: [https://www.mortality.org/mp/auth.pl](https://www.mortality.org/mp/auth.pl). If you're already a user then no worries. We will use this on **Wednesday**.
+
+3. Look at this gallery of `ggplot2` extensions: [https://exts.ggplot2.tidyverse.org/gallery/](https://exts.ggplot2.tidyverse.org/gallery/) Know that these will be things you'll be able to extend *toward* doing if you follow along over the course of this week. **Thursday** We will cover the basics to get started with `ggplot2`
+
+4. Vote for a data set we should work with on **Friday**, here: [https://forms.gle/oqtpN7zcFj9sQUqD9](https://forms.gle/oqtpN7zcFj9sQUqD9)
+
+5. Look at this free book by Kieran Healey and bookmark it for future reference: [https://socviz.co/](https://socviz.co/). This is a great way to self-learn. That book would be a great way to supplement this course in the following weeks.
+
 
