@@ -60,7 +60,7 @@ rm(us)
 
 Hi, I'm Tim Riffe, a US-American demographer living and working at the University of the Basque Country (Spain), thanks to a program that brought me here called Ikerbasque. I did my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley (USA) then working as a research scientist with the Max Planck Institute for Demographic Research (Germany). I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. Around three years ago I began adopting the tidyverse approach in my work and teaching.
 
-Rustam Tursun-Zade is an aspiring PhD student, with lots of experience in cancer epidemiology and demography. He also did the European Doctoral School of Demography (2019-2020), and he's an advanced *tidyverse* wizard, and he's able to assist also if there are character or locale issues that arise when using `R` in different language settings.
+Rustam Tursun-Zade is an aspiring PhD student, with lots of experience in cancer epidemiology and demography. He is currently affiliated with the European University at St. Petersburg. He also did the European Doctoral School of Demography (2019-2020), and he's an advanced *tidyverse* wizard, and he's able to assist also if there are character or locale issues that arise when using `R` in different language settings.
 
 # About this workshop
 
