@@ -31,3 +31,6 @@ Here are some links that exhaustively cover the topic of installation and update
 
 Installation guide for r and rstudio for Windows
 [https://www.youtube.com/watch?v=NZxSA80lF1I&ab_channel=TechDecodeTutorials](https://www.youtube.com/watch?v=NZxSA80lF1I&ab_channel=TechDecodeTutorials)
+
+RTools guide, for those still having problems on Windows:
+[https://www.youtube.com/watch?v=FXWLR2DGgI8&t=34s](https://www.youtube.com/watch?v=FXWLR2DGgI8&t=34s)
