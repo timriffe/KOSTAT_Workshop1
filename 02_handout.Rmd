@@ -74,7 +74,11 @@ Tidy datasets can also be visualized without further ado using a systematic gram
 \includegraphics[]{demo_fasec_screenshot.png}
 \end{center}
 
-The main thing that makes it not-tidy are the years spread over columns. These should be stacked into to columns: `TIME` (per the original codes) and `Births`, which are the values in the cells. The fact that `AGE` is coded as an arithmetically unusable character string is something we'll want to recode, but it is orthogonal to the *tidiness* of the data. Finally, we will ensure that age-specific births sum up to the stated total births per year and country.
+The main thing that makes it not-tidy are the years spread over columns. These should be stacked into to columns: `TIME` (per the original codes) and `Births`, which are the values in the cells. The fact that `AGE` is coded as an arithmetically unusable character string is something we'll want to recode, but it is orthogonal to the *tidiness* of the data. Finally, we will ensure that age-specific births sum up to the stated total births per year and country. 
+
+To follow along, create a folder in your project called `Data`. Then, go to the `Data` folder of the course repository on github:
+[https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_fasec.xlsx](https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_fasec.xlsx) and click `Download`. Move it to the data folder you just made. You can also do the same for a second file that we'll use later today:
+[https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_pjan.xlsx](https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_pjan.xlsx)
 
 # Introducing `tidyverse`: a worked example
 
