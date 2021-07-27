@@ -5,16 +5,15 @@
 
 ## Contents
 
-1. Data/
-   1. demo_pjan.xlsx
-   2. demo_fasec.xlsx
+1. `Data/`
+   1. `demo_pjan.xlsx`
+   2. `demo_fasec.xlsx`
 
-2. 01 (Monday, 26, July 2021)
-   1. 01_handout (.Rmd, .pdf)
-   2. 01_session (.Rmd, .pdf)
-3. 02 (Tuesday, 27, July 2021)
-   1. 01_handout (.Rmd, .pdf)
-
+2. `01` (Monday, 26, July 2021)
+   1. `01_handout` (`.Rmd`, `.pdf`)
+   2. `01_session` (`.Rmd`, `.pdf`)
+3. `02` (Tuesday, 27, July 2021)
+   1. `01_handout` (`.Rmd`, `.pdf`)
 
 
 ## Things to install
