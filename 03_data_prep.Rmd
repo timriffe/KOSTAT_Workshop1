@@ -190,7 +190,9 @@ LT <-
                   AGEGROUP == "AGE1-4" ~ 4,
                   TRUE ~ 5),
     # solves nqx formula for a
-    nAx = 1 / nMx - n / nqx + n)
+    nAx = 1 / nMx - n / nqx + n,
+    # clean up some pathological cases:
+    nAx = ifelse(nAx > n | nAx < 0, n / 2, nAx))
 ```
 
 Let's examine 3 versions of age 85 closeout to determine what WHO does. We determine they don't *merely* use $1/{}_nM_x$ to close out (only recommended/innocuous after age 100 according to me).
