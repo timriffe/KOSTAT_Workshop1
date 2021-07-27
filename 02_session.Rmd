@@ -270,7 +270,8 @@ Now we should redistribute population counts with unknown age, proportional to t
 
 `ifelse(logical, TRUE, FALSE)`
 ```{r}
-Pop %>% 
+Pop <-
+  Pop %>% 
   
   group_by(Country, Year) %>% 
   
@@ -284,7 +285,8 @@ Pop %>%
   
   # redistribution as a 1-liner,
   # Population / sum(Population) is what we called Fraction before
-  mutate(Population = Population + Population / sum(Population) * UNK) %>% 
+  mutate(Population = Population + Population / sum(Population) * UNK,
+         Year = as.integer(Year)) %>% 
   
   # remove groups no longer needed
   ungroup() %>% 
@@ -296,6 +298,27 @@ Pop %>%
 
 Calculate exposures
 
+```{r}
+Pop <-
+# incoming population data
+  Pop %>% 
+  
+  # move Year back by one so that it becomes
+  # Dec 31
+  mutate(Year = Year - 1) %>% 
+  
+  # rename to P2 so we dont get confused
+  rename(P2 = Population) %>% 
+  
+  # join back to P1, STRICTLY, only overlapping cases
+  inner_join(Pop, by = c("Country", "Year","Age")) %>% 
+  
+  # call that one P1
+  rename(P1 = Population) %>% 
+  
+  # Calulate Exposure approximation
+  mutate(Exposure = (P1 + P2) / 2)
+```
 
 
 
