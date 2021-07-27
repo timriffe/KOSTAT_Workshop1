@@ -295,8 +295,10 @@ Pop <-
   select(-UNK)
 ```
 
+**We made it this far on Tuesday**
+Calculate exposures by taking the mean of January 1 (`P1`) and December 31 `P2` population estimates as an approximation of exposure over the year interval. The data we have consists in January 1 estimates. These can also be used as Dec 31 estimates for the preceding year. Imagining forward, we'd like to have `P1` and `P2` as two columns.
 
-Calculate exposures
+The trick will be to first take our incoming `P1` estimate, convert it into `P2`, then join it back to the original `P2`. This last step is done with `inner_join()`, which takes two datasets and filters each down only to matching *join* (`by`) variables, then combines them into a single dataset.
 
 ```{r}
 Pop <-
@@ -307,26 +309,115 @@ Pop <-
   # Dec 31
   mutate(Year = Year - 1) %>% 
   
-  # rename to P2 so we dont get confused
+  # rename to P2 so we don't get confused
   rename(P2 = Population) %>% 
   
   # join back to P1, STRICTLY, only overlapping cases
   inner_join(Pop, by = c("Country", "Year","Age")) %>% 
   
-  # call that one P1
+  # call the 'new' Population one P1
   rename(P1 = Population) %>% 
   
-  # Calulate Exposure approximation
+  # Calculate Exposure approximation
   mutate(Exposure = (P1 + P2) / 2)
 ```
 
 
+We can (and maybe *should*) take care to re-combine these discrete steps as much as possible into a fluid pipeline. This will necessarily need to be in two parts, due to the above self-join. This pipeline is considerably longer than the final one we did for births, but you can imagine reading through it, or *stepping* through it, and should be able to follow its logical flow, even *verbalize* it. This takes some mental work, but we now should understand the purpose of each operation.
+
+```{r}
+Pop <-
+  read_excel(path = here("Data", "demo_pjan.xlsx"),
+           range = "A10:CZ510",
+           na = ":") %>% 
+  pivot_longer(cols = `Less than 1 year`:`Unknown`,
+              names_to = "Age",
+              values_to = "Population") %>% 
+  filter(!is.na(Population)) %>% 
+  mutate(
+    Age = case_when(
+    Age == "Less than 1 year" ~ 0,
+    Age == "Open-ended age class" ~ 100,
+    Age == "Unknown" ~ NA_real_,
+    TRUE ~ parse_number(Age)
+  )) %>% 
+  select(
+    Country = `GEO/AGE`,
+    Year = TIME,
+    Age,
+    Population) %>% 
+  group_by(Country, Year) %>% 
+  mutate(UNK = Population[is.na(Age)],
+         UNK = ifelse(is.na(UNK), 0, UNK)) %>% 
+  filter(!is.na(Age)) %>% 
+  mutate(Population = Population + Population / sum(Population) * UNK,
+         Year = as.integer(Year)) %>% 
+  ungroup() %>% 
+  select(-UNK)
+
+Pop <-
+  Pop %>% 
+  mutate(Year = Year - 1) %>% 
+  rename(P2 = Population) %>% 
+  inner_join(Pop, by = c("Country", "Year","Age")) %>% 
+  rename(P1 = Population) %>% 
+  mutate(Exposure = (P1 + P2) / 2)
+```
+
+A similar join technique is used to add exposure data to the births data from earlier in this lesson. We'll call the final joined object `ASFR`.
+
+```{r}
+ASFR <-
+  Births %>% 
+  mutate(Year = as.integer(Year)) %>% 
+  inner_join(Pop, by = c("Country","Year","Age")) %>% 
+  mutate(ASFR = Births / Exposure) %>% 
+  arrange(Country, Year, Age)
+```
+
+# calculate summary measures:
+
+```{r}
+MAB <-
+  MAB %>% 
+  mutate(Year = as.integer(Year))
+
+Fert <-
+  ASFR %>% 
+  group_by(Country, Year) %>% 
+  summarize(TFR = sum(ASFR),
+            MAB2 = sum(Age * ASFR) / TFR + .5,
+            .groups = "drop") %>% 
+  full_join(MAB, by = c("Country","Year"))
+```
+
+Visualize the results, as a teaser for Thursday:
+
+```{r, warning = FALSE}
+Fert %>% 
+  ggplot(aes(x = Year, y = TFR, group = Country, color = Country)) +
+  geom_line() +
+  labs(title = "TFR trends in four countries")
+```
 
 
+Likewise, we can compare MAB between the two definitions:
 
-
-
-
+```{r}
+Fert %>% 
+  select(-TFR) %>% 
+  pivot_longer(MAB:MAB2, 
+               names_to = "type",
+               values_to = "MAB") %>% 
+  filter(!is.na(MAB)) %>% 
+  ggplot(aes(x = Year, 
+             y = MAB, 
+             group = interaction(Country, type), 
+             linetype = type, 
+             color = Country)) +
+  geom_line() +
+  labs(title = "Compare birth-weighted and rate-weighted MAB")
+```
 
 
 
