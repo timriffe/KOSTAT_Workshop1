@@ -9,11 +9,14 @@
    1. `demo_pjan.xlsx`
    2. `demo_fasec.xlsx`
 
-2. `01` (Monday, 26, July 2021)
+2. `01` (Monday, 26, July 2021) "Introduction to `R`, `RStudio`, and `R markdown`"
    1. `01_handout` (`.Rmd`, `.pdf`)
    2. `01_session` (`.Rmd`, `.pdf`)
-3. `02` (Tuesday, 27, July 2021)
-   1. `01_handout` (`.Rmd`, `.pdf`)
+3. `02` (Tuesday, 27, July 2021) "The tidy data approach"
+   1. `02_handout` (`.Rmd`, `.pdf`)
+   2. `02_session` (`.Rmd`, `.pdf`)
+4. `03` (Wednesday, 28, July 2021) "Function writing"
+   1. `03_data_prep` (`.Rmd`, `.pdf`)
 
 
 ## Things to install
