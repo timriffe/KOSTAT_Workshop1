@@ -192,6 +192,8 @@ To calculate summary measures (including tabulations) we use `summarize()` (`sum
 ```{r}
 # The data are clean, let's calculate something!
 MAB <-
+  
+  # the incoming data object, Births
   Births %>% 
   
   # apply groups
@@ -202,6 +204,101 @@ MAB <-
             # remove unneeded groups
             .groups = "drop")
 ```
+
+
+# Process denominators
+
+First, read the data in, be sure to declare the `NA` character, `":"`
+```{r}
+Pop <-
+  
+  # First read in a cell range from the spreadsheet
+  read_excel(path = here("Data", "demo_pjan.xlsx"),
+           range = "A10:CZ510",
+           # this time it's necessary to declare the NA code
+           na = ":") %>% 
+  
+  pivot_longer(cols = `Less than 1 year`:`Unknown`,
+              names_to = "Age",
+              values_to = "Population") %>% 
+  
+  filter(!is.na(Population))
+```
+
+Recode age classes:
+
+```{r}
+Pop %>% 
+  pull(Age) %>% 
+  unique()
+```
+
+We'll use `parse_number()` just like before
+```{r}
+Pop <-
+  
+  # incoming population data
+  Pop %>% 
+  
+  # recode age, accounting for all cases, assinging NA to Unknown
+  mutate(Age = case_when(
+    Age == "Less than 1 year" ~ 0,
+    Age == "Open-ended age class" ~ 100,
+    Age == "Unknown" ~ NA_real_,
+    TRUE ~ parse_number(Age)
+  )) %>% 
+  
+  # select the columns we want to keep and rename as needed
+  select(Country = `GEO/AGE`,
+         Year = TIME,
+         Age,
+         Population)
+```
+
+Demonstrate `case_when()`
+```{r}
+x <- 0:20
+abc <- letters[1:21]
+x %% 2
+x %% 2 == 0
+case_when(x %% 3 == 0 ~ "Maybe tomorrow will be better",
+          x %% 2 == 0 ~ "Today is a good day",
+          TRUE ~ "Tomorrow for sure excellent")
+```
+
+Now we should redistribute population counts with unknown age, proportional to those of known age.
+
+`ifelse(logical, TRUE, FALSE)`
+```{r}
+Pop %>% 
+  
+  group_by(Country, Year) %>% 
+  
+  mutate(UNK = Population[is.na(Age)],
+         # fills created NAs with 0s, because missing Unknowns
+         # just means that there were none
+         UNK = ifelse(is.na(UNK), 0, UNK)) %>% 
+  
+  # throw out the NA ages (unknowns)
+  filter(!is.na(Age)) %>% 
+  
+  # redistribution as a 1-liner,
+  # Population / sum(Population) is what we called Fraction before
+  mutate(Population = Population + Population / sum(Population) * UNK) %>% 
+  
+  # remove groups no longer needed
+  ungroup() %>% 
+  
+  # remove unneeded column
+  select(-UNK)
+```
+
+
+Calculate exposures
+
+
+
+
 
 
 
