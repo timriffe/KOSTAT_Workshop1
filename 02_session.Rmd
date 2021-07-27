@@ -1,0 +1,95 @@
+---
+title: "Tuesday session notes"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Summary
+
+Today we'll get an introduction to the tidyverse. Which includes reading in data, and reshaping it, recoding it, and merging data together. 
+
+# Read in the births data
+
+Tidy data (our objective) is defined as a tabular arrangement of data, where columns are strictly variables and rows consist in single observations.
+
+```{r}
+# packages we'll need
+# install.packages("here")
+library(tidyverse)
+library(readxl)
+library(here)
+Wide <- read_excel(path = here("Data", "demo_fasec.xlsx"),
+           range = "A10:H158")
+glimpse(Wide)
+```
+
+`pivot_longer()` collects a range of columns and stacks them. `names_to` is where the previous columns names get collected in a new column. `values_to` is where the cell values are collected as a single column.
+```{r}
+Long <-
+   pivot_longer(data = Wide,
+                cols = 3:8,
+                names_to = "TIME",
+                values_to = "Births")
+Long
+```
+
+The column range can be specified by name too, or also using various kinds of conditional selection. In the second example it chooses all columns where the data type is `double`.
+
+```{r}
+# select using column name range
+ pivot_longer(data = Wide,
+                cols = `2011`:`2016`,
+                names_to = "TIME",
+                values_to = "Births")
+
+ pivot_longer(data = Wide,
+                cols = where(is.double),
+                names_to = "TIME",
+                values_to = "Births")
+```
+
+Select and rename columns to whatever standard we want. When we assign to `Long` having started with `Long`, it overwrites the old one.
+```{r}
+Long <- 
+  select(.data = Long,
+       Country = `GEO/TIME`,
+       Age = AGE,
+       Year = TIME,
+       Births)
+glimpse(Long)
+```
+
+Now let's redo the above three steps making use of piping. `%>%` Ctrl + Shift + m
+
+```{r}
+Long <-
+# step 1, read it in
+  read_excel(
+    path = here("Data", "demo_fasec.xlsx"),
+    range = "A10:H158") %>% 
+  
+# step 2, stack the years
+  pivot_longer(
+    cols = `2011`:`2016`,
+    names_to = "Year",
+    values_to = "Births"
+  ) %>% 
+  
+# step 3 select and rename columns the way we want
+  select(Country = `GEO/TIME`,
+         Year,
+         Age = AGE,
+         Births)
+```
+
+
+
+
+
+
+
+
+
