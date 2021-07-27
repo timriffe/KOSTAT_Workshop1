@@ -234,7 +234,7 @@ LT_inputs <-
                                origin = "iso3c",
                                destination = "country.name")) %>% 
   arrange(Country, Year, Sex, Age) %>% 
-  select(Country, ISO3, Sex, Age, nMx, nAx)
+  select(Country, ISO3, Year, Sex, Age, nMx, nAx)
 
 # save the results
 write_csv(LT_inputs, file = here("Data","LT_inputs.csv"))
