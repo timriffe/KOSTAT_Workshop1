@@ -79,15 +79,110 @@ Long <-
   ) %>% 
   
 # step 3 select and rename columns the way we want
-  select(Country = `GEO/TIME`,
-         Year,
-         Age = AGE,
-         Births)
+  select(
+    Country = `GEO/TIME`,
+    Year,
+    Age = AGE,
+    Births)
+```
+
+Now let's recode `Age`
+
+```{r}
+Long %>% 
+  pull(Age) %>% 
+  unique()
+```
+First, to demonstrate the processing steps on a single subset of the data, then do it for all subsets at once!!
+```{r}
+library(readr)
+# example so you understand logical selection
+  # Long %>% 
+  # mutate(my_selector = Country == "Czechia" & Year == "2011") %>% 
+  # filter(my_selector) %>% 
+  # mutate(TOT = Births[Age == "Total"])
+
+# but this way is better!
+ Long %>% 
+   
+   # select subset for this example to demonstrate the logic of it
+  filter(Country == "Czechia",
+         Year == "2011") %>% 
+   
+   # move Total births up to a column
+  mutate(TOT = Births[Age == "Total"]) %>% 
+   
+   # now we can throw out Total and Unknown ages
+  filter(!Age %in% c("Total","Unknown")) %>% 
+   
+   # redistribute births with known age of mother
+   # so that they add up to the total!
+  mutate(Fraction = Births / sum(Births),
+         Births = TOT * Fraction,
+         
+         # pick out the integer part of age from the character strings
+         Age = parse_number(Age)) %>% 
+   
+   # remove temporary / instrumental columns
+  select(-TOT, -Fraction) 
 ```
 
 
+Mini time out to understand logicals and how they can be used to select things in `R`:
 
+```{r}
+a <- rnorm(10)
+a[a >= 0]
+my_selector <- a >= 0
+a[!my_selector]
+```
 
+Time to do this for all the subsets at once!
+
+```{r}
+# step 1, read it in
+  read_excel(
+    path = here("Data", "demo_fasec.xlsx"),
+    range = "A10:H158") %>% 
+  
+# step 2, stack the years
+  pivot_longer(
+    cols = `2011`:`2016`,
+    names_to = "Year",
+    values_to = "Births"
+  ) %>% 
+  
+# step 3 select and rename columns the way we want
+  select(
+    Country = `GEO/TIME`,
+    Year,
+    Age = AGE,
+    Births) %>% 
+   
+  # step 4 declare groups on each unique combination of Country and Year
+  # that is present in these data. This creates independent groups!
+  group_by(Country, Year) %>% 
+
+   # 5 move Total births up to a column
+  mutate(TOT = Births[Age == "Total"]) %>% 
+   
+   # 6 now we can throw out Total and Unknown ages
+  filter(!Age %in% c("Total","Unknown")) %>% 
+   
+   # 7 redistribute births with known age of mother
+   # so that they add up to the total!
+  mutate(Fraction = Births / sum(Births),
+         Births = TOT * Fraction,
+         
+         # pick out the integer part of age from the character strings
+         Age = parse_number(Age)) %>% 
+   
+   # 8 remove temporary / instrumental columns
+  select(-TOT, -Fraction) %>% 
+  
+  # 9 remove the groups!
+  ungroup()
+```
 
 
 
