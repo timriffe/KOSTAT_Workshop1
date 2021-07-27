@@ -140,6 +140,7 @@ a[!my_selector]
 Time to do this for all the subsets at once!
 
 ```{r}
+Births <-
 # step 1, read it in
   read_excel(
     path = here("Data", "demo_fasec.xlsx"),
@@ -183,6 +184,33 @@ Time to do this for all the subsets at once!
   # 9 remove the groups!
   ungroup()
 ```
+
+
+# Calculating summary measures
+
+To calculate summary measures (including tabulations) we use `summarize()` (`summarise()`), just be sure to declare groups, if appropriate! And don't forget to remove them when done!
+```{r}
+# The data are clean, let's calculate something!
+MAB <-
+  Births %>% 
+  
+  # apply groups
+  group_by(Country, Year) %>% 
+  
+  # define the summary measure
+  summarize(MAB = sum(Age * Births) / sum(Births) + .5,
+            # remove unneeded groups
+            .groups = "drop")
+```
+
+
+
+
+
+
+
+
+
 
 
 
