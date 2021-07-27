@@ -3,7 +3,17 @@
 
 26-30 July, 2021. See you in Zoom!
 
-This repository is a placeholder for materials around the forthcoming workshop. Files and a table of contents will be added as materials are created.
+## Contents
+
+1. `Data/`
+   1. `demo_pjan.xlsx`
+   2. `demo_fasec.xlsx`
+
+2. `01` (Monday, 26, July 2021)
+   1. `01_handout` (`.Rmd`, `.pdf`)
+   2. `01_session` (`.Rmd`, `.pdf`)
+3. `02` (Tuesday, 27, July 2021)
+   1. `01_handout` (`.Rmd`, `.pdf`)
 
 
 ## Things to install
