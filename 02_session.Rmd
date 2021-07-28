@@ -301,6 +301,8 @@ Calculate exposures by taking the mean of January 1 (`P1`) and December 31 `P2` 
 The trick will be to first take our incoming `P1` estimate, convert it into `P2`, then join it back to the original `P2`. This last step is done with `inner_join()`, which takes two datasets and filters each down only to matching *join* (`by`) variables, then combines them into a single dataset.
 
 ```{r}
+glimpse(Pop)
+
 Pop <-
 # incoming population data
   Pop %>% 
@@ -327,13 +329,21 @@ We can (and maybe *should*) take care to re-combine these discrete steps as much
 
 ```{r}
 Pop <-
+  
+  # read in the data from Excel
   read_excel(path = here("Data", "demo_pjan.xlsx"),
            range = "A10:CZ510",
            na = ":") %>% 
+  
+  # next we reshape to long format, stacking ages
   pivot_longer(cols = `Less than 1 year`:`Unknown`,
               names_to = "Age",
               values_to = "Population") %>% 
+  
+  # remove NAs in populations
   filter(!is.na(Population)) %>% 
+  
+  # next we recode Age
   mutate(
     Age = case_when(
     Age == "Less than 1 year" ~ 0,
@@ -341,26 +351,53 @@ Pop <-
     Age == "Unknown" ~ NA_real_,
     TRUE ~ parse_number(Age)
   )) %>% 
+  
+  # do some column renaming 
   select(
     Country = `GEO/AGE`,
     Year = TIME,
     Age,
     Population) %>% 
+  
+  # declare independent groups for unknown
+  # age redistribution
   group_by(Country, Year) %>% 
+  
+  # Move Unknown age up to a column, repeating for each subset
   mutate(UNK = Population[is.na(Age)],
          UNK = ifelse(is.na(UNK), 0, UNK)) %>% 
+  
+  # remove Unknown age row
   filter(!is.na(Age)) %>% 
+  
+  # ready to redistribute
   mutate(Population = Population + Population / sum(Population) * UNK,
          Year = as.integer(Year)) %>% 
+  
+  # remove groups
   ungroup() %>% 
+  
+  # remove instrumental column
   select(-UNK)
 
 Pop <-
+  # incoming Jan 1 population
   Pop %>% 
+  
+  # convert to Dec 31 population
   mutate(Year = Year - 1) %>% 
+  
+  # label accordingly
   rename(P2 = Population) %>% 
+  
+  # join back to jan 1 population
   inner_join(Pop, by = c("Country", "Year","Age")) %>% 
+  
+  # rename to P1 so we don't get confused
   rename(P1 = Population) %>% 
+  
+  # exposure calculation trivial once we manage 
+  # to get P1 and P2 next to each other
   mutate(Exposure = (P1 + P2) / 2)
 ```
 
@@ -369,9 +406,19 @@ A similar join technique is used to add exposure data to the births data from ea
 ```{r}
 ASFR <-
   Births %>% 
+  
+  # Take care of year integer conversion so
+  # that we can successfully join!
   mutate(Year = as.integer(Year)) %>% 
+  
+  # Join only those combination that are present in both
+  # objects
   inner_join(Pop, by = c("Country","Year","Age")) %>% 
+  
+  # calculate age specific fertility rates
   mutate(ASFR = Births / Exposure) %>% 
+  
+  # now sort for easy visual insepction
   arrange(Country, Year, Age)
 ```
 
@@ -383,11 +430,21 @@ MAB <-
   mutate(Year = as.integer(Year))
 
 Fert <-
+  
+  # incoming data (has rates and everything else)
   ASFR %>% 
+  
+  # declare groups / subsets
   group_by(Country, Year) %>% 
+  
+  # calculate TFR for subsets,
+  # and also MAB that we can compare 
+  # with the birth-weighted on
   summarize(TFR = sum(ASFR),
             MAB2 = sum(Age * ASFR) / TFR + .5,
             .groups = "drop") %>% 
+  
+  # keep all rows
   full_join(MAB, by = c("Country","Year"))
 ```
 
@@ -418,7 +475,6 @@ Fert %>%
   geom_line() +
   labs(title = "Compare birth-weighted and rate-weighted MAB")
 ```
-
 
 
 
