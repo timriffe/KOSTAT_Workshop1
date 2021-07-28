@@ -162,7 +162,7 @@ A couple rules for using functions inside of other functions are that
 
 For (2) the easiest is to just have it loaded in memory, either by having defined it earlier in your script (or a script your `source()`), or by calling `library()` or `require()` to get the requisite package loaded. There are more robust ways of doing this that would require us to learn how to *make* packages, but there's no time for that in our schedule.
 
-Knowing the basics for creating and wrapping functions is all we need to be able to make lifetables.
+Knowing the basics for creating and wrapping functions is all we need to be able to make lifetable functions.
 
 # Lifetables
 
@@ -186,7 +186,7 @@ glimpse(LT)
 
 ## Death probabilities between age $x$ and $x+n$ $_nq_x$
 
-The first and key step is to transform a set of age-specific death rates into a set of age-specific probabilities of dying (${}_nq_x$). The relation between ${}_nM_x$ and ${}_nq_x$ have been established based on analyses of actual cohorts (for mathematical proof, see @preston2000demography, p. 42-43). 
+The first and key step is to transform a set of age-specific death rates into a set of age-specific probabilities of dying (${}_nq_x$). The relationship between ${}_nM_x$ and ${}_nq_x$ has been established based on analyses of actual cohorts (for mathematical proof, see @preston2000demography, p. 42-43). 
 
 $$
 {}_nq_x = \frac{n*{}_nM_x}{1+(n-{}_nA_x){}_nM_x}
@@ -224,6 +224,8 @@ LT %>%
        subtitle = "Data: GHO")
 
 ```
+Often we're sure to *close out* the lifetable by making the *final* ${}_nq_x$ value equal to 1. You could optionally modify the function to impute 1 like so `nqx[length(nqx)] <- 1`.
+
 ## Survival probabilities between age $x$ and $x+n$, $_np_x$
 
 The survival probabilities between age $x$ and $x+n$ (${}_np_x$) is simply one minus ${}_nq_x$. It is interpreted as the chance of surviving from age $x$ to age $x+n$.
@@ -410,7 +412,8 @@ To use easily in a tidy pipeline, we'll just want to be sure that the input cons
 ```{r}
 # data.frame in, data.frame out!
 calc_LT_tidy <- function(data, radix){
-  # this is hacky, but works
+  # this is hacky, but works.
+  # just pick out the needed vectors from the group of data
   calc_LT(nMx = data$nMx,
           nAx = data$nAx,
           n = data$n,
@@ -425,11 +428,14 @@ Here, out lifetable function is a bit different in that it returns a result with
 
 ```{r}
 AFR_LT <-
-LT %>% 
+  LT %>% 
   mutate(n = case_when(Age == 0 ~ 1,
                        Age == 1 ~ 4,
                        TRUE ~ 5)) %>% 
+  # same grouping approach as before
   group_by(Country, Year, Sex) %>% 
+  # the ~ is important! .x is the code name for the data object
+  # passing through the pipeline. data is *our* argument name
   group_modify(~ calc_LT_tidy(data = .x), radix = 1) %>% 
   ungroup()
 ```
@@ -446,10 +452,9 @@ Not bad!
 
 # Exercises
 
-1. Make your own lifetable function. Keep it somewhere you won't forget. Celebrate with a nice cup of tea. Or some other beverage.
+1. Make your own lifetable function. Keep it somewhere you won't forget. Celebrate with a nice cup of tea. Or some other beverage. (remember this one from class isn't rigorous, you may need to go back and modify it from time to time as issues arise)
 2. Pick a country / year  combination used here, and compare the life expectancy estimate with some others you can find. World Population Prospects, for example, or perhaps an official or otherwise published estimate. If you find a discrepancy, do you know what's behind it?
 3. What is the range of life expectancy in our estimates?
-
 
 # References
 
