@@ -30,8 +30,6 @@ bibliography: bibliography.bib
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-rm(pw)
-rm(us)
 ```
 
 \noindent\makebox[\textwidth][c]{
