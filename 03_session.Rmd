@@ -231,6 +231,7 @@ calc_ex(Tx, lx)
 # bring it all together
 
 ```{r}
+# LT %>% str()
 LT %>% 
   group_by(Country, ISO3, Sex, Year) %>% 
   mutate(
@@ -244,5 +245,59 @@ LT %>%
     Tx = calc_Tx(nLx),
     ex = calc_ex(Tx = Tx, lx = lx))
 ```
+# Wrap all the lifetable transformations in a single function
+
+```{r}
+my_abridged_LT <- function(DF, radix = 1){
+  # we assume you have a single population and
+  # that DF hsa columns Age, nMx, and nAx
+  out <-
+    DF %>% 
+    mutate(
+    n = case_when(Age == 0 ~ 1,
+                  Age == 1 ~ 4,
+                  TRUE ~ 5),
+    nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n),
+    lx = calc_lx(nqx = nqx, radix = radix),
+    ndx = calc_ndx(nqx = nqx, lx = lx),
+    nLx = calc_nLx(ndx = ndx, lx = lx, nAx = nAx, n = n),
+    Tx = calc_Tx(nLx),
+    ex = calc_ex(Tx = Tx, lx = lx))
+  
+  return(out)
+}
+
+# test on subset
+my_abridged_LT(DF = DZA)
+
+```
+
+To apply this in bulk, we just declare groups with `group_by()`, and then use the function `group_modify()` instead of `mutate()`. Remember, `mutate()` does things one column at a time. Here, `group_modify()` does things one *chunk* at a time. `data.frame`-in, `data.frame`-out.
+
+```{r}
+AFR_LT <-
+  # incoming data with nMx, Age, nAx (at least)
+  LT %>% 
+  
+  # declare groups
+  group_by(Country, Year, Sex) %>% 
+  
+  # use out function 
+  group_modify(~ my_abridged_LT(DF = .x), radix = 1e5) %>% 
+  
+  # remove the groups
+  ungroup()
+
+```
+
+## save out results
+
+```{r}
+write_csv(AFR_LT, file = "Data/AFR_LT.csv")
+```
+
+
+
+
 
 
