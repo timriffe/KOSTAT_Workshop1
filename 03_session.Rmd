@@ -1,0 +1,248 @@
+---
+title: "Wednesday session notes"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Summary
+We will talk with roughly equal importance about both function-writing and lifetables.
+
+# Functions
+
+Anything in `R` with `()` after its name is a function.
+```{r}
+c(1,2)
+sum()
+```
+
+Anatomy of a function. First we assign to a name, which will become the name of our function. We use `function()` to make it. Inside the round parentheses we define argument names. These can be anything, and not need to refer to actual objects sitting in your `R` session. These will only be used internally in the body of the function. The body of the function is everything that happens between the curly braces. Whatever you do in the curly braces *should* only refer to things explicitly *passed in* from the defined arguments.
+```{r}
+fun_1 <- function(arg1, arg2){
+  arg1 ^ 2 + arg2
+}
+# fun_1(arg1 = , arg2 = )
+fun_1(arg1 = 2, arg2 = 10)
+fun_1(2, 10)
+fun_1(arg2 = 10, arg1 = 2)
+fun_1(10, 2)
+```
+Note, when using a function you should probably give its arguments by name, and not merely by order. If you don't name the arguments when calling the function then they will be interpreted in order.
+
+```{r}
+fun_2 <- function(x, y){
+  x2 <- x^2 - x
+  x2 * y
+}
+fun_2(x = 5, y = 3)
+
+```
+
+Observe: neither `x`, nor `y` nor `x2` were ever created in our environment, nor were they ever available to us in an interactive way. They only existed temporarily inside the function, which *only* returns a result. Note in the above two examples, we return the result as the last thing evaluated. The `x2` that was assigned, is just a temporary line, and is not returned.
+
+We can be explicit about returning things from the function by using `return()`.
+```{r}
+fun_3 <- function(x, y){
+  step1 <- fun2(x = x, y = y)
+  out   <- step1 / x + y
+  return(out)
+}
+```
+
+Also, we are free to use other functions inside of our functions, as long as they are somehow available. Her ewe make `readr` function available to us withg `library()`
+
+```{r}
+library(readr)
+fun_4 <- function(x){
+  x <- parse_number(x)
+  x ^ 2
+}
+fun_4(x = "x4")
+```
+
+But you can also grab a function from a package without needing to load the package, a nice thing to understand. Just use `::`
+
+```{r}
+fun_5 <- function(x){
+  x <- readr::parse_number(x)
+  x ^ 2
+}
+fun_5("x4")
+```
+
+You can return more than one thing, or something with an interesting dimension:
+
+```{r}
+fun_6 <- function(DF){
+  DF$z <- DF$x * DF$y
+  DF
+}
+my_DF <- data.frame(x = rnorm(10),
+                    y = runif(10, min = -5, max = 5))
+my_DF
+fun_6(my_DF)
+```
+
+We could redo `fun_6()` using tidyverse instead of base:
+```{r}
+library(tidyverse)
+fun_7 <- function(DF){
+  DF %>% 
+    mutate(z = x * y)
+}
+fun_7(my_DF)
+```
+
+# Now it's time for lifetables
+
+```{r}
+library(tidyverse)
+library(readr)
+
+path <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/LT_inputs.csv"
+LT <- read_csv(path)
+glimpse(LT)
+```
+
+
+## Lifetable transformations as functions
+
+## Death probabilities between age $x$ and $x+n$ $_nq_x$
+
+$$
+{}_nq_x = \frac{n*{}_nM_x}{1+(n-{}_nA_x){}_nM_x}
+$$
+where $_nA_x$ is the average number of person-years lived in the interval by those dying in the interval and $n$ is the width of the age-interval.
+
+```{r}
+calc_nqx <- function(nMx, nAx, n){
+  nqx <- (n * nMx) / (1 + (n - nAx) * nMx)
+  nqx[nqx > 1] <- 1
+  nqx[nqx < 0] <- 0
+  nqx
+}
+
+head(LT)
+DZA <-
+  LT %>% 
+  filter(Country == "Algeria",
+       Sex == "f",
+       Year == 2000)
+
+DZA %>% 
+ggplot(aes(x = Age, y = nMx)) +
+  geom_step() +
+  scale_y_log10()
+
+nMx <- DZA$nMx
+nAx <- DZA$nAx
+n   <- c(1,4,rep(5,17))
+
+nqx <- calc_nqx(nMx, nAx, n)
+```
+
+
+
+## Survival probabilities between age $x$ and $x+n$, $_np_x$
+
+$$
+{}_np_x = 1 - {}_nq_x
+$$
+
+## Survival probabilities to age $x$, $l_x$
+
+$$
+l_{x+n} = r \prod_{y=0}^x {}_np_y
+$$
+where $r = {}_nl_0$ is the radix. 
+
+```{r}
+calc_lx <- function(nqx, radix = 1){
+  lx <- c( 1, cumprod(1 - nqx))
+  lx <- lx[-length(lx)]
+  radix * lx
+}
+lx <- calc_lx(nqx)
+```
+
+
+
+## Death distribution, $_nd_x$
+
+$$
+{}_nd_x = {}_nq_x * l_x
+$$
+```{r}
+calc_ndx <-function(nqx, lx){
+  nqx * lx
+}
+ndx <- calc_ndx(nqx, lx)
+ndx
+```
+
+## Person-years lived between age $x$ and $x+n$, $_nL_x$
+
+$$
+{}_nL_x = \frac{{}_nd_x}{{}_nM_x}
+$$
+You can think of this identity as relating to occurrence exposure rates, however, you might get a 0 in the denominator, which would need to be handled, so instead we might prefer something that isn't a ratio:
+$${}_nL_x = n(l_x - {}_nd_x) + {}_nA_x*{}_nd_x $$
+And be sure to close out the final value with:
+$$ L_{85} = l_{85} + A_{85}$$
+
+```{r}
+calc_nLx <- function(ndx, lx, nAx, n){
+ n * (lx - ndx) + nAx * ndx
+}
+
+nLx <- calc_nLx(ndx, lx, nAx, n)
+nLx
+
+```
+
+## Person-years lived above age x $T_x$
+
+$$
+T_x = \sum_{y=x}^{\infty} {}_nL_y
+$$
+
+```{r}
+calc_Tx <- function(nLx){
+  nLx %>% rev() %>% cumsum() %>% rev()
+}
+Tx <- calc_Tx(nLx)
+```
+
+## Life expectancy $e_x$
+
+$$
+e_x = \frac{T_x}{l_x}
+$$
+
+```{r}
+calc_ex <- function(Tx, lx){
+  Tx / lx
+}
+calc_ex(Tx, lx)
+
+```
+# bring it all together
+
+```{r}
+LT %>% 
+  group_by(Country, ISO3, Sex, Year) %>% 
+  mutate(
+    n = case_when(Age == 0 ~ 1,
+                  Age == 1 ~ 4,
+                  TRUE ~ 5),
+    nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n),
+    lx = calc_lx(nqx = nqx, radix = 1e5),
+    ndx = calc_ndx(nqx = nqx, lx = lx),
+    nLx = calc_nLx(ndx = ndx, lx = lx, nAx = nAx, n = n),
+    Tx = calc_Tx(nLx),
+    ex = calc_ex(Tx = Tx, lx = lx))
+```
+
+
