@@ -1,0 +1,48 @@
+---
+title: "Session 4 notes"
+author: "Tim Riffe"
+date: "7/29/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# `ggplot2` basics
+
+```{r}
+# install.packages("gapminder")
+library(gapminder)
+library(tidyverse)
+
+gapminder
+```
+
+The fundamentals, `ggplot()` is necessary but not sufficient to build the plot. here we declare, at minimum, the coordinate mapping. Executing this opens a blank plot area, which is however aware of the data dimensions.
+```{r}
+gapminder %>% 
+  ggplot(mapping = aes(x = gdpPercap, y = lifeExp))
+```
+
+To actually *draw* something (sorry, map something) to the plot, we need to specify a geometric element, using `geom_*`
+```{r}
+gapminder %>% 
+  ggplot(mapping = aes(x = gdpPercap, y = lifeExp)) +
+  
+  # this declare the geometric mapping
+  geom_point()
+```
+
+If we instead specify `geom_line()` it renders the observations as a single path, because it doesn't know where each country begins and ends.
+```{r}
+gapminder %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+  #geom_line()
+  geom_point() + 
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+
+
