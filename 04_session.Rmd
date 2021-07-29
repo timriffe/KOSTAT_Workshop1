@@ -128,8 +128,127 @@ gapminder %>%
   theme_fivethirtyeight()
   
 # install.packages("ggthemes")
-
 ```
+
+# Visualize our lifetables from Wednesday
+
+```{r}
+library(readr)
+path <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/AFR_LT.csv"
+AFR_LT <- read_csv(path)
+```
+
+Examine the data, plot all $M_x$ curves in a way that is legible
+
+```{r}
+AFR_LT %>% head()
+
+AFR_LT %>% 
+  filter(Year == max(Year),
+         Sex != "t") %>% 
+ ggplot(mapping = aes(x = Age, y = nMx, group = interaction(Country, Sex))) +
+ geom_line(aes(color = Sex), alpha = .3) +
+ scale_y_log10()
+```
+
+Make a sex ratios plot, this requires pre-processing
+
+```{r}
+AFR_LT %>% 
+  # for sex ratios throw out total,
+  # keep only most recent year
+  filter(Year == max(Year),
+         Sex != "t") %>% 
+  
+  # select down to only-needed columns before pivot wider,
+  # just because I was anticipating a very wide dataset otherwise
+  # or at least not the anticipated dimensions
+  select(Country, Age, Sex, nMx) %>% 
+  
+  # move males and females side by side
+  pivot_wider(names_from = Sex, values_from = nMx) %>% 
+  
+  # calculate the measure
+  mutate(SR = m / f) %>% 
+  
+  # here begins the plot
+  ggplot(aes(x = Age, y = SR, group = Country)) + 
+  geom_line() +
+  scale_y_log10()
+```
+
+# Population pyramids using `geom_bar()`
+
+Our strategy for making a population pyramid will look a lot like the same steps you'd take anywhere else. Namely, to get males on the left, just make them negative.
+
+```{r}
+countries <- AFR_LT$Country %>% unique()
+# sample(countries, 1)
+AFR_LT %>% 
+  filter(Country == "Nigeria",
+         Year == 2019,
+         Sex != "t") %>% 
+  mutate(SRB = 1.05,
+         PF = 1 / (1 + SRB),
+         `Stationary Population` = ifelse(Sex == "m", 
+                                          nLx * (1 - PF),
+                                          nLx * PF),
+         `Stationary Structure` = 100 * `Stationary Population` / sum(`Stationary Population`),
+         `Stationary Structure` = ifelse(Sex == "m",
+                                         -`Stationary Structure`,
+                                         `Stationary Structure`) / 5,
+         Age = Age - Age %% 5
+         ) %>%   
+  group_by(Sex,Age) %>% 
+  summarize(`Stationary Structure` = sum(`Stationary Structure`),
+            .groups = "drop") %>% 
+  
+  ggplot(aes(x = Age,                                                                                           y = `Stationary Structure`,
+             fill = Sex,
+             color = Sex)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(breaks = seq(-.7, .7, by = .2),
+                     labels = paste0(c("0.7","0.5","0.3","0.1","0.1","0.3","0.5","0.7"),"%")) +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1") +
+  labs(title = "Stationary population structure",
+       subitle = "Nigeria, 2019",
+       caption = "Data: based on data from GHO")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
