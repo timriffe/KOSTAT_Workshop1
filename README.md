@@ -17,7 +17,7 @@
    2. `02_session` (`.Rmd`, `.pdf`)
 4. `03` (Wednesday, 28, July 2021) "Function writing"
    1. `03_data_prep` (`.Rmd`, `.pdf`)
-
+   2. `03_handout` (`.Rmd`, `.pdf`)
 
 ## Things to install
 
