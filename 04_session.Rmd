@@ -37,12 +37,107 @@ gapminder %>%
 If we instead specify `geom_line()` it renders the observations as a single path, because it doesn't know where each country begins and ends.
 ```{r}
 gapminder %>% 
-  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+  ggplot(aes(x = gdpPercap, 
+             y = lifeExp)) +
   #geom_line()
-  geom_point() + 
+  geom_point(mapping = aes(color = continent), 
+             alpha = .5) + 
   scale_x_log10() +
-  scale_y_log10()
+  #scale_y_log10() +
+  geom_smooth() # ?geom_smooth
 ```
+
+Time to map `alpha`, but without legend
+
+```{r}
+gapminder %>% 
+  ggplot(aes(x = gdpPercap, 
+             y = lifeExp)) +
+  geom_point(mapping = aes(color = continent,
+                           alpha = year)) +
+  scale_x_log10() +
+  # turn off alpha legend
+  guides(alpha = "none")
+```
+
+Add some filters to look at just one subset:
+
+```{r}
+gapminder %>% 
+  # filter down to large countries in Africa
+  filter(continent == "Africa",
+         pop > 1e7) %>% 
+  
+  # start the plot, declaring only coordinates
+  # so that we can have aesthetic control over each geom
+  ggplot(aes(x = gdpPercap,
+             y = lifeExp)) +
+  
+  # x and y map to points, whose color *depends on* the country
+  # and transparency on year, and size on population
+  geom_point(mapping = aes(color = country,
+                           alpha = year,
+                           size = pop)) +
+  
+  # same mapping for lines, except we are explicit that 
+  # countries are distinct groups, so each line should
+  # be separate
+  geom_line(mapping = aes(group = country,
+                          color = country,
+                          alpha = year)) +
+  
+  # turn off color and transparency legends
+  guides(alpha = "none",
+         color = "none") +
+  
+  # log the x scale
+  scale_x_log10() +
+  
+  # add overall smoother with explicit aesthetic settings
+  geom_smooth(color = "red",
+              fill = "red",
+              alpha = .2)
+```
+
+I'm removing the smoother because it's distracting in a bad way: it doesn't summarize the within-country trend the way we'd like.
+
+```{r}
+# install.packages("scales")
+library(scales)
+library(ggthemes)
+gapminder %>% 
+  filter(pop > 1e7,
+         continent != "Oceania") %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(mapping = aes(color = country,
+                           size = pop,
+                           alpha = year))+
+  geom_line(mapping = aes(color = country,
+                          alpha = year,
+                          group = country))+
+  scale_x_log10() + 
+  scale_size_continuous(labels = number_format(scale = 1 / 1e6)) +
+  guides(color = "none",
+         alpha = "none") +
+  facet_wrap(~continent) +
+  labs(size = "Population\n(millions)",
+       x = "GDP per capita",
+       y = "Life expectancy at birth",
+       title = "Trends in GDP per capita and life expectancy",
+       subtitle = "Data collated by gapminder") +
+  theme_fivethirtyeight()
+  
+# install.packages("ggthemes")
+
+```
+
+
+
+
+
+
+
+
 
 
 
