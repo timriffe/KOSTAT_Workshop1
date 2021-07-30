@@ -12,17 +12,17 @@
 2. `01` (Monday, 26, July 2021) "Introduction to `R`, `RStudio`, and `R markdown`"
    1. `01_handout` (`.Rmd`, `.pdf`)
    2. `01_session` (`.Rmd`, `.pdf`)
-3. `02` (Tuesday, 27, July 2021) "The tidy data approach"
+3. `02` (Tuesday, 27, July 2021) "The tidy data approach" Example data: births
    1. `02_handout` (`.Rmd`, `.pdf`)
    2. `02_session` (`.Rmd`, `.pdf`)
-4. `03` (Wednesday, 28, July 2021) "Function writing"
+4. `03` (Wednesday, 28, July 2021) "Function writing" Example: WHO mortality data
    1. `03_data_prep` (`.Rmd`, `.pdf`)
    2. `03_handout` (`.Rmd`, `.pdf`)
    3. `03_session` (`.Rmd`, `.pdf`)
-5. `04` (Thursday, 29, July 2021) "Visualizing data using `ggplot2`"
+5. `04` (Thursday, 29, July 2021) "Visualizing data using `ggplot2` Example: `gapminder` and WHO lifetables
    1. `04_handout` (`.Rmd`, `.pdf`)
    2. `04_session` (`.Rmd`, `.pdf`)
-6. `05` (Friday, 30, July 2021) "Advanced pipelines"
+6. `05` (Friday, 30, July 2021) "Advanced pipelines" Example: Healthy life expectancy with GBD and HLD
    1. `05_handout` (`.Rmd`, `.pdf`)
    2. `05_session` (`.Rmd`, `.pdf`)
    
