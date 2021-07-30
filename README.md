@@ -18,7 +18,14 @@
 4. `03` (Wednesday, 28, July 2021) "Function writing"
    1. `03_data_prep` (`.Rmd`, `.pdf`)
    2. `03_handout` (`.Rmd`, `.pdf`)
-
+   3. `03_session` (`.Rmd`, `.pdf`)
+5. `04` (Thursday, 29, July 2021) "Visualizing data using `ggplot2`"
+   1. `04_handout` (`.Rmd`, `.pdf`)
+   2. `04_session` (`.Rmd`, `.pdf`)
+6. `05` (Friday, 30, July 2021) "Advanced pipelines"
+   1. `05_handout` (`.Rmd`, `.pdf`)
+   2. `05_session` (`.Rmd`, `.pdf`)
+   
 ## Things to install
 
 * Rstudio Desktop, preview version [https://www.rstudio.com/products/rstudio/download/preview/](https://www.rstudio.com/products/rstudio/download/preview/)
