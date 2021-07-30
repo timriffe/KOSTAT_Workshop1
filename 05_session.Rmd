@@ -160,6 +160,91 @@ HLD <-
 
 # Ready to join
 
+```{r}
+head(GBD)
+head(HLD)
+
+HLE <-
+  inner_join(GBD, HLD, by = c("ISO3", "sex","age"))
+
+HLE$location %>% unique() %>% sort()
+```
+
+# Calculate HLE
+
+```{r}
+HLE %>% 
+  filter(location == "India",
+         cause == "Diabetes and kidney diseases",
+         sex == "m") %>% 
+  mutate(n = case_when(age == 0 ~ 1,
+                       age == 1 ~ 4,
+                       TRUE ~ 5),
+         nLx = nLx / n,
+         Ux = nLx * val,
+         Hx = nLx - Ux) %>% 
+  select(age, nLx, prev = val, Ux, Hx) %>% 
+  pivot_longer(nLx:Hx, 
+               names_to = "Measure", 
+               values_to = "value") %>% 
+  ggplot(aes(x = age, y = value, color = Measure)) + 
+  geom_line()
+```
+
+# calculate HLE
+
+```{r}
+HLExp <- 
+  HLE %>% 
+  mutate(Hx = nLx * (1 - val),
+         
+         # think this step through by looking at the picture
+         Hx_lower = nLx * (1 - upper),
+         Hx_upper = nLx * (1 - lower)) %>% 
+  group_by(location, sex, cause) %>% 
+  summarize(LE = sum(nLx),
+            HLE = sum(Hx),
+            HLE_upper = sum(Hx_upper),
+            HLE_lower = sum(Hx_lower),
+            .groups = "drop")
+```
+
+
+# Visualize
+
+
+```{r, fig.height = 14, fig.width = 8}
+HLExp %>%
+  filter(cause == "Diabetes and kidney diseases",
+         !location %in% c("Malta","Tajikistan")) %>% 
+  ggplot(aes(x = HLE, 
+             y = reorder(location, HLE),
+             color = sex)) +
+  geom_point(position = position_dodge2(width = .4, reverse = TRUE)) +
+  geom_pointrange(aes(xmin = HLE_lower, xmax = HLE_upper),
+                  position = position_dodge2(width = .4, reverse = TRUE)) +
+  geom_point(data = filter(HLExp, cause == "Diabetes and kidney diseases",
+         !location %in% c("Malta","Tajikistan")),
+         mapping = aes(x = LE, 
+                       y = reorder(location, HLE), 
+                       color = sex),
+         shape = 2) +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12)) +
+  labs(x = "Diabetes-free and overall life expectancy",
+       y = "",
+       title = "Gender gaps in diabetes-free life expectancy are smaller
+than for overall life expectancy",
+caption = "Data: Lifetables from HLD, prevalence from GBD")
+```
+
+
+
+
+
+
+
+
 
 
 
