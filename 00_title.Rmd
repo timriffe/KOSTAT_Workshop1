@@ -1,0 +1,64 @@
+---
+title: | 
+  | \includegraphics{logotip.pdf}
+  |
+  | KOSTAT-UNFPA Summer Seminar on Population
+  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
+  | \vspace{0.3cm} \huge \textbf{Workshop contents}\vspace{0.6cm}
+  | 
+fontsize: 11pt
+geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
+  = 1.35cm, footskip = 1.6cm
+output:
+  pdf_document:
+    number_sections: yes
+  html_document2: default
+  html_document:
+    number_sections: yes
+    toc: yes
+  pdf_document2: default
+  header-includes:
+    - \usepackage{titling}
+    - \usepackage{fancyhdr}
+    - \pagestyle{fancy}
+    - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
+    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[LO]{{Day 1: Introduction to Rstudio, R, and RMarkdown}}
+    - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
+bibliography: bibliography.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\noindent\makebox[\textwidth][c]{
+  \begin{minipage}[t]{0.45\textwidth}
+    \centering
+    \Large{Instructor: Tim Riffe} \\
+    \vspace{0.1cm}\large{\texttt{tim.riffe@gmail.com}}
+   
+    \vspace{.5cm}
+    \Large{Assistant: Rustam Tursun-Zade}
+    \vspace{0.1cm}\large{\texttt{rustam.tursunzade@gmail.com}}
+  \end{minipage}
+}
+
+
+\vspace{0.8cm}
+\begin{center}
+\large{26-30 July, 2021}
+\end{center}
+\vspace{0.8cm}
+
+This workshop was held daily from July 26-30, 2021 on Zoom, with the following daily themes:
+
+1. Introduction to Rstudio, R, and RMarkdown
+2. The tidy data approach
+3. Writing functions
+4. Visualizing data using ggplot2
+5. Advanced pipelines
+
+This document contains each of the five daily handouts that were prepared ahead of lectures, and which serve as guiding and complementary resources to the lectures. Each lecture was delivered via live coding RMarkdown (`session`) documents that roughly reflect the handout material. These may contain further content, but where concepts by be less thoroughly explained. These and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
+
+
