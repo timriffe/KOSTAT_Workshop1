@@ -33,32 +33,31 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 \noindent\makebox[\textwidth][c]{
-  \begin{minipage}[t]{0.45\textwidth}
+  \begin{minipage}[t]{0.8\textwidth}
     \centering
-    \Large{Instructor: Tim Riffe} \\
-    \vspace{0.1cm}\large{\texttt{tim.riffe@gmail.com}}
+    \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
    
     \vspace{.5cm}
-    \Large{Assistant: Rustam Tursun-Zade}
-    \vspace{0.1cm}\large{\texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistants: \\ Jinyoen Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
   \end{minipage}
 }
 
 
 \vspace{0.8cm}
 \begin{center}
-\large{26-30 July, 2021}
+\large{27 July - 5 August, 2022}
 \end{center}
 \vspace{0.8cm}
 
-This workshop was held daily from July 26-30, 2021 on Zoom, with the following daily themes:
+This workshop was held daily from 27 July until 5 August, 2022 in hybrid format in Daejeon, South Korea and Zoom, with the following daily themes:
 
 1. Introduction to Rstudio, R, and RMarkdown
 2. The tidy data approach
 3. Writing functions
 4. Visualizing data using ggplot2
 5. Advanced pipelines
+6. 
 
-This document contains each of the five daily handouts that were prepared ahead of lectures, and which serve as guiding and complementary resources to the lectures. Each lecture was delivered via live coding RMarkdown (`session`) documents that roughly reflect the handout material. These may contain further content, but where concepts by be less thoroughly explained. These and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
+This document contains each of the eight daily handouts that were prepared ahead of lectures, and which serve as guiding and complementary resources to the lectures. Each lecture was delivered via live coding RMarkdown (`session`) documents that roughly reflect the handout material. These may contain further content, but where concepts by be less thoroughly explained. These and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
 
 

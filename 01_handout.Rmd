@@ -33,21 +33,19 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 \noindent\makebox[\textwidth][c]{
-  \begin{minipage}[t]{0.45\textwidth}
+  \begin{minipage}[t]{0.8\textwidth}
     \centering
-    \Large{Instructor: Tim Riffe} \\
-    \vspace{0.1cm}\large{\texttt{tim.riffe@gmail.com}}
+    \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
    
     \vspace{.5cm}
-    \Large{Assistant: Rustam Tursun-Zade}
-    \vspace{0.1cm}\large{\texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistants: \\ Jinyoen Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
   \end{minipage}
 }
 
 
 \vspace{0.8cm}
 \begin{center}
-\large{26 July 2021}
+\large{27 July 2022}
 \end{center}
 \vspace{0.8cm}
 
@@ -56,9 +54,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # About the instructor
 
-Hi, I'm Tim Riffe, a US-American demographer living and working at the University of the Basque Country (Spain), thanks to a program that brought me here called Ikerbasque. I did my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley (USA) then working as a research scientist with the Max Planck Institute for Demographic Research (Germany). I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. Around three years ago I began adopting the tidyverse approach in my work and teaching.
+Hi, I'm Tim Riffe, a US-American demographer living in Spain and working at the University of the Basque Country, thanks to a program that brought me here called Ikerbasque. I defended my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley (USA) then working as a research scientist with the Max Planck Institute for Demographic Research (Germany). I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. Around four years ago I began adopting the tidyverse approach in my work and teaching.
 
-Rustam Tursun-Zade is an aspiring PhD student, with lots of experience in cancer epidemiology and demography. He is currently affiliated with the European University at St. Petersburg. He also did the European Doctoral School of Demography (2019-2020), and he's an advanced *tidyverse* wizard, and he's able to assist also if there are character or locale issues that arise when using `R` in different language settings.
+Rustam Tursun-Zade is an aspiring PhD student, with lots of experience in cancer epidemiology and demography. He is currently unaffiliated. He also did the European Doctoral School of Demography (2019-2020), and he's an advanced *tidyverse* wizard, and he's able to assist also if there are character or locale issues that arise when using `R` in different language settings. 
+
+Jinyoen Jo ...
 
 # About this workshop
 
@@ -86,9 +86,7 @@ The **indirect objectives** are to teach you:
   * Lexis surfaces
   * others
 
-Each day of the workshop will have a prepared handout, this being the first one. The handout sets out the lesson plan for the day, including code examples. When convenient, I will follow this verbatim, however, most code will generally be derived in a live session. When appropriate, I'll also share improvised / derived code with you via a Google Doc. The hope is that you will be able to follow along with me. Code will be presented in small units, or *chunks*, and commented live both verbally and in writing, as we progress. This will indirectly introduce you to markdown. In case on any day we do not arrive at the end of a lesson plan, the day's handout is also a reproducible tutorial that you can follow on your own. The markdown document created progressively through the day will be tidied up and posted to the course repository each day after class.
-
-We will have frequent short breaks, very likely inspired by the loud church bells that will interrupt the session on my end every hour.
+Each day of the workshop will have a prepared handout, this being the first one. The handout sets out the lesson plan for the day, including code examples. When convenient, I will follow this verbatim, however, most code will generally be derived in a live session. When appropriate, I'll also share improvised / derived code with you spontaneously via a Google Doc. The hope is that you will be able to follow along with me. Code will be presented in small units, or *chunks*, and commented live both verbally and in writing, as we progress. This will indirectly introduce you to markdown. In case on any day we do not arrive at the end of a lesson plan, the day's handout is also a reproducible tutorial that you can follow on your own. The markdown document created progressively through the day will be tidied up and posted to the course repository each day after class. I highly recommend going through the handouts and the session code after each session to solidify the material of the day.
 
 ## Course materials
 
@@ -100,11 +98,11 @@ Our Google Doc pastebin is here: [https://tinyurl.com/6ec2zfyy](https://tinyurl.
 
 ## Additional help
 
-If you do not manage to ask a question during the session (either verbally, or in the chat), you have some other options: paste the question in the Google Doc. Post an `issue` on the repository [https://github.com/timriffe/KOSTAT_Workshop1/issues](https://github.com/timriffe/KOSTAT_Workshop1/issues)- in that case I encourage you to make the problem [reproducible](https://stackoverflow.com/help/minimal-reproducible-example) so that it's more direct for us to troubleshoot. Alternatively, you can ask us informally by email (both the instructor and assistant). Please please please ask questions or ask me to slow down or stop or "*scroll up to show the code again*" if necessary. If you have a question then very likely someone else has the same question, so please ask and don't worry about interrupting me. 
+If you do not manage to ask a question during the session (either verbally, or in the chat), you have some other options: paste the question in the Google Doc. Post an `issue` on the repository [https://github.com/timriffe/KOSTAT_Workshop1/issues](https://github.com/timriffe/KOSTAT_Workshop1/issues)- in that case I encourage you to make the problem [reproducible](https://stackoverflow.com/help/minimal-reproducible-example) so that it's more direct for us to troubleshoot. Alternatively, you can ask us informally by email (both the instructor and an assistant). Please please please ask questions or ask me to slow down or stop or "*scroll up to show the code again*" if necessary. If you have a question then very likely someone else has the same question, so please ask and don't worry about interrupting me. 
 
 # Tour of Rstudio
 
-I presume by now you have `RStudio` installed. If not, go here [https://www.rstudio.com/products/rstudio/download/preview/ ](https://www.rstudio.com/products/rstudio/download/preview/ ) and install the *preview* version. We're using this version because some issues specific to some operating systems are resolved there. 
+I presume by now you have `RStudio` installed. If not, go here [https://www.rstudio.com/products/rstudio/download/preview/ ](https://www.rstudio.com/products/rstudio/download/preview/ ) and install the free desktop version. 
 
 When you open `RStudio` you see four main panels (panes):
 
@@ -139,17 +137,17 @@ Although this is a useful panel, it does not need to be that big.
 
 ## Use an `Rstudio` *project* for this course
 
-We should all work on this course within an `RStudio` *project*. This defines a nice neat space to stash files for the course, and it makes file path specification much much easier. It also makes the entire course material portable, which helps with course reproducbility in the medium term. I give three alternatives for getting started with the course project. I will demonstrate these approaches in the session.
+We should all work on this course within an `RStudio` *project*. This defines a nice neat space to stash files for the course, and it makes file path specification much much easier. It also makes the entire course material portable, which helps with course reproducibility in the medium term. I give three alternatives for getting started with the course project. I will demonstrate these approaches in the session.
 
 1. In `RStudio` select `File` - `New Project` - `New Directory` - `New Project` - type in `KOSTAT_Workshop1` and pick out a directory location you won't forget - `Create Project`. This will create a new empty project that you can put materials in for this course. This ought to work for everyone.
 
 2. Alternatively, if you have `git` installed, you can do:
 
-`File` - `New Project` - `Version Control` - `git` - paste `https://github.com/timriffe/KOSTAT_Workshop1.git` into the `url` box, and select a directory location you won't forget - `Create Project`. This will create a new project that is a *clone* of the materials currently shared in this workshop's `github` repository. This is not necessary, but it might be nice if you want to get started with `git`.
+`File` - `New Project` - `Version Control` - `git` - paste `https://github.com/timriffe/KOSTAT_Workshop1.git` into the `url` box, and select a directory location you won't forget - `Create Project`. This will create a new project that is a *clone* of the materials currently shared in this workshop's `github` repository. This is not necessary, but it might be nice if you want to get started with `git`. 
 
 3. Alternatively, if you don't have `git` installed and do not want to install it, but still want to start with all materials shared, go to [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1) in your browser, click on the green button named `Code`, and select `Download ZIP`. Unpack the zip in a directory location you won't forget and be sure to call the folder `KOSTAT_Workshop1`. Then, in `RStudio` select `File` - `New Project` - `Existing directory` - select the folder `KOSTAT_Workshop1` that you just created - `Create project`.
 
-No matter which method you've done, you'll now be in a project view, which is convenient.
+No matter which method you've done, you'll now be in a *project view* in RStudio, which is convenient for this workshop. You'll know the projcet is open properly if you see `KOSTAT_Workshop1` displayed in the upper border of RStudio.
 
 ## Start a new markdown document
 
@@ -157,7 +155,7 @@ Given we're in a new project, we can now create files in it. Let's make a new ma
 
 ### *build* the template provided
 
-The document that has been created for you has a template structure that serves to orient you in the ways of markdown. Before looking at its parts, let's build the document. In the top icons you'll see one called `Knit` with a tiny picture of a ball of yarn... Click that and a new file will be created. If your markdown file is saved as `01_notes.Rmd` then the new file will be called `01_notes.pdf` or `01_notes.docx` or `01_notes.html` and it may or may not automatically open for you to view it. Pretty cool eh? See how the document has parts that are just normal text, others that are nicely formatted code, and others that are the results of that code having been executed (console output or perhaps a figure?). I hope you'll agree this sort of document will be an excellent note-taking environment for this course. Indeed, it's the only environment we'll use. In the document
+The markdown document that has been created for you has a template structure that serves to orient you in the ways of markdown. Before looking at its parts, let's build the document. In the top icons you'll see one called `Knit` with a tiny picture of a ball of yarn... Click that and a new file will be created. If your markdown file is saved as `01_notes.Rmd` then the new file will be called `01_notes.pdf` or `01_notes.docx` or `01_notes.html` and it may or may not automatically open for you to view it. Pretty cool eh? See how the document has parts that are just normal text, others that are nicely formatted code, and others that are the results of that code having been executed (console output or perhaps a figure?). I hope you'll agree this sort of document will be an excellent note-taking environment for this course. Indeed, it's the only environment we'll use. 
 
 ### Code chunks
 
@@ -169,7 +167,7 @@ The document that has been created for you has a template structure that serves 
 ``` 
 \end{verbatim}
 
-To crate a blank code chunk, type `Ctrl + Alt + i` (mac: `Cmd + Option + i`. Remember this! Otherwise, you need to find the *back-tic* key on your keyboard! On my keyboard it is in the far upper left corner, but in yours it might not be.
+To create a blank code chunk, type `Ctrl + Alt + i` (mac: `Cmd + Option + i`. Remember this! Otherwise, you need to find the *back-tic* key on your keyboard! On my keyboard it is in the far upper left corner, but in yours it might not be. There will be just a few such hot key combinations that you should commit to muscle memory for this workshop.
 
 Create a chunk and type `1+1` in it:
 
@@ -203,7 +201,7 @@ These are just control parameters for the document. This is not `R` and it's als
 
 Note that whatever you write in between code chunks is rather flexible: it could be just normal text, no frills, or it could have markup elements like itemization, italics, etc using native markdown, or it could be native `LaTeX` if you have that installed and are outputting to `pdf`, or it could be native `html` if you're outputting to `html`. If you're outputting to `Word` you can even use another manually created Word document as a template for formatting preferences or to follow institutional formatting guidelines. To learn how to do that look here: [https://bookdown.org/yihui/rmarkdown-cookbook/word-template.html](https://bookdown.org/yihui/rmarkdown-cookbook/word-template.html).
 
-I will be using such options from time to time, and will not make a very big deal out of it. For now, just know that you have quite a lot of control over this document, if you want to, but the default settings are pretty useful.
+I will be using such options from time to time, and will not make a very big deal out of it. For now, just know that you have quite a lot of control over the document you build from markdown text, if you want to, but the default settings are just fine for note-taking in this workshop.
 
 ## Moving forward with this project
 
@@ -228,7 +226,7 @@ Having run this code chunk once, let's now comment out the `install.packages()` 
 # install.packages("tidyverse")
 ```
 
-We have now used the function `install.packges()`. The name of the function is everything before the parentheses `install.packages`, and the part in the parentheses `()` is the function input parameters, or arguments. In this case, we just had to give a character string telling which package we want. By default, this function will look in the main `R` package repositories, called `CRAN`, here: [https://cran.r-project.org/](https://cran.r-project.org/). Anything posted to that archive has passed a big set of standardized checks and can be considered safe. The code you find there may or may not have been subjected to methodological review. On the other hand, the code you find in packages there is absolutely free and open, meaning you have the ability to see how it works. 
+We have now used the function `install.packges()`. The name of the function is everything before the parentheses `install.packages`, and the part in the parentheses `()` is the function input parameters, or arguments. In this case, we just had to give a character string telling which package we want. By default, this function will look in the main `R` package repositories, called `CRAN`, here: [https://cran.r-project.org/](https://cran.r-project.org/). Anything posted to that archive has passed a big set of standardized checks and can be considered safe. The code you find there may or may not have been subjected to methodological review. On the other hand, the code you find in packages there is absolutely free and open, meaning you have the ability to see how it works. Popular packages will have been reviewed many times.
 
 We will make use of various packages from there. Let's install a few more. Remember to comment these lines out after you run them!
 
@@ -254,7 +252,7 @@ install.packages("colorspace")
 
 To *load* the packages, i.e. make their functions available to you in your `R` session, use `library()`:
 
-```{r, message = FALSE}
+```{r, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(readr)
 library(readxl)
@@ -264,6 +262,8 @@ library(colorspace)
 library(DemoDecomp)
 ```
 
+
+
 ## Help files
 
 Often when trying to use a function, you'll not be sure about all of the options it might have. To get a glimpse of the documentation provided for `library()`, type `?library` in the console. This will open up the help file in the `Help` panel of `RStudio`. Most functions in `R` have help files, and often but not always these are useful. They just take some getting used to. The main sections to pay attention to are:
@@ -272,9 +272,9 @@ Often when trying to use a function, you'll not be sure about all of the options
 * **Arguments** for a description of each argument
 * **Details** for any gory details the author thinks you might want to know
 * **Value** tells you what the function gives back
-* **Examples** show some real world examples of the function being used. If you copy and paste them, they ought to run. This is very useful information.
+* **Examples** show some reproducible examples of the function being used. If you copy and paste them, they ought to run. This is very useful information.
 
-I will be using many functions that may be unfamiliar to you, and which I may only introduce briefly. for more information, you can always get to the help file using `?function_name`.
+I will be using many functions that may be unfamiliar to you, and which I may only introduce briefly. For more information, you can always get to the help file using `?function_name`. When I'm *improv* coding, you may see me refer to the help files from time to time in order to make decisions on which functions to use and how to use them.
 
 Also, `RStudio` has a very helpful autocomplete functionality that gives helpful hints when typing out function and argument names. Making use of this will make your life easier, and you'll see me exploiting this quite a lot.
 
@@ -321,14 +321,14 @@ exp(c(2, 5, 7))
 log(c(2, 5, 7))
 ```
 
-You can also have fancy expressions, making intelligent use of parentheses, just like in standard mathematics, standard *order of operations* applies.
+You can also have fancy expressions, making intelligent use of parentheses, just like in standard mathematics, standard [*order of operations*](https://en.wikipedia.org/wiki/Order_of_operations) applies.
 
 ```{r}
-.07 / (1 + (1 - .5) * .7)
+(5 * .07) / (1 + (5 - 2.1) * .07)
 ```
 ## Objects
 
-You can make your life easier by using objects in `R`. 
+You can make your life easier by using named *objects* in `R`. 
 
 ### vectors and matrices
 
@@ -353,16 +353,30 @@ is.vector(a)
 length(a)
 ```
 
-You can create many objects in an `R` session. They can all be different sizes and types. Sessions can become large and cluttered in this way. From time to time, we'll have a glance at the `Environment` tab to check out what our session is looking like. From time to time, we'll do some house-keeping so that the session environment doesn't get cluttered. You can remove an object using `rm()`
+You can create many objects in an `R` session. They can all be different sizes and types. Sessions can become large and cluttered in this way. From time to time, we'll have a glance at the `Environment` tab to check out what our session is looking like.
+
+Note, `a` can be used to create `b`, but once created, `b` no longer depends on `a`.
+```{r}
+b <- a * 2
+# overwrite 'a'
+a <- a * 3
+a
+b
+```
+Likewise, if we remove `a` altogether, `b` is unaffected. From time to time, we'll do some house-keeping so that the session environment doesn't get cluttered. You can remove an object using `rm()`
 
 ```{r}
 rm(a)
+
+# b persists:
+b
 ```
 
 A vector like `a` is the most basic kind of `R` object. Vectors can also be character, logical, and other kinds of things:
 
 ```{r}
 b <- c("A", "b", "C")
+# notice how I skip 'c'? it's because it's a function already!
 d <- c(TRUE, FALSE, FALSE)
 ```
 
@@ -389,7 +403,7 @@ Much of statistics in `R` is implemented using matrix algebra. Here `t()` is the
 A %*% t(B)
 ```
 
-Traditionally, we would spend much more time in a course like this covering that, but we will skip many other details to be abke to spend more time on data analysis. 
+Traditionally, we would spend much more time in a course like this covering that, but we will skip many other details to be able to spend more time on data analysis. 
 
 ### `data.frame` 
 
@@ -406,12 +420,13 @@ DF
 If you had those vectors sitting around, you could just create the `data.frame` in a more economical way:
 
 ```{r}
-x <- rep(c("a","b"), times = c(3,4))
-y <- c(2, 5, 7, 8 ,1, 9, 0) 
-data.frame(x, y)
+x  <- rep(c("a","b"), times = c(3,4))
+y  <- c(2, 5, 7, 8 ,1, 9, 0) 
+DF <- data.frame(x, y)
+DF
 ```
 
-The main rules for `data.frame` is that the columns are all the same length, and that each cell has just one value. The columns can be different data types. This kind of object will form the foundation of the `tidy` data approach, which we will follow using a cousin of the `data.frame`, `tibble`s. You can treat these as synonyms. 
+The main rules for `data.frame`s are that the columns are all the same length, and that each cell has just one value. The columns can be different data types. This kind of object will form the foundation of the `tidy` data approach, which we will follow using a cousin of the `data.frame`, `tibble`s. You can treat these as synonyms. 
 
 ### Functions
 
@@ -433,7 +448,7 @@ To motivate you, imagine the following multistage task:
 
 ## Data (imagine)
 
-You are given a data set containing a daily time series of COVID-19 cases, hospital admissions, urgent care admissions, and deaths by age, sex, and Spanish provinces. Population denominators are delivered in a different data set using different age groups for Spanish autonomous communities (these are aggregates of provinces). A third data source tells you which province is in which autonomous community. A fourth data set gives code equivalencies for provinces and autonomous communities, because *of course* the different data sources use different location coding systems.
+You are given a data set containing a daily time series of COVID-19 cases, hospital admissions, urgent care admissions, and deaths by age, sex, and Spanish provinces. Population denominators are delivered in a different data set using different age groups for Spanish autonomous communities (these are aggregates of provinces). A third data source tells you which province is in which autonomous community. A fourth data set gives location code equivalencies for provinces and autonomous communities, because *of course* the different data sources use different location coding systems.
 
 ## Objective (imagine)
 
@@ -443,17 +458,17 @@ Calculate *weekly* time series of **age-sex-standardized rates** of cases, hospi
 \includegraphics[]{def.png}
 \end{centering}
 
-By the end of this week, you will be able to handle all of the data loading, data joining, tabulation and calculation and `ggplot2` operations needed to complete a task of this complexity. Further the code to do so will be *parsimonious* and it will be *legible*, and you will be empowered to undertake data analysis tasks of approximately 
+By the end of this workshop, you will be able to handle all of the data loading, data joining, tabulation and calculation and `ggplot2` operations needed to complete a task of this complexity. Further the code to do so will be *parsimonious* and it will be *legible*, and you will be empowered to undertake data analysis tasks of greater complexity. 
 
 # Excercises 
 
-1. Look at some of the files offered by the World Population Prospects, here: [https://population.un.org/wpp/Download/Standard/Population/](https://population.un.org/wpp/Download/Standard/Population/). There is no need to register to use these data, and we will be using some of it tomorrow, **Tuesday**. Download a file or two and have a look at what's inside.
+1. Look at some of the files offered by the World Population Prospects, here: [https://population.un.org/wpp/Download/Standard/Population/](https://population.un.org/wpp/Download/Standard/Population/). There is no need to register to use these data, and we will be using some of it in future sessions. Download a file or two and have a look at what's inside.
 
-2. Register to be a user of the Human Mortality Database (HMD), here: [https://www.mortality.org/mp/auth.pl](https://www.mortality.org/mp/auth.pl). If you're already a user then no worries. We will use this on **Wednesday**.
+2. Register to be a user of the Human Mortality Database (HMD), here: [https://www.mortality.org/mp/auth.pl](https://www.mortality.org/mp/auth.pl). If you're already a user then no worries. We will use this at least once.
 
-3. Look at this gallery of `ggplot2` extensions: [https://exts.ggplot2.tidyverse.org/gallery/](https://exts.ggplot2.tidyverse.org/gallery/) Know that these will be things you'll be able to extend *toward* doing if you follow along over the course of this week. **Thursday** We will cover the basics to get started with `ggplot2`
+3. Look at this gallery of `ggplot2` extensions: [https://exts.ggplot2.tidyverse.org/gallery/](https://exts.ggplot2.tidyverse.org/gallery/) Know that these will be things you'll be able to extend *toward* doing if you follow along over the course of this week. In this workshops, we will cover the basics to get started with `ggplot2`
 
-4. Vote for a data set we should work with on **Friday**, here: [https://forms.gle/oqtpN7zcFj9sQUqD9](https://forms.gle/oqtpN7zcFj9sQUqD9)
+4. Vote for a data set we should work with when we do advanced data processing, here: [https://forms.gle/6N1FEb6czHXU2k5GA](https://forms.gle/6N1FEb6czHXU2k5GA)
 
 5. Look at this free book by Kieran Healey and bookmark it for future reference: [https://socviz.co/](https://socviz.co/). This is a great way to self-learn. That book would be a great way to supplement this course in the following weeks.
 
