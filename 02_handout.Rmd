@@ -38,7 +38,7 @@ knitr::opts_chunk$set(echo = TRUE)
     \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
    
     \vspace{.5cm}
-    \Large{Assistants: \\ Jinyoen Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistants: \\ Jinyeon Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
   \end{minipage}
 }
 
@@ -61,11 +61,142 @@ Tidyverse packages work well together because they share a standard approach to 
 
 Tidy datasets can also be visualized without further ado using a systematic *grammar* [@wilkinson2012grammar] implemented in the `ggplot2` package ( @wickham2016ggplot2, this loads automatically with `tidyverse`). Today we will do just basic examples, but this will be made more explicit as the workshop progresses.
 
-## Example
+## Example (gapminder)
 
 The so-called `gapminder` dataset is an example of *tidy* data that allows to demonstrate some of the basic `tidyverse` concepts. Let's install this package and have a look. Remember to comment out the installation line of code using `#` after you install it once!
 
 ```{r, eval = FALSE, message = FALSE}
 install.packages("gapminder")
 ```
+
+```{r}
+library(gapminder)
+library(tidyverse)
+?gapminder
+#View(gapminder)
+# list the data structure:
+str(gapminder)
+```
+In this data, unique combinations of country and year are what define an observation. From the above call to `str()` we see the structure of the data, which indicates the column types and the number of rows (1704). We therefore have 1704 observations. `continent` is a property of `country` here, and is not a structural variable.
+
+We have three *variables* spread over the columns, life expectancy at birth `lifeExp`, population size `pop`, and GDP per capita `gdpPercap`. 
+
+## Basic dataset descriptives
+
+There is a function called `summary()` that guesses how we would like the data summarized:
+
+```{r}
+summary(gapminder)
+```
+
+The result tells us that there are 12 observations for each country, that there are 624 observations in Africa, 300 in the Americas, etc, and it usefully gives the range and quartiles of each variable. For example life expectancy observations in the data range from 23.6 to 82.6. Wow!
+
+One can also query specific columns like so: We can check the year range like so:
+
+```{r}
+unique(gapminder$year)
+# or
+gapminder %>% pull(year) %>% unique()
+```
+This data is in 5-year intervals, and year values appear to be approximately centered within standard intervals. i.e. 1950-1954 gets the value 1952. We have about 50 years of history here. We give two equivalent ways of asking this question of the data. The second is easier to deparse visually, even if we've not yet introduced the operator `%>%` or the function `pull()`. It reads "take the gapminder data, then pull off the year column, then give the unique values". The symbol `%>%` reads as "then". The expression `unique(gapminder$year)` on the other hand is somehow inverted, meaning that it reads from the inside out. We start with the year column of gapminder, then look outward to see that we extract its unique values. Both are valid approaches. The one using pipes is the version we will more often attempt to use in this workshop. 
+
+### Mini exercise 
+
+List which countries are in the data, and write how many there are:
+```{r}
+# 
+```
+
+
+## pipes
+
+The pipe operator, more explicitly works by evaluating an object on the left and sending the result to the function on the right.
+
+For example, the below pipe separates step 1 (the drawing of 10 random deviates of the uniform distribution) from step 2 (calculation of their mean).
+```{r}
+runif(10) %>% mean()
+```
+
+One can chain together a sequence of operations like so:
+
+```{r}
+runif(10) %>% 
+  sort() %>% 
+  cumsum()
+```
+This code reads in order "take ten random uniform draws, then sort them (in ascending order), then calculate their cumulative sum". Let's call this sort of code statement a *pipeline*, since it defines a multistep sequence of execution steps. We will be construction data analysis sequences using this trick for the entirety of the workshop. If it is not immediately clear what is happening here, do not worry, it will make sense as we progress through the material, and I will redundantly narrate each code chunk multiple times.
+
+### Mini Exercise for pipes 
+
+Take 100 random draws of the Poisson distribution, with lambda parameter equal to 100 (`rpois()`), and calculate the 95% prediction interval using `quantile(x, probs = c(.025,.975))`. Note that the argument `x` is simply going to be the incoming data from `rpois()`, and you don't need to specify the argument `x` at all.
+```{r}
+# 
+```
+
+I introduce this now, so that we may use it naturally in what comes.
+
+## filtering is for rows
+
+Filtering in the `tidyverse` implies the potential deletion of rows based on some logical criteria. Observe:
+
+```{r}
+A <- tibble(a = 0:10, 
+            b = letters[1:11])
+A
+A %>% 
+  filter(a > 5)
+
+# rows where 5 divides evenly into `a`
+A %>% filter(a %% 5 == 0)
+
+# just a particular case
+A %>% 
+  filter(b == "c")
+
+# a vector of cases:
+A %>% 
+  filter(b %in% c("b", "f", "g"))
+```
+
+As you can see, logical evaluation is the key to making intelligent use of `filter()`. You can query columns in the data directly within the filter call. The key is to produce a value of either `TRUE` or `FALSE` for each row of the data. Where the logical expression evaluates to `TRUE` we keep the rows, and `FALSE`s are discarded. Some useful logical operators include 
+1. `==` test equality
+2. `>=` (`<=`) test inclusive greater than (less than)
+3. `%in%` test membership
+4. `any()` is any element in a vector `TRUE`
+5. `all()` are all elements of a vector `TRUE`
+6. `!` negation of any of the above
+7. `between()` tests if a value is in an interval
+8. `&` logical AND
+9. `|` logical OR
+
+More examples:
+```{r}
+A %>% 
+  # between() is by default inclusive in its bounds
+  filter(between(a, 3, 5) | b == "g")
+
+A %>% 
+  # multiple conditions
+  filter(a < 7,
+         a >= 2,
+         b %in% c("a","c","e","g","i","k"))
+```
+
+Note `filter()` accepts comma-separated arguments, interpreting the commas as `&`.
+
+### Mini Exercises for filters
+
+1. How many rows of `gapminder` have a life expectancy between 50 and 60, inclusive
+
+2. Which countries have ever had a life expectancy greater than 78?
+
+## selecting is for columns
+
+
+
+
+
+
+
+
 

@@ -38,7 +38,7 @@ knitr::opts_chunk$set(echo = TRUE)
     \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
    
     \vspace{.5cm}
-    \Large{Assistants: \\ Jinyoen Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistants: \\ Jinyeon Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
   \end{minipage}
 }
 
@@ -141,7 +141,7 @@ head(Long)
 
 ### pipes, `%>%`
 
-Now seems a natural-enough place to demonstrate *piping*. Pipes allow us to string together data operations into a single sequentially evaulated execution step. Thus far we have read in the data, reshaped it, and re-specified columns. All together, this becomes:
+Let's re-express the above using *pipes*. Pipes allow us to string together data operations into a single sequentially evaluated execution step. Thus far we have read in the data, reshaped it, and re-specified columns. All together, this becomes:
 
 ```{r}
 Long <- 
