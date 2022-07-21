@@ -35,21 +35,18 @@ rm(us)
 ```
 
 \noindent\makebox[\textwidth][c]{
-  \begin{minipage}[t]{0.45\textwidth}
+  \begin{minipage}[t]{0.8\textwidth}
     \centering
-    \Large{Instructor: Tim Riffe} \\
-    \vspace{0.1cm}\large{\texttt{tim.riffe@gmail.com}}
+    \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
    
     \vspace{.5cm}
-    \Large{Assistant: Rustam Tursun-Zade}
-    \vspace{0.1cm}\large{\texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistants: \\ Jinyoen Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
   \end{minipage}
 }
 
-
 \vspace{0.8cm}
 \begin{center}
-\large{28 July 2021}
+\large{29 July 2022}
 \end{center}
 \vspace{0.8cm}
 
