@@ -59,7 +59,7 @@ I decided to get abridged lifetables for countries in Africa for the Wednesday l
 
 package prerequisites:
 ```{r, message = FALSE, warning=FALSE}
-# install.packages("rgho")
+# remotes::install_github("pierucci/rgho@devel")
 # install.packages("countrycode")
 library(rgho)
 library(tidyverse)

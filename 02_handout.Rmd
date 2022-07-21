@@ -192,7 +192,27 @@ Note `filter()` accepts comma-separated arguments, interpreting the commas as `&
 
 ## selecting is for columns
 
+Sometime we don't need all the columns in the data. We can select particular ones by name or position, like so:
 
+```{r}
+gapminder %>% 
+  select(country, year, gdpPercap)
+
+gapminder %>% 
+  select(1,2,6)
+```
+
+You could also select columns based on various kinds of column name string matching, like so
+
+```{r}
+gapminder %>% 
+  select(contains("p"))
+
+# or
+gapminder %>% 
+  select(ends_with("p"))
+```
+Some other useful options are `starts_with()`, and so on. The functions `contains()`, `starts_with()` and `ends_with()` are selecting columns using logical expressions, just as we've done for filtering rows.
 
 
 
