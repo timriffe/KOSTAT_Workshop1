@@ -212,11 +212,182 @@ gapminder %>%
 gapminder %>% 
   select(ends_with("p"))
 ```
-Some other useful options are `starts_with()`, and so on. The functions `contains()`, `starts_with()` and `ends_with()` are selecting columns using logical expressions, just as we've done for filtering rows.
+Some other useful options are `starts_with()`, and so on. The functions `contains()`, `starts_with()` and `ends_with()` are selecting columns using logical expressions, just as we've done for filtering rows. Try typing `?starts_with` into the console, and pick the help file from the `tidyselect` package to see a listing of other helper functions for column selection.
+
+## create columns with `mutate()`
+
+To create a column, potentially using other columns you already have, use `mutate()` like so:
+
+```{r}
+gapminder %>% 
+  mutate(GDP = pop * gdpPercap)
+```
+
+You can create several columns at once, by separating with commas, and columns can be sequentially dependent. Observe:
+
+```{r}
+gapminder_hypothetical <-
+  gapminder %>% 
+  mutate(GDP = pop * gdpPercap,
+         GDP100 = gdpPercap * 100,
+         stationary_births = pop / lifeExp,
+         GDP_alternative = stationary_births * GDP100,
+         GDP_ratio = GDP_alternative / GDP) 
+```
+
+Note that `GDP`, `GDP100`, `stationary_births`, and `GDP_alternative` are created, and each used later as well within the same `mutate()` call. Whenever it makes sense in your calculations, it's nice to include such operations in a single `mutate()` call rather than in a series of `mutate()` calls. It's cleaner that way. These calculations are meant to showcase `mutate()` usability, not 
+
+Aside: What are those strange measures? They're purely hypothetical and likely not useful extrapolations of the data points give, making strange invocations of a stationary world. `GDP` is a direct calculation, not controversial. `GDP100` is calculated on the assumption that if a newborn were to accumulate on average `gdpPercap` of income per year over 100 years, how much would the lifetime `gdpPercap` be? `stationary_births` makes use of the stationary relationship $b = N / e(0)$, meaning that the stationary crude birth rate $b$ is the population size `N` divided by life expectancy. For us `N` is `pop`, but of course neither the population size/structure nor period life expectancy are actually stationary. So this quantity is not usable per se. We then create `GDP_alternative`, which scales `GDP100` to a hypothetical cohort size and says "what would be the lifetime GDP in this fake longevous stationary population?". Finally, we take the ratio. It seems lengthening life to a consistent 100 years would (under these unrealistic constraints) increase GDP.
+
+What does the result look like? (plot code discussed later in workshop)
+```{r}
+gapminder_hypothetical %>% 
+  ggplot(aes(x = year, y = GDP_ratio, group = country)) +
+  geom_line() +
+  scale_y_log10() +
+  geom_hline(yintercept = 1, color = "red")
+```
+
+Remember that since `mutate()` just creates columns, it does not change the number of rows in the data.
+
+### Mini exercise
+
+1. Take 2 minutes to write down as many problems as you can think of in the above analysis, no coding required. 
+
+## Create aggregate measures using `summarize()`
+
+You can create aggregate measures using `summarize()`, implying a likely reduction in the number of rows in the data. For example, we can calculate the total GDP for the most recent year in the data as follows:
+
+```{r}
+gapminder %>% 
+  filter(year == max(year)) %>% 
+  summarize(GDP = sum(pop * gdpPercap))
+```
+
+### Mini Exercise for `summarize()`
+
+1. Calculate the average life expectancy over all countries in the most recent year.
+2. Calculate the population weighted average of life expectancy in the most recent year.
+
+The formula for a weighted average is:
+
+$$ \bar{x} = \frac{\sum x_i \cdot w_i}{\sum w_i}$$
+
+where $x$ is the thing being weighted and $w$ are the weights. We use this formula in many many places in demography!
+```{r}
+#
+```
+
+## Use `group_by()` to scale up!
+
+The value of `mutate()` and `summarize()` increases greatly if we learn to make intelligent use of these constructs for subgroups in the data. What if we want to pick out the highest life expectancy per year in the data? To get the highest life expectancy in the data we do:
+
+```{r}
+gapminder %>% 
+  filter(lifeExp == max(lifeExp))
+```
+To do this for each year, use `group_by()` to impose independent groups in the data on the basis of variables, then do everything else just the same:
+
+```{r}
+gapminder %>% 
+  # apply independent groups
+  group_by(year) %>% 
+  # whatever we do here is independent within groups!
+  filter(lifeExp == max(lifeExp)) %>% 
+  # remove when done
+  ungroup() %>% 
+  # sort
+  arrange(year)
+```
+
+Note, we should remove groups with `ungroup()` when we're done using them, and we sort the data on year for visual inspection using `arrange()`. This reads as "first take `gapminder`, then `group_by()` year, then `filter()` out the highest life expectancy per year, then remove the groups and sort years". Notice how the functions can be read as verbs, and the the pipes allow them to be combined into a rote kind of sentence. Indeed, it can help to add notes using `#`: don't worry: it won't break the chain! As the dataset goes down the pipeline, by default it becomes the first argument to the next function to be executed. Each of these functions has a first argument called either `data` or `.data`, which doesn't need to be specified because the incoming data is passed to it. 
+
+Note: you can run this code by simply placing the cursor anywhere in the pipeline and pressing `Ctrl + Enter`. There is no need to select the whole statement before running, although this also works (you could in this case also click the green play arrow).
+
+### Exercises for `group_by()`
+
+1. Aggregate all variables by continent and year. For `lifeExp` and `gdpPercap`, use the population weighted averages, as we did above. Is this a job for `mutate()` or `summarize()`?
+
+2. Calculate year-on-year life expectancy changes for each country. Tip, use `lead()` or `lag()`, like so:
+
+```{r}
+# a series incrementing in steps of 1.
+a <- c(1,3,4,5,7,10)
+lead(a) - a
+# *or*
+a - lag(a)
+```
+Note, the first or last year will get `NA`s. You should ensure that years are sorted within countries using `arrange(country, year)`. Is this a job for `mutate()` or `summarize()`? I personally would use the `lead()` version of this approach.
+
+## reshape using `pivot_wider()` and `pivot_longer()`
+
+The `gapminder` data is already `tidy`, and most often we use long / wide reshaping operations to force non-tidy data into a tidy form. A wide version of `gapminder` might, for example, have years spread over columns rather than stacked. Sometimes government statistical offices distribute data like so. Here `names_from` is the column whose values will determine the new column names, whereas `values_from` is where data will be drawn from.
+
+```{r}
+gapminder_wide <-
+  gapminder %>% 
+  select(country, year, continent, pop) %>% 
+  pivot_wider(names_from = year,
+              values_from = pop)
+```
+At times, we actually want our data to look like this for some ad hoc calculation convenience. Note, you can list more than one `values_from` column. We could spread each variable-year combinations by specifying them in a vector. In this case, newly created column names will be concatenated.
+
+```{r}
+gapminder %>% 
+  pivot_wider(names_from = year,
+              values_from = c(lifeExp, gdpPercap, pop))
+```
+
+To go in the other direction we use `pivot_longer()`. This is the more commonly used of the two in practice. Here we specify a column range, then give the names as strings for the columns that will collect the header names and the values. In this case, we give the columns by name, but since they're numbers, we put the names in back tics to ensure they will be interpreted as names rather than as positions!
+
+```{r}
+gapminder_wide %>% 
+  pivot_longer(`1952`:`2007`,
+               names_to = "year",
+               values_to = "pop")
+```
+That's fine if you happen to know the column names and if they happen to be in a continuous range, as we have here. You could also use position like so (if you know them)
+
+```{r}
+gapminder_wide %>% 
+  pivot_longer(3:14,
+              names_to = "year",
+              values_to = "pop")
+```
+
+Or we could exploit the numeric nature of the column names and use one of the `tidyselect` functions we saw before.
+```{r}
+gapminder_wide %>% 
+  pivot_longer(num_range(prefix = "", range = 1952:2007),
+               names_to = "year",
+               values_to = "pop")
+```
+
+Note that `pivot_longer()` also accepts multiple `names_to` destinations, if you happen to have concatenated names, as in the complex `pivot_wider()` example. Here we make and then undo the ugly case above with concatenated variable and year column names. This needs to be done in two steps: first we store the full column range (`3:ncol(.)`, where `ncol(.)` gives the number of columns of the incoming data), splitting names into two new columns for variables and years, and putting all variables together. At this stage the data is *too* long to be easily usable, and we still need to spread variables over the columns, so the final `pivot_wider()` statement does this for us.
+
+```{r}
+gapminder %>% 
+  pivot_wider(names_from = year,
+              values_from = c(lifeExp, pop, gdpPercap)) %>% 
+  # two steps: 1) collect it all
+  pivot_longer(3:ncol(.),
+               values_to = "value",
+               names_to = c("variable","year"),
+               names_sep = "_") %>% 
+  # 2) spread variables back out
+  pivot_wider(names_from = variable,
+              values_from = value)
+```
+
+### Mini exercises
+
+1. Take the `gapminder` data, remove the `continent` column, then spread `country` over columns using `pivot_wider()`.
+
+2. Undo the result of part 1 of this exercise to return to the original `gapminder` data.
 
 
+# Looking ahead
 
-
-
+Tomorrow we will do a longer worked example using these basic `tidyverse` operations and introducing some other recoding and dataset joining operations, on the example of fertility data.
 
 

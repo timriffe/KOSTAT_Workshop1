@@ -464,7 +464,7 @@ By the end of this workshop, you will be able to handle all of the data loading,
 
 1. Look at some of the files offered by the World Population Prospects, here: [https://population.un.org/wpp/Download/Standard/Population/](https://population.un.org/wpp/Download/Standard/Population/). There is no need to register to use these data, and we will be using some of it in future sessions. Download a file or two and have a look at what's inside.
 
-2. Register to be a user of the Human Mortality Database (HMD), here: [https://www.mortality.org/mp/auth.pl](https://www.mortality.org/mp/auth.pl). If you're already a user then no worries. We will use this at least once.
+2. Register to be a user of the Human Mortality Database (HMD), here: [https://www.mortality.org/Account/Auth](https://www.mortality.org/Account/Auth). If you're already a user then no worries. We will use this at least once.
 
 3. Look at this gallery of `ggplot2` extensions: [https://exts.ggplot2.tidyverse.org/gallery/](https://exts.ggplot2.tidyverse.org/gallery/) Know that these will be things you'll be able to extend *toward* doing if you follow along over the course of this week. In this workshops, we will cover the basics to get started with `ggplot2`
 
