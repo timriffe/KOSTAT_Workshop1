@@ -476,13 +476,20 @@ AFR_LT <-
 Let's sit back for a moment and be proud of having calculated so many lifetables at once. How many are there anyway?
 
 ```{r}
-LT %>% 
+AFR_LT %>% 
   select(Country, Year, Sex) %>% 
   # picks out unique combos
   distinct() %>% 
   nrow()
 ```
 Not bad!
+
+Let's save these results for potential use later in the workshop:
+
+```{r}
+AFR_LT %>% write_csv("Data/LT_results.csv")
+```
+
 
 # Exercises
 
