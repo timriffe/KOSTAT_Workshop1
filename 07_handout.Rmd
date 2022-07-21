@@ -1,0 +1,59 @@
+---
+title: | 
+  | \includegraphics{logotip.pdf}
+  |
+  | KOSTAT-UNFPA Summer Seminar on Population
+  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
+  | \vspace{0.3cm} \huge \textbf{Day 7: Demographic standardization and decomposition}\vspace{0.6cm}
+  | 
+fontsize: 11pt
+geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
+  = 1.35cm, footskip = 1.6cm
+output:
+  pdf_document:
+    number_sections: yes
+  html_document2: default
+  html_document:
+    number_sections: yes
+    toc: yes
+  pdf_document2: default
+  header-includes:
+    - \usepackage{titling}
+    - \usepackage{fancyhdr}
+    - \pagestyle{fancy}
+    - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
+    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[LO]{{Day 7: Demographic standardization and decomposition}}
+    - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
+bibliography: bibliography.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\noindent\makebox[\textwidth][c]{
+  \begin{minipage}[t]{0.8\textwidth}
+    \centering
+    \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
+   
+    \vspace{.5cm}
+    \Large{Assistants: \\ Jinyeon Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
+  \end{minipage}
+}
+
+
+\vspace{0.8cm}
+\begin{center}
+\large{4 August 2022}
+\end{center}
+\vspace{0.8cm}
+
+
+\tableofcontents
+
+# Summary
+
+Today we will use tidy processing skills to age-standardize different demographic rates. We will also explain some demographic decomposition approaches, and see how these work well using the function-writing and tidy processing skills that we've learned so far.
+
+Content to be created.
