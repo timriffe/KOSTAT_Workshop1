@@ -4,7 +4,7 @@ title: |
   |
   | KOSTAT-UNFPA Summer Seminar on Population
   | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
-  | \vspace{0.3cm} \huge \textbf{Day 4: Visualizing data using ggplot2}\vspace{0.6cm}
+  | \vspace{0.3cm} \huge \textbf{Day 5: Visualizing data using ggplot2}\vspace{0.6cm}
   | 
 fontsize: 11pt
 geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
@@ -23,7 +23,7 @@ output:
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
     - \fancyhead[RE]{Workshop~1.~Demography in R}
-    - \fancyhead[LO]{{Day 4: Visualizing data using ggplot2}}
+    - \fancyhead[LO]{{Day 5: Visualizing data using ggplot2}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
 ---
