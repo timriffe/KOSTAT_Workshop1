@@ -58,7 +58,7 @@ Hi, I'm Tim Riffe, a US-American demographer living in Spain and working at the 
 
 Rustam Tursun-Zade is an aspiring PhD student, with lots of experience in cancer epidemiology and demography. He is currently unaffiliated. He also did the European Doctoral School of Demography (2019-2020), and he's an advanced *tidyverse* wizard, and he's able to assist also if there are character or locale issues that arise when using `R` in different language settings. 
 
-Jinyoen Jo ...
+Jinyeon Jo is a PhD student in Biostatistics in Graduate School of Public Health Science in Seoul National University. She majored in Statistics, Economics and Communication Science in her undergraduate studies, and has a Master in Statistics. In her PhD studies, she focuses on Genome-Wide Association Studies and Polygenic Risk Score prediction modelling. If you have any problems in using R related to this workshop, feel free to ask her. 
 
 # About this workshop
 
