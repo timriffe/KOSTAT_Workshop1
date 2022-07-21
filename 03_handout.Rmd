@@ -4,7 +4,7 @@ title: |
   |
   | KOSTAT-UNFPA Summer Seminar on Population
   | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
-  | \vspace{0.3cm} \huge \textbf{Day 2: The tidy data approach}\vspace{0.6cm}
+  | \vspace{0.3cm} \huge \textbf{Day 3: Worked example of tidy processing}\vspace{0.6cm}
   | 
 fontsize: 11pt
 geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
@@ -23,7 +23,7 @@ output:
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
     - \fancyhead[RE]{Workshop~1.~Demography in R}
-    - \fancyhead[LO]{{Day 2: The tidy data approach}}
+    - \fancyhead[LO]{{Day 3: Worked example of tidy processing}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
 ---
@@ -45,7 +45,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 \vspace{0.8cm}
 \begin{center}
-\large{28 July 2022}
+\large{29 July 2022}
 \end{center}
 \vspace{0.8cm}
 
@@ -72,8 +72,7 @@ To follow along, create a folder in your project called `Data`. Then, go to the 
 [https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_fasec.xlsx](https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_fasec.xlsx) and click `Download`. Move it to the data folder you just made. You can also do the same for a second file that we'll use later today:
 [https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_pjan.xlsx](https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_pjan.xlsx)
 
-# Introducing `tidyverse`: a worked example
-
+# Tidy processing fertiltiy data
 Today's entire session will be working with this smallish births dataset.
 
 ## Reshape, Rescale, Recode it 
