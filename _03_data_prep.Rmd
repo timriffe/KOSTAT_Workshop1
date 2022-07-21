@@ -208,12 +208,11 @@ We could do some forensics and figure out what closeout model they likely use, b
 
 ```{r}
 
-# name-selection as a recoding technique when
-# you have lots of codes to handle
-recvec        <- c(0,1,seq(5,85,by=5))
-names(recvec) <- LT$AGEGROUP %>% unique()
-
-LT_inputs <- 
+# joins as a recoding technique: create a look-up table :-)
+age_table <- tibble(AGEGROUP = LT$AGEGROUP %>% unique(),
+                    Age = c(0,1,seq(5,85,by=5)))
+library(DemoTools)
+LT_inputs <-
   Close %>% 
   select(-lx, Tx) %>% 
   rename(nAxnew = nAx) %>% 
@@ -221,16 +220,27 @@ LT_inputs <-
   mutate(nAx = ifelse(AGEGROUP == "AGE85PLUS", NA_real_, nAx),
          # coalesce is awesome, check out ?coalesce
          nAx = coalesce(nAx, nAxnew)) %>% 
-  select(ISO3, Year = YEAR, SEX, AGEGROUP, nMx, nAx) %>% 
+  rename(Year = YEAR) %>% 
   mutate(Sex = case_when(SEX == "MLE" ~ "m",
                          SEX == "FMLE" ~ "f",
-                         SEX == "BTSX" ~ "t")) %>% 
-  mutate(Age = recvec[AGEGROUP],
+                         SEX == "BTSX" ~ "t"),
          # countrycode package is a great resource!!!
          Country = countrycode(sourcevar = ISO3,
                                origin = "iso3c",
                                destination = "country.name")) %>% 
-  arrange(Country, Year, Sex, Age) %>% 
+  left_join(age_table, by = "AGEGROUP") %>% 
+  arrange(Country, Year, Sex, Age) %>%
+  # group_by(Country, Year, Sex) %>% 
+  # # method used by WPP2022:
+  # mutate(nAx_v2 = DemoTools::lt_id_morq_a(nMx = nMx, 
+  #                                         Age = Age, 
+  #                                         AgeInt = n, 
+  #                                         region = "s", 
+  #                                         axmethod = "un"),
+  #       nqx = DemoTools::lt_id_ma_q(nMx = nMx,
+  #                                   nAx = nAx_v2,
+  #                                   AgeInt = n)) %>% 
+  # ungroup() %>% 
   select(Country, ISO3, Year, Sex, Age, nMx, nAx)
 
 # save the results

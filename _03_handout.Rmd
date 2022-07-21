@@ -47,7 +47,7 @@ rm(us)
 
 \vspace{0.8cm}
 \begin{center}
-\large{29 July 2022}
+\large{1 August 2022}
 \end{center}
 \vspace{0.8cm}
 
@@ -60,7 +60,7 @@ Today we will learn how to make simple functions, and how to combine them into m
 
 # Motivation
 
-Everything in `R` is either a function or can be construed as one, I claim. You can do many things without needing to know how to write functions, but function-writing can enhance your work in many ways. Writing functions means you don't have to type out and re-derive the same code so often. Indeed, once you have a good function that gets a task done, you may never need to think about it much again! Repeated use of a self-written function may even lead to you perfecting it little by little. Code that makes use of custom functions can be shorter and easier to understand, especially if you follow certain standards and rules. This all leads to your code being more robust (sooner or later). Writing functions help you think and design your analyses in a modular way, which helps you deconstruct complex tasks into series of simple tasks. Small functions that do simple things can end up being used in many different places in your code. Further, we can learn to make small functions and how to combine them in a single day. Let's do this!
+Everything in `R` is either a function or can be construed as one, I claim. You can do many things without needing to know how to write functions, but function-writing can enhance your work in many ways. Writing functions means you don't have to type out and re-derive the same code so often. Indeed, once you have a good function that gets a task done, you may never need to think about it much again! Repeated use of a self-written function may even lead to you perfecting it little by little. Code that makes use of custom functions can be shorter and easier to understand, especially if you follow certain standards and rules. This all leads to your code being more robust (sooner or later). Writing functions help you think and design your analyses in a modular way, which helps you deconstruct complex tasks into series of simple tasks. Small functions that do simple things can end up being used in many different places in your code. We can learn to make small functions and how to combine them in a single day. Let's do this!
 
 # Anatomy of a function
 Here's an oldy but goody:
@@ -77,7 +77,7 @@ hello("Tim")
 4. The part inside `{ }` is the body of the function, presumably making use of `your_name`.
 5. In this particular case we're using the function `paste0()`, which concatenates text, including our argument `your_name`.
 
-Those are the parts of a function. The function can have more arguments, which could be any kind of data of any size and shape, and the stuff that happens inside the function (inside `{ }`) should know what to do with the arguments. It should produce a result, and return it. For our little function above, it returns a character string (the last thing evaluated). In our case it printed to console because we didn't assign it to anything. We can be more explicit about that by telling it what to return:
+Those are the parts of a function. The function can have more arguments, which could be any kind of data of any size and shape, and the stuff that happens inside the function (inside `{ }`) should know what to do with the arguments. It should produce a result, and return it. For our little function above, it returns a character string (the last thing evaluated). In our case it printed to thr console because we didn't assign it to anything. We can be more explicit about that by telling it what to return using `return()` at the end:
 
 ```{r}
 # Identical in this case
@@ -96,7 +96,7 @@ function_name <- function(arguments){
 }
 ```
 
-Functions can be very large. Let's look at some:
+Functions can be complex or simple. Let's look at some:
 ```{r, eval = FALSE}
 lm # type into console with no parentheses to see the guts of a function
 ```
@@ -116,7 +116,7 @@ plot(x,fx_example(x),type="l")
 
 What about a function of *two* parameters? It really doesn't matter what the operations look like, if you see formulas like these, the functions can be directly coded:
 
-$$ f(x,y) = 2 + 2x + 3y + 23xy + y^3 - e^{xy}$$
+$$ f(x,y) = 2 + 2x + 3y + 23xy + y^3 - x^4 + (xy)^2$$
 ```{r, message = FALSE}
 library(tidyverse)
 fx_example2 <- function(x,y){
@@ -132,11 +132,11 @@ combos %>%
   geom_contour_filled()
 ```
 
-`expand.grid()` creates a `data.frame` consisting in all unique combinations of whatever vectors you give it. `mutate()` creates a column by applying our new function to the data, in our case based on `x` and `y` columns. We then pipe the resulting data to `ggplot()` to view as a filled contour plot, or *surface*.
+`expand.grid()` creates a `data.frame` consisting in all unique combinations of whatever vectors you give it. `mutate()` creates a column `z` by applying our new function to the data, in our case based on `x` and `y` columns. We then pipe the resulting data to `ggplot()` to view as a filled contour plot, or *surface*.
 
 # *Wrapping* a function
 
-As you can see in our first cheap example, functions can use other functions (`paste0()`), as long they can be found. This makes it easy to recycle your code and be able to do ever more complex tasks. Function `a` can get used by function `b` can get used by function `c` and so on, many layers deep. This allows complex tasks to be simplified.
+As you can see in our first example, functions can use other functions (`paste0()`), as long they can be found. This makes it easy to recycle your code and be able to do ever more complex tasks. Function `a` can get used by function `b` can get used by function `c` and so on, many layers deep. This allows complex tasks to be simplified.
 
 For example, we can use these two functions together somehow (totally contrived):
 
@@ -152,21 +152,21 @@ combos %>%
   geom_contour_filled()
 ```
 
-A couple rules for using functions inside of other functions are that
+A couple of rules for using functions inside of other functions are that:
 
 1. you *should* be explicit about argument names (e.g. `x = x`)
 2. `R` should know where to find the functions you're using 
 3. leave it in a good commented (or better, *documented*) state for your colleagues and for *future-you*.
 
-For (2) the easiest is to just have it loaded in memory, either by having defined it earlier in your script (or a script your `source()`), or by calling `library()` or `require()` to get the requisite package loaded. There are more robust ways of doing this that would require us to learn how to *make* packages, but there's no time for that in our schedule.
+For (2) the easiest is to just have it loaded in memory, either by having defined it earlier in your script (or a script you `source()`), or by calling `library()` or `require()` to get the requisite package loaded. There are more robust ways of doing this that would require us to learn how to *make* packages, but there's no time for that in our schedule.
 
 Knowing the basics for creating and wrapping functions is all we need to be able to make lifetable functions.
 
-# Lifetables
+# The Lifetable identities
 
 ## Reading in data from WHO
 
-We will take death rates ${}_nM_x$ and a quantity we write as ${}_nA_x$ (which is interpreted as the mean time spent in an age interval by those that die in an interval) as givens for calculating lifetables. I read in data from the WHO Global Health Observatory (GHO) using an API package called `rgho` (@rgho). You can examine my (expedient, not necessarily as efficient as could be) data wrangling code in a separate markdown script that we don't have time to cover in class in a file called `03_data_prep.Rmd` (or `.pdf`). The data is called `LT_inputs.csv`, and we can read it straight into `R` from `github` without needing to manually download anything.
+We will take death rates ${}_nM_x$ and a quantity we write as ${}_nA_x$ (which is interpreted as the mean time spent in an age interval by those that die in an interval) as givens for calculating lifetables. I read in data from the WHO Global Health Observatory (GHO) using an API package called `rgho` (@rgho). You can examine my (expedient, not necessarily as efficient as could be) data wrangling code in a separate markdown script that we don't have time to cover in class in a file called `04_data_prep.Rmd` (or `.pdf`). The data is called `LT_inputs.csv`, and we can read it straight into `R` from `GitHub` without needing to manually download anything.
 
 We'll use `read_csv()`, which has nice default settings for reading in delimited files like this.
 ```{r, message = FALSE, warning = FALSE}
@@ -187,7 +187,7 @@ glimpse(LT)
 The first and key step is to transform a set of age-specific death rates into a set of age-specific probabilities of dying (${}_nq_x$). The relationship between ${}_nM_x$ and ${}_nq_x$ has been established based on analyses of actual cohorts (for mathematical proof, see @preston2000demography, p. 42-43). 
 
 $$
-{}_nq_x = \frac{n*{}_nM_x}{1+(n-{}_nA_x){}_nM_x}
+{}_nq_x = \frac{n\cdot{}_nM_x}{1+(n-{}_nA_x)\cdot{}_nM_x}
 $$
 where $_nA_x$ is the average number of person-years lived in the interval by those dying in the interval and $n$ is the width of the age-interval.
 
@@ -204,9 +204,6 @@ calc_nqx <- function(nMx, nAx, n){
   qx[qx < 0] <- 0
   qx
 }
-# example
-calc_nqx(.01, .5, 1)
-calc_nqx(.01, .5, 5)
 
 # Example of what nqx looks like over age
 LT %>% 
@@ -214,15 +211,50 @@ LT %>%
          Year == 2000,
          Sex == "t") %>% 
   mutate(n = c(1,4,rep(5,17)),
-         nqx = calc_nqx(nMx, nAx, n)) %>% 
+         nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n)) %>% 
   ggplot(aes(x = Age, y = nqx)) + 
   geom_line() +
   scale_y_log10() +
   labs(title = "nqx Algeria, 2000",
        subtitle = "Data: GHO")
-
 ```
 Often we're sure to *close out* the lifetable by making the *final* ${}_nq_x$ value equal to 1. You could optionally modify the function to impute 1 like so `nqx[length(nqx)] <- 1`.
+
+Actually in this data, we see the classic formula for $q(x)$ conversion sort of breaks down in the oldest ages, arriving at $q(x)$ values greater than 1. I find this annoying, and this compels me to implement a different approach to getting $q(x)$ for wide intervals:
+
+Observe the following pathological case:
+```{r}
+# annoying kluge here:
+calc_nqx(.21, 2, 5)
+# however if we were in single ages this nMx value would give no problems:
+calc_nqx(.21, 2/5, 1)
+# and this can be brought to a 5-year nqx under a constant probability assumption:
+1 - (1 - calc_nqx(.21, 2/5, 1))^5
+# quite a reasonable value
+```
+Formally, we have:
+
+$$ {}_1q_x = \frac{{}_nM_x}{1 + (1 - \frac{{}_nA_x}{n}) \cdot{}_nM_x} $$
+$$ {}_nq_x = 1 - (1 - {}_1q_x)^n$$
+
+Here is the alternative conversion approach as an `R` function:
+```{r}
+calc_nqx_v2 <- function(nMx, nAx, n){
+  qx1              <- (nMx) / (1 - (1 - nAx / n) * nMx)
+  # the complement of the cumulative survival product...
+  nqx              <-  1 - (1 - qx1) ^ n
+  # these are kludges, necessary to ensure nqx results as a probability
+  nqx[nqx > 1]     <- 1
+  nqx[nqx < 0]     <- 0
+  # closeout qx!
+  nqx[length(nqx)] <- 1
+  nqx
+}
+```
+
+I suggest we use this second version for purely pragmatic reasons with these data, unless someone comes along and tells me what's going on with the standard formula. 
+
+Note, neither $q(x)$ formula needs to be committed to memory. This is something we either derive or look up as needed, and the second version I give here is a pragmatic improvisation for the sake of this lesson. From the point where we are satisfied with our values of $q(x)$, $m(x)$ and $a(x)$, the remainder of the lifetable is now determined.
 
 ## Survival probabilities between age $x$ and $x+n$, $_np_x$
 
@@ -235,7 +267,7 @@ Really there's no need to program a function for this column, as we can just use
 
 ## Survival probabilities to age $x$, $l_x$
 
-This indicator indicates the chance of surviving from birth to age x ($l_x$) OR the number of survivors at age $x$ relative to the radix of the life table. The $l_0$ is interpreted as the initial size (radix) of the population, generally set to 1 or 100,000. Here's one of several ways to calculate it given what we have so far:
+This indicator indicates the chance of surviving from birth to age x ($l_x$) OR the number of survivors at age $x$ relative to the radix $r$ of the life table. The $l_0$ is interpreted as the initial size (radix) of the population, generally set to 1 or 100,000. Here's one of several ways to calculate it given what we have so far:
 $$
 l_{x+n} = r \prod_{y=0}^x {}_np_y
 $$
@@ -258,10 +290,11 @@ LT %>%
          Year == 2000,
          Sex == "t") %>% 
   mutate(n = c(1,4,rep(5,17)),
-         nqx = calc_nqx(nMx, nAx, n),
+         nqx = calc_nqx_v2(nMx = nMx, nAx = nAx, n = n),
          lx = calc_lx(nqx = nqx)) %>% 
   ggplot(aes(x = Age, y = lx)) + 
   geom_line() +
+  ylim(0,1) +
   labs(title = "lx Algeria, 2000",
        subtitle = "Data: GHO")
 ```
@@ -286,10 +319,10 @@ calc_ndx <- function(nqx, lx){
 The number of person-years between age $x$ and $x+n$ (${}_nL_x$) is calculated as:
 
 $$
-{}_nL_x = n(l_x - {}_nd_x) + {}_na_x*{}_nd_x \\
+{}_nL_x = n(l_x - {}_nd_x) + {}_na_x\cdot{}_nd_x \\
 $$
 $$
-= n * l_x - (n-_na_x) _nd_x
+= n \cdot l_x - (n-_na_x) _nd_x
 $$
 **Note**
 
@@ -369,7 +402,7 @@ LT %>%
   select(ex)
 ```
 
-## A Lifetable function
+# A Lifetable function
 
 You probably noticed that a whole lifetable operation can fit in a single `mutate()` call! Well, that may be so, but there's still value in creating a wrapper function that does the whole thing:
 
@@ -400,9 +433,12 @@ DZA <-
   LT %>% 
   filter(Country == "Algeria",
          Sex == "t",
-         Year == 2000)
+         Year == 2000) 
 
-calc_LT(DZA$nMx, DZA$nAx, n= c(1,4,rep(5,17)), 1) 
+calc_LT(nMx = DZA$nMx, 
+        nAx = DZA$nAx, 
+        n = c(1,4,rep(5,17)), 
+        1) 
 ```
 ## reformulate function to use in a tidy pipeline
 
@@ -451,8 +487,9 @@ Not bad!
 # Exercises
 
 1. Make your own lifetable function. Keep it somewhere you won't forget. Celebrate with a nice cup of tea. Or some other beverage. (remember this one from class isn't rigorous, you may need to go back and modify it from time to time as issues arise)
-2. Pick a country / year  combination used here, and compare the life expectancy estimate with some others you can find. World Population Prospects, for example, or perhaps an official or otherwise published estimate. If you find a discrepancy, do you know what's behind it?
+2. Pick a country / year  combination used here, and compare the life expectancy estimate with some others you can find. The new World Population Prospects, for example, or perhaps an official or otherwise published estimate. If you find a discrepancy, do you know what's behind it?
 3. What is the range of life expectancy in our estimates?
+4. Can you plot time trends of life expectancy at age 0 for all countries?
 
 # References
 
