@@ -46,7 +46,7 @@ rm(us)
 
 \vspace{0.8cm}
 \begin{center}
-\large{29 July 2022}
+\large{1 August 2022}
 \end{center}
 \vspace{0.8cm}
 
@@ -55,9 +55,9 @@ rm(us)
 
 # Summary
 
-I decided to get abridged lifetables for countries in Africa for the Wednesday lesson, and this is taking more data wrangling that I originally thought, hence the separation of data prep into this script, for those that are interested to see what I did to the data. My goal was to give you rates ${}_nM_x$ and so-called ${}_nA_x$ (the average time spent in an age interval by those dying in the interval). However, I learned that the GHO data source I chose does not share the ${}_nA_x$ values used in their lifetables (or at least I couldn't find them), so I decided to derive them myself from the other columns given. The details are given in the following.
+I decided to get abridged lifetables for countries in Africa for the Monday Aug 1 lesson, and this is taking more data wrangling that I originally thought, hence the separation of data prep into this script, for those that are interested to see what I did to the data. My goal was to give you rates ${}_nM_x$ and so-called ${}_nA_x$ (the average time spent in an age interval by those dying in the interval). However, I learned that the GHO data source I chose does not share the ${}_nA_x$ values used in their lifetables (or at least I couldn't find them), so I decided to derive them myself from the other columns given. The details are given in the following.
 
-package prerequisites:
+package prerequisites: Note `rgho` has been removed from CRAN, and we install it from GitHub. It is using old `tidyverse` code standards that have been deprecated, and sometime in the near future it will simply no longer work. In the future either the package must be updated or another solution found.
 ```{r, message = FALSE, warning=FALSE}
 # remotes::install_github("pierucci/rgho@devel")
 # install.packages("countrycode")
