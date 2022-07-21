@@ -78,7 +78,7 @@ Today's entire session will be working with this smallish births dataset.
 
 ## Reshape, Rescale, Recode it 
 
-We'll use the `read_excel()` function from the `readxl` package to get the data in. First let's look at the help file using `?read_excel`. Visual inspection of the data shows us that we need to skip several rows, plus there's a note at the bottom of the sheet that we want to ignore. We specify an explicit cell range using the argument `range` and giving spreadsheet coordinates `range = "A10:H158"`
+We'll use the `read_excel()` function from the `readxl` package to get the data in. First let's look at the help file using `?read_excel`. Visual inspection of the data shows us that we need to skip several rows, plus there's a note at the bottom of the sheet that we want to ignore. We specify an explicit cell range using the argument `range` and giving spreadsheet coordinates `range = "A10:H158"` (determined based on visual inspection of the file).
 
 ```{r, message = FALSE, warning = FALSE}
 library(tidyverse)
@@ -91,7 +91,7 @@ glimpse(Wide)
 ```
 
 ### `pivot_longer()` (`pivot_wider()`)
-These data are not tidy because `TIME` is spread over columns. Instead we should have a column called `TIME`, containing the years, and the cell values currently in the columns `2011` to `2016` should be in a column called births. The function `pivot_longer()` will do this for us. See `?pivot_longer`.
+These data are not tidy because `TIME` is spread over columns. Instead we should have a column called `TIME`, containing the years, and the cell values currently in the columns `2011` to `2016` should be in a column called births. The function `pivot_longer()` will do this for us. See `?pivot_longer` or the handout from the previous session.
 
 ```{r}
 Long <- pivot_longer(
@@ -103,16 +103,7 @@ Long <- pivot_longer(
 glimpse(Long)
 ```
 
-The opposite of `pivot_longer()` is `pivot_wider()`. If ever you have the need to go back in the other direction, you can do so like this:
-
-```{r}
-# reverse operation
-pivot_wider(data = Long,
-            names_from = "TIME",
-            values_from = "Births")
-```
-
-Pivoting between columns and rows has some more options that we will surely make use of as this course progresses. The arguments `names_to` (`names_from`) and `values_to` (`values_from`) are designed to be easy to understand and remember. A nice thing about `pivot_longer` is you can specify column ranges using names (see how we put back-ticks on years? That's so that 2011 doesn't get interpreted at the 2011th column!). Integer ranges will also do, as would listing out the columns by name or position. There are other tricks for intelligently picking out columns, see `?tidyr_tidy_select`. From that help file, we see other things would have worked in our case, for example `where(is.double)`, which is handy.
+A nice thing about `pivot_longer` is you can specify column ranges using names (see how we put back-ticks on years? That's so that 2011 doesn't get interpreted at the 2011th column!). Integer ranges will also do, as would listing out the columns by name or position. There are other tricks for intelligently picking out columns, see `?tidyr_tidy_select`. From that help file, we see other things would have worked in our case, for example `where(is.double)`, which is handy.
 
 ```{r, eval = FALSE}
 pivot_longer(
@@ -159,7 +150,7 @@ Long <-
      Births)
 ```
 
-This reads as "first `read_excel()`, then `pivot_longer()`, then `select()` columns". Notice how the functions can be read as verbs, and the the pipes allow them to be combined into a rote kind of sentence. Indeed, it can help to add notes using `#`: don't worry: it won't break the chain! As the dataset goes down the pipeline, by default it becomes the first argument to the next function to be executed. Each of these functions has a first argument called either `data` or `.data`, which doesn't need to be specified because the incoming data is passed to it. 
+This reads as "first `read_excel()`, then `pivot_longer()`, then `select()` columns, renaming some of them". 
 
 ```{r}
 Long <- 
@@ -188,9 +179,6 @@ We will augment this pipeline step by step and then recompose it in its entirety
 
 So what age classes to we have? `unique()` picks out just the unique values present in a vector.
 ```{r}
-# selecting a column with $ 
-unique(Long$Age)
-
 # same thing using tidy:
 Long %>% 
   pull(Age) %>% # pull() extracts column as vector
@@ -350,13 +338,9 @@ This is a tidy pipeline. And tidy code, no matter who writes it, usually ends up
 
 You see all those annotations between many of the pipe steps? That's not *just* for you, the reader. It's good practice to do that. Possibly because someone else might like to interpret your code, so why not make it easier, but also you should comment your code out of respect for *future you*, because *future you* won't remember what you were thinking when you wrote it.
 
-## Aggregate with `summarize()`
+## Group to 5-year ages with `summarize()`
 
-Aggregation typically implies a reduction in the number of rows in a data set. Let's see examples of grouping countries, grouping ages, and calculating marginal sums.
-
-### Group to 5-year ages
-
-Grouping ages or years often follows a similar logic. We will exploit to the *modulo* operator, `%%`, which tells us the remainder after Euclidean division. Example:
+Aggregation typically implies a reduction in the number of rows in a data set. Let's see examples of grouping countries, grouping ages, and calculating marginal sums. Grouping ages or years often follows a similar logic. We will exploit to the *modulo* operator, `%%`, which tells us the remainder after Euclidean division. Example:
 
 ```{r}
 a <- 1:10
@@ -447,7 +431,7 @@ Our main use of `summarize()` today will be for evaluating weighted means. More 
 
 In general a weighted mean is defined as
 
-$$ \bar{x} = \frac{\sum x_i * w_i}{\sum w_i}$$
+$$ \bar{x} = \frac{\sum x_i \cdot w_i}{\sum w_i}$$
 For the mean age at childbearing, $x$ is age (exact age at mid-interval we prefer), and $w$ should be either birth counts or age-specific fertility. Since we don't have exposures (yet) to calculate fertility rates, we'll just use raw births by age as the weights.
 
 ```{r}
@@ -588,9 +572,9 @@ Probably we'd rather join exposures to `Births` than January 1st population coun
 $$ Exposure_x = \frac{P^{Jan 1}_x + P^{Dec 31}_x}{2} $$
 In other words, just take the simple average of the population at the start and end of the year. We can approximate the end-of-year population using the following year's January 1st population. Our goal is to do this arithmetic like so `mutate(Exposure = (P1 + P2) / 2)`, so the trick is to create a second `Population` column, consisting in the same `Population` column we already have, but back-dated one year. 
 
-To do this we create a copy of `Pop`, then reduce `Year` by one in that copy, then merge it back to the original `Pop` that we started with. In the process we'll also rename both versions of `Population` to `P1` and `P2` so that we don't get confused. The year-range for `P2` will lose the most recent year, and it will also have one extra year on the lower end, due to the shift. When we **join** the objects together we want to do so only where we have overlapping combinations of `Year` (and `Age` and `Country` need to match too, but these will match exactly in our case).
+We will do this in two ways, first using joins. To do this we create a copy of `Pop`, then deduct `Year` by one in that copy, then merge it back to the original `Pop` that we started with. In the process we'll also rename both versions of `Population` to `P1` and `P2` so that we don't get confused. The year-range for `P2` will lose the most recent year, and it will also have one extra year on the lower end, due to the shift. When we **join** the objects together we want to do so only where we have overlapping combinations of `Year` (and `Age` and `Country` need to match too, but these will match exactly in our case).
 
-### Time out for `join` varieties
+### `join`ing datasets
 
 There are different kinds of joining. Joins have a *left* and *right* side data object. Here are the basic ones, with some example data to make concepts clear:
 
@@ -681,7 +665,7 @@ Pop %>%
 
 ## Bring it all together
 
-The above steps accentuate how designing a processing pipeline happens in stages, and sometimes needs to be mapped out in advance. When doing this sort of work, we always check the results as we go to ensure things are processing as expected. When complete, we can clean up everything into a parsimonious pipeline. This allows you (and others) to think through all the steps in a glance: because tidyverse verbs string together into sentences! We therefore now paste all the above `Pop` processing code into a minimal pipeline, duly annotated:
+The above steps accentuate how designing a processing pipeline happens in stages, and sometimes needs to be mapped out in advance. It's inherently iterative, and often involves trial and error, especially when we are learning. When doing this sort of work, we always check the results as we go to ensure things are processing as expected. When complete, we can clean up everything into a parsimonious pipeline. This allows you (and others) to think through all the steps in a glance: because tidyverse verbs string together into sentences! We therefore now paste all the above `Pop` processing code into a minimal pipeline, duly annotated:
 
 ```{r}
 Pop <- read_excel("Data/demo_pjan.xlsx",
@@ -729,7 +713,7 @@ See how this pipeline is in a single piece? This is because we avoided the self-
 # Work with merged data
 
 ## Join `Pop` and `Births`
-Note `Pop` has more `Year` (2012-2019), `Age` (0-100), and `Country` (41) values than does `Births`. However, `Births` has one year that `Pop` does not (2011). If we did `left_join(Pop, Births)` that would be clearly too much. If we did `left_join(Births, Year)` then we'd be closer, but still have an extra year (2011) with no exposure available. Either of these (and by extension a `full_join()`) would still work, but would require extra `filter()` operations in order to get the data down to just the valid combinations of `Country`, `Year`, and `Age`. Hence, we use `inner_join()` again to create our new object, `Dat`.
+Note `Pop` has more `Year` (2012-2019), `Age` (0-100), and `Country` (41) values than does `Births`. However, `Births` has one year that `Pop` does not (2011). If we did `left_join(Pop, Births)` that would be clearly too much. If we did `left_join(Births, Pop)` then we'd be closer, but still have an extra year (2011) with no exposure available. Either of these (and by extension a `full_join()`) would still work, but would require extra `filter()` operations in order to get the data down to just the valid combinations of `Country`, `Year`, and `Age`. Hence, we use `inner_join()` again to create our new object, `Dat`.
 
 ```{r}
 Dat <-
@@ -746,7 +730,7 @@ Dat <-
   mutate(ASFR = Births / Exposure)
 ```
 
-Now a brief detour to examine the fertility curves and do a quick sanity check that TFR is as expected. A brief explanation: everything inside `aes()` is a *mapping* of our data to coordinate or aesthetic properties. Since `ggplot`s are composed of additive layers, we can keep adding layers using `+`. `geom_line()` is the geometric form that that mapping is translated to. other geometric mappings are also possible. We'll breeze through several other low-key `ggplot` examples before more explicitly explaining things on Thursday.
+Now a brief detour to examine the fertility curves and do a quick sanity check that TFR is as expected. An explanation of the `ggplot` code: everything inside `aes()` is a *mapping* of our data to coordinate or aesthetic properties. Since `ggplot`s are composed of additive layers, we can keep adding layers using `+`. `geom_line()` is the geometric form that that mapping is translated to. Other geometric mappings are also possible. We'll breeze through several other low-key `ggplot` examples before more explicitly explaining things later in the workshop.
 
 ```{r}
 Dat %>% 
@@ -786,8 +770,10 @@ Dat %>%
   # join to previous estimate. We do full
   # because year range different, but we can plot everything
   full_join(MAB, by = c("Country","Year")) %>% 
-  # stack
-  pivot_longer(c(MAB_rates,MAB), names_to = "type", values_to = "MAB") %>% 
+  # stack so we can plot together easier, mapping MAB types to `linetype` 
+  pivot_longer(c(MAB_rates,MAB), 
+               names_to = "type", 
+               values_to = "MAB") %>% 
   # remove NAs from asfr-weighted MAB (no 2011 info)
   filter(!is.na(MAB)) %>% 
   ggplot(aes(x = Year, 
@@ -800,22 +786,22 @@ Dat %>%
 
 From this we see that trends are mostly the same, but not levels, and sometimes slopes are different. One could easily imagine a situation in which `ASFR`-weighted MAB gives a different trend than `Birth`-weighted MAB. One senses Czechia is close this case. Certainly levels can be quite different, and any discrepancy is due to departures from non-uniformity in population structure, which is an odd but precise way of putting it. In this case, if birth-weighted MAB is higher than ASFR-weighted MAB, it means that the population structure has more weight in higher ages.
 
-# Excercises (optional)
+# Excercises
 
-I will offer exercise solutions in a separate file, and walk through these in the following day's lecture.
+I will offer exercise solutions in a separate file, and walk through these in the following day's lecture in case there is no time in the current session.
 
-1. plot time trends in TFR by country.
+1. plot time trends of TFR by country.
 
 2. Use the time-series trick `lead()` and/or `lag()` to calculate a variable `rt` as:
 
 $$ r(t) = \frac{MAB(t+1) - MAB(t - 1)}{2} $$
 
-Here $r(t)$ (in R call the new variable `rt`) approximates the average rate of change in the mean age at childbearing. We can use it to calcualte an adjusted form of TFR, `TFR_adj` like so:
+Here $r(t)$ (in R call the new variable `rt`) approximates the average rate of change in the mean age at childbearing. We can use it to calculate an adjusted form of TFR, `TFR_adj` like so:
 
 $$ TFR_{adj}(t) = \frac{TFR(t)}{1 - r(t)}$$
 
-The basic idea is that if fertility is undergoing postponement, then the TFR of today is an underestimate. Without over-thinking the theory, can you calculate a variable called `TFR_adj`, and compare it's (short) time trends with those of TFR in a plot?
+The basic idea is that if fertility is undergoing postponement, then the TFR of today is an underestimate (@bongaarts1998quantum). Without over-thinking the theory, can you calculate a variable called `TFR_adj`, and compare it's (short) time trends with those of TFR in a plot?
 
 3. Choose either rate-weighted MAB or birth-weighted MAB, but redo the calculations in terms of 5-year age groups. Assume that the average age within the interval is simply the midpoint (`Age + 2.5`). Does this change MAB very much?
 
-
+# References
