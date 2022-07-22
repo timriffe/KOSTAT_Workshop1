@@ -1,31 +1,34 @@
-## 8th KOSTAT-UNFPA Summer Seminar on Population
+## 9th KOSTAT-UNFPA Summer Seminar on Population
 # Workshop 1 "R in Demography"
 
-26-30 July, 2021. See you in Zoom!
+27 July - 5 August, 2022. See you in Daejeon or in Zoom!
 
 ## Contents
 
-1. `Data/`
+- `Data/`
    1. `demo_pjan.xlsx`
    2. `demo_fasec.xlsx`
+   3. `LT_inputs.csv`
+   4. `LT_results.csv`
 
-2. `01` (Monday, 26, July 2021) "Introduction to `R`, `RStudio`, and `R markdown`"
+- `01` (Wednesday, 27 July 2022) "Introduction to `R`, `RStudio`, and `R markdown`"
    1. `01_handout` (`.Rmd`, `.pdf`)
-   2. `01_session` (`.Rmd`, `.pdf`)
-3. `02` (Tuesday, 27, July 2021) "The tidy data approach" Example data: births
+- `02` (Thursday, 28 July 2022) "The tidy data approach" 
    1. `02_handout` (`.Rmd`, `.pdf`)
-   2. `02_session` (`.Rmd`, `.pdf`)
-4. `03` (Wednesday, 28, July 2021) "Function writing" Example: WHO mortality data
+- `03` (Friday, 29 July 2022) "Worked example of tidy data processing: birth data"
    1. `03_data_prep` (`.Rmd`, `.pdf`)
    2. `03_handout` (`.Rmd`, `.pdf`)
-   3. `03_session` (`.Rmd`, `.pdf`)
-5. `04` (Thursday, 29, July 2021) "Visualizing data using `ggplot2` Example: `gapminder` and WHO lifetables
+- `04` (Monday, 1 August 2022) "Writing functions: the lifetable"
    1. `04_handout` (`.Rmd`, `.pdf`)
-   2. `04_session` (`.Rmd`, `.pdf`)
-6. `05` (Friday, 30, July 2021) "Advanced pipelines" Example: Healthy life expectancy with GBD and HLD
+- `05` (Tuesday, 2 August 2022) "Visualizing data using `ggplot2`"
    1. `05_handout` (`.Rmd`, `.pdf`)
-   2. `05_session` (`.Rmd`, `.pdf`)
-   
+- `06` (Wednesday, 3 August 2022) "Processing and visualizing South Korean fertility microdata"
+   1. `06_handout` (`.Rmd`, `.pdf`) *in progress*
+- `07` (Thursday, 4 August 2022) "Demographic standardization and decomposition"
+   1. `07_handout` (`.Rmd`, `.pdf`) *in progress*
+- `08` (Thursday, 6 August 2022) "Advanced pipelines: Data chosen by participants"
+   1. `08_handout` (`.Rmd`, `.pdf`) *designed toward end of workshop*
+      
 ## Things to install
 
 * Rstudio Desktop, preview version [https://www.rstudio.com/products/rstudio/download/preview/](https://www.rstudio.com/products/rstudio/download/preview/)
