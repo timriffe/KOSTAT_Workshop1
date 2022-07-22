@@ -53,7 +53,48 @@ knitr::opts_chunk$set(echo = TRUE)
 \tableofcontents
 
 # Summary
+Today we will exercise concepts previously presented to read, process, and analyse births microdata delivered in *flat* files or *fixed-width* format. This means that data have no delimiters, but each column has a fixed character width. We will see that this data is easy to read in bulk, and we will spend most of the session aggregating, merging with population data, and visualizing various kinds of results.
 
-Today we will exercise concepts previously presented to read, process, and analyse births microdata kindly provided by KOSTAT. 
+# Fixed width microdata
+KOSTAT kindly provided the birth data for the purpose of this workshop. Each observation in this data is an individual birth. These data contain 100% of registered births in Korea, and a selection of the many variables available from the original source. Typically these data are only accessible under restricted conditions after an application and evaluation. I will provide a link to a zipped folder containing the data to be used today, but these **should be deleted** when the workshop is over. If you need access to these data for research on Korean fertility, you should apply through the standard channels at KOSTAT. 
 
-Content to be created.
+Note that data of this exact kind is openly available for a few countries around the world, including but not limited to [Spain](https://www.ine.es/dyngs/INEbase/en/operacion.htm?c=Estadistica_C&cid=1254736177007&menu=resultados&idp=1254735573002#!tabs-1254736195443) and the [United States](https://www.cdc.gov/nchs/data_access/vitalstatsonline.htm)
+
+Note that KOSTAT kindly provided the data already in comma-separated format. I put it (back?) in fixed-width format myself. If you're curious to see how I did that, and what I did to test today's code, you can refer to the supplementary handout `06_data_prep.pdf`. You will not be able to execute the `.Rmd` file because you do not have the original `.csv` files. 
+
+## Download the data
+Download the data (`Korea_births_fwf.zip`) using the link given in the `Google Doc` for the course, and move it to the `Data` folder of the workshop project. Once there, you can unzip the file from `R` like so:
+
+```{r}
+unzip("Data/Korea_births_fwf.zip", 
+      # in case this isn't the first time
+      overwrite = TRUE, 
+      # which directory to stash the result in
+      exdir = "Data")
+```
+A new folder will be created: `Data/Korea_births_fwf`, which contains one file each for years 2000-2020. Files follow the naming convention `kbyyyy.txt`, where `yyyy` is the given year. You can open one of these in a text editor and have a look. For some columns, in some places it seems obvious what a variable is, but in general we see that some sort of parsing is needed in order to get this data into any program.
+
+Here is a glimpse of the first several rows of the first fixed-width file:
+\begin{verbatim}
+2000   2000   1   1      12000   1 36   34   35 2.36  
+2000   2000   1   1      12000   1 27   27   37 2.4   
+2000   2000   1   1      12000   1 25   25   37 2.9   
+2000   2000   1   1      12000   1 29   26   38 3.49  
+2000   2000   1   1      12000   1 31   24   39 3.16  
+2000   2000   1   1      12000   1 35   29   39 3.24  
+2000   2000   1   1      12000   1 29   28   40 3.05  
+2000   2000   1   1      12000   1 34   27   40 3.3  
+\end{verbatim}
+
+## Read the data into `R`
+
+The `readr` package has a nice function `read_fwf()` to read in this sort of data. It requires you to either know the the starting position and width of each column (in terms of characters), or the starting and stopping positions. If all you know are the widths of each column, then you must know these for each
+
+```{r}
+library(tidyverse)
+library(readr)
+
+?read_fwf
+
+```
+
