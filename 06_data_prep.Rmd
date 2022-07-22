@@ -54,7 +54,7 @@ knitr::opts_chunk$set(echo = TRUE)
 This markdown file steps through the data prep of the microdata. Here I have the simple task of converting the (very nicely formatted) `.csv` files provided by KOSTAT into a fixed width format. I want to do this because very often when we get microdata from official statistics offices, it is delivered in fixed-width files, often public-use files where we need to to know column positions and widths in order to read the data into `R`. That is, here we take a step *backwards*! The metadata about which column is located in which position, and how wide it is is best delivered in a spreadsheet, but sometimes it is given in in `pdf` files, which can be laborious to prepare.
 
 # examine file
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
 library(readr)
 folder_pieces <- c("Data",
@@ -64,7 +64,8 @@ folder_pieces <- c("Data",
 folder <- paste(folder_pieces,collapse="/")
 files  <- dir(folder)
 
-A <- read_csv(file.path(folder, files[1]))
+A <- read_csv(file.path(folder, files[1]),
+              show_col_types = FALSE)
 # View(A)
 ```
 
@@ -150,9 +151,10 @@ files <- file.path("Data/Korea_births_fwf",
 # vroom reads them all in and rbinds them together nicely :-)
 A     <- vroom_fwf(files,
                    col_positions = specs)
-
-all_files <- file.path(files)
-zip(zipfile="Data/Korea_births_fwf.zip", files)
+# In Terminal, I typed:
+# cd workspace/KOSTAT_Workshop1/Data
+# zip -r Korea_births_fwf.zip Korea_births_fwf
+# Also possible from R, but I didn't bother
 ```
 
 ## Test unzip
