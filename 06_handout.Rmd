@@ -68,8 +68,7 @@ Download the data (`Korea_births_fwf.zip`) using the link given in the `Google D
 ```{r}
 unzip("Data/Korea_births_fwf.zip", 
       # in case this isn't the first time
-      overwrite = TRUE, 
-      # which directory to stash the result in
+      overwrite = TRUE,
       exdir = "Data")
 ```
 A new folder will be created: `Data/Korea_births_fwf`, which contains one file each for years 2000-2020. Files follow the naming convention `kbyyyy.txt`, where `yyyy` is the given year. You can open one of these in a text editor and have a look. For some columns, in some places it seems obvious what a variable is, but in general we see that some sort of parsing is needed in order to get this data into any program.
@@ -86,15 +85,86 @@ Here is a glimpse of the first several rows of the first fixed-width file:
 2000   2000   1   1      12000   1 34   27   40 3.3  
 \end{verbatim}
 
+
+
 ## Read the data into `R`
 
-The `readr` package has a nice function `read_fwf()` to read in this sort of data. It requires you to either know the the starting position and width of each column (in terms of characters), or the starting and stopping positions. If all you know are the widths of each column, then you must know these for each
+The `readr` package has a nice function `read_fwf()` to read in this sort of data. It requires you to either know the the starting position and width of each column (in terms of characters), or the starting and stopping positions. If all you know are the widths of each column, then you must know these for each column in the data. When we read the data in, white space is automatically eliminated, and `R` guesses the data type for each column (which we can of course override if we want). Look at the help file to `?read_fwf` for examples of all the different ways to read in fixed-width data.
 
-```{r}
+### Create metadata
+In this case, you can read in the metadata directly from a `.csv` file in github like so:
+```{r, message = FALSE}
 library(tidyverse)
 library(readr)
+# cutting url in two pieces because it's so long it won't fit on a page!
+url_base <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/"
+url_end  <- "master/Data/Korea_births_fwf_metadata.csv"
+my_url   <- paste0(url_base, url_end)
+widths <- read_csv(my_url,
+                   # suppress messages
+                   show_col_types = FALSE)
+widths
+```
+From this we see we have 11 columns, and we know the width of each. To use `read_fwf()`, we just need to convert this into some standard specifications, like so:
 
-?read_fwf
+```{r}
+specs <-
+  fwf_widths(widths = widths$width,
+             col_names = widths$colname)
+specs
+```
+This translation from widths should be pretty straightforward. Sometimes your metadata is already delivered just like this, with start and stop positions, ideally in a spreadsheet, but sometimes unfortunately in a `.pdf`. Even so, it's good to create this `R` object using one of the helper functions listed when you type `?fwf_widths` to ensure that it follows the stanards anticipated.
 
+### Trial for one file
+```{r}
+data_in <- read_fwf("Data/Korea_births_fwf/kb2000.txt",
+                    col_positions = specs)
+data_in
+```
+
+### Read and merge all files using `vroom`
+
+Install the `vroom` package from CRAN, and be sure to comment out the installation line with `#`
+```{r, eval = FALSE}
+install.packages("vroom")
+```
+
+To read in the file, use `vroom_fwf()`, and feed our `specs` object to the `col_positions` argument. Here I explicitly state what the data type should be for each column using a shorthand: `i` stands for integer, and `d` stands for double (data with decimals). If you omit this step, then `Birth weight` will be interpreted as character. That's not really a problem, you could coerce it back to double using `mutate(`Birth weight` = as.double(`Birth weight`))`.
+```{r}
+library(vroom)
+rm(data_in) # remove earlier test file from memory
+# a vector of file paths:
+kb_folder <- "Data/Korea_births_fwf"
+files <- file.path(kb_folder,
+                   dir(kb_folder))
+
+# read and merge, very fast :-)
+KB     <- vroom_fwf(files,
+                    col_positions = specs,
+                    col_types = "iiiiiiidddd")
+str(KB)
+```
+
+It appears there were 9369102 births registered in South Korea between the years 2000 and 2020, inclusive.
+
+## tidy the data some
+
+First, the names are a bit awkward to type out in back-tics whenever we want to refer to a variable in code. I'd prefer to type `mother_detailed_age` rather than `r '\x60(Mother) detailed age\x60'`
+
+```{r}
+library(janitor)
+KB <-
+  KB %>% 
+  clean_names()
+```
+
+
+
+```{r}
+KB %>% pull(month_of_birth) %>% table()
+KB %>% pull(year_of_birth) %>% table()
+# code 999 is unstated age
+KB %>% pull(father_detailed_age) %>% floor() %>% table()
+KB %>% pull(mother_detailed_age) %>% floor() %>% table()
 ```
 

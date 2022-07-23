@@ -106,7 +106,7 @@ We now apply this function in a loop, sending the resulting text files to a fold
 ```{r}
 # based on eyeballing the data; it's OK if these are bigger than needed; not
 # OK if they are smaller than needed.
-widths <- c(7,7,4,7,1,7,2,8,8,3,6)
+widths <- c(7,7,4,7,1,7,2,10,10,6,6)
 
 years <- 2000:2020
 
