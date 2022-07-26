@@ -10,6 +10,7 @@
    2. `demo_fasec.xlsx`
    3. `LT_inputs.csv`
    4. `LT_results.csv`
+   5. `Korea_births_fwf_metadata.csv`
 
 - `01` (Wednesday, 27 July 2022) "Introduction to `R`, `RStudio`, and `R markdown`"
    1. `01_handout` (`.Rmd`, `.pdf`)
