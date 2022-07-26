@@ -55,6 +55,28 @@ knitr::opts_chunk$set(echo = TRUE)
 # Summary
 Today we will exercise concepts previously presented to read, process, and analyse births microdata delivered in *flat* files or *fixed-width* format. This means that data have no delimiters, but each column has a fixed character width. We will see that this data is easy to read in bulk, and we will spend most of the session aggregating, merging with population data, and visualizing various kinds of results.
 
+# Packages we'll use today
+
+```{r, message = FALSE}
+
+#install.packages("tidyverse")
+## for standardized column names
+#install.packages("janitor")
+## for easy date handling
+#install.packages("lubridate")
+## for ridge plots
+#install.packages("ggridges")
+## read in data fast!
+#install.packages("vroom")
+
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(ggridges)
+library(vroom)
+```
+
+
 # Fixed width microdata
 KOSTAT kindly provided the birth data for the purpose of this workshop. Each observation in this data is an individual birth. These data contain 100% of registered births in Korea, and a selection of the many variables available from the original source. Typically these data are only accessible under restricted conditions after an application and evaluation. I will provide a link to a zipped folder containing the data to be used today, but these **should be deleted** when the workshop is over. If you need access to these data for research on Korean fertility, you should apply through the standard channels at KOSTAT. 
 
@@ -93,9 +115,11 @@ The `readr` package has a nice function `read_fwf()` to read in this sort of dat
 
 ### Create metadata
 In this case, you can read in the metadata directly from a `.csv` file in github like so:
-```{r, message = FALSE}
-library(tidyverse)
-library(readr)
+```{r, include = FALSE}
+widths <- read_csv("Data/Korea_births_fwf_metadata.csv")
+```
+
+```{r, eval = FALSE}
 # cutting url in two pieces because it's so long it won't fit on a page!
 url_base <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/"
 url_end  <- "master/Data/Korea_births_fwf_metadata.csv"
@@ -103,8 +127,12 @@ my_url   <- paste0(url_base, url_end)
 widths <- read_csv(my_url,
                    # suppress messages
                    show_col_types = FALSE)
+```
+Let's have a look:
+```{r}
 widths
 ```
+
 From this we see we have 11 columns, and we know the width of each. To use `read_fwf()`, we just need to convert this into some standard specifications, like so:
 
 ```{r}
@@ -124,14 +152,8 @@ data_in
 
 ### Read and merge all files using `vroom`
 
-Install the `vroom` package from CRAN, and be sure to comment out the installation line with `#`
-```{r, eval = FALSE}
-install.packages("vroom")
-```
-
-To read in the file, use `vroom_fwf()`, and feed our `specs` object to the `col_positions` argument. Here I explicitly state what the data type should be for each column using a shorthand: `i` stands for integer, and `d` stands for double (data with decimals). If you omit this step, then `Birth weight` will be interpreted as character. That's not really a problem, you could coerce it back to double using `mutate(`Birth weight` = as.double(`Birth weight`))`.
+To read in the file, use `vroom_fwf()`, and feed our `specs` object to the `col_positions` argument. Here I explicitly state what the data type should be for each column using a shorthand: `i` stands for integer, and `d` stands for double (data with decimals). If you omit this step, then `Birth weight` will be interpreted as character. That's not really a problem, you could coerce it back to double using `mutate(`Birth weight` = as.double(`Birth weight`))`. We use `vroom` because it's blazing fast compared to other options. In our case, we have identically formatted files in a folder, and it just reads them all in at once.
 ```{r}
-library(vroom)
 rm(data_in) # remove earlier test file from memory
 # a vector of file paths:
 kb_folder <- "Data/Korea_births_fwf"
@@ -149,17 +171,20 @@ It appears there were 9369102 births registered in South Korea between the years
 
 ## tidy the data some
 
-First, the names are a bit awkward to type out in back-tics whenever we want to refer to a variable in code. I'd prefer to type `mother_detailed_age` rather than `r '\x60(Mother) detailed age\x60'`
+First, the names are a bit awkward to type out in back-tics whenever we want to refer to a variable in code. I'd prefer to type `mother_detailed_age` rather than `r '\x60(Mother) detailed age\x60'`. Also, in various places we'll want time coded as a date. For this we can use a helper function from the `lubridate` package, `ymd()`, you can give it strings like `"2000-01-01"` or `"2000 01 01"` or `"2000 1 1"`, and it'll interpret them properly and coerce to date data type. See also `dmy()`, `mdy()`, `as_date()`, and others.
 
-```{r}
-library(janitor)
+```{r, message = FALSE}
 KB <-
   KB %>% 
-  clean_names()
+  clean_names() %>% 
+  # date useful for plotting
+  mutate(date = ymd(paste(year_of_birth,
+                   month_of_birth,
+                   "01")))
 ```
 
 
-
+Check values to infer missing codes: no missing month or year of birth variables; 999 used for missing ages. `floor()` is used to *round down* age to the nearest integer, which is the way demographers most commonly handle age.
 ```{r}
 KB %>% pull(month_of_birth) %>% table()
 KB %>% pull(year_of_birth) %>% table()
@@ -167,4 +192,315 @@ KB %>% pull(year_of_birth) %>% table()
 KB %>% pull(father_detailed_age) %>% floor() %>% table()
 KB %>% pull(mother_detailed_age) %>% floor() %>% table()
 ```
+
+Whenever we use age, we should figure out a way to redistribute these unknown values. This is usually something that follows tabulation rather than precedes it.
+
+## plot of birth seasonality
+
+Let's get a sense of how seasonal births are. This will happen in two steps:
+1. Aggregate the data by year, month; use the `n()` function inside `summarize()` to count rows
+2. Create a date variable 
+3. plot the result
+
+```{r, message = FALSE}
+month_totals <-
+  KB %>% 
+  group_by(date, month_of_birth) %>% 
+  summarize(births = n(), 
+            .groups = "drop")  
+```
+
+In plotting, we notice that births tend to have a January spike:
+```{r}
+month_totals %>%   
+  ggplot(aes(x = date, y = births)) +
+  geom_line() +
+  # more honest but too much visual vibration IMO:
+  # geom_step() 
+  
+  # put a red dot on each January value
+  geom_point(data = month_totals %>% 
+               filter(month_of_birth == 1), 
+             color = "red")+
+  labs(title = "Why are there more births in Jnauary than December")
+```
+I presume many of the Korean participants know what is going on. I, however, do not. Is it that conceptions (natural or assisted) are equally seasonal? Are gestational periods being shortened / lengthened in order to achieve this result? Is it low-key fraud to give children a better position within their cohort? Are December due-dates more likely to be aborted? I unfortunately did not request variables for cesarean deliveries, nor for whether a conception was assisted. 
+
+Exercise: Calculate this time series separately for boy births and girl births, and plot the two lines, mapping color to sex. Is one series more seasonal than the other?
+
+```{r}
+monthly_sr <-
+ KB %>% 
+  group_by(date, month_of_birth,sex) %>% 
+  summarize(births = n(), 
+            .groups = "drop") %>% 
+  pivot_wider(names_from = sex, values_from = births) %>% 
+  mutate(sex_ratio = `1`/`2`) 
+monthly_sr %>% 
+  ggplot(aes(x = date, y = sex_ratio)) +
+  geom_line() +
+  geom_point(data = monthly_sr %>% filter(month_of_birth == 1),color="red")
+```
+
+
+What would a time-series of "conceptions resulting in live births" look like? This unfortunately won't be the same as an unconditional time series of conceptions, that's just the nature of live-birth data. For the case of the USA and Spanish data linked above, one could join with data on pregnancies or fetal deaths to get a closer-to-complete time series of conceptions. Caveats aside, let's get down to pragmatic programming.
+
+We have a variable `no_of_weeks_of_pregnancy`. This is in weeks, but we only have month-resolution for births, ouch. Let's figure out a way to hack this so we can make the desired time-series. My hackish approach will be to assume that a birth happens on the 15th day of the month, and to subtract whole weeks of pregnancy from this, ergo: `date_of_conception_approx = date - no_of_weeks_of_pregnancy * 7 + 15`. The resulting dates are going to be scattered, but we can group these back into months using the `month()` helper function (give it a date, it returns a month integer, see also `day()` and `year()`). Once we get the approximate month of conception, we can aggregate, and once again recreate a "first of the month" date column for purposes of plotting:
+
+```{r}
+conceptions_month <-
+  KB %>% 
+  mutate(date = ymd(paste(year_of_birth,
+                          month_of_birth,
+                          "01")),
+         date_of_conception_approx = date - no_of_weeks_of_pregnancy * 7 + 15,
+         year = year(date_of_conception_approx),
+         month_of_conception_approx = month(date_of_conception_approx)) %>% 
+  group_by(year, month_of_conception_approx) %>% 
+  summarize(conceptions = n(), 
+            .groups = "drop") %>% 
+  mutate(date_for_plotting = ymd(paste(year,
+                          month_of_conception_approx,
+                          "01"))) 
+```
+
+Plot it, highlighting both peaks and valleys
+```{r}
+conceptions_month %>% 
+  ggplot(aes(x = date_for_plotting, y = conceptions )) +
+  geom_line() +
+  geom_point(data = conceptions_month %>% filter(month_of_conception_approx %in% c(4,6)),
+             color = "red") +
+  geom_point(data = conceptions_month %>% filter(month_of_conception_approx %in% c(2,9)),
+             color = "blue") +
+  labs(title = "April and June might be popular conception months",
+       subtitle = "February and September not so much?")+
+  xlim(ymd("1999-08-01"),ymd("2020-03-01"))
+```
+
+How does the distribution of live births by weeks of gestation change as a function of mothers' age? 
+```{r}
+
+density_by_mother_age <-
+  KB %>% 
+  filter(mother_detailed_age < 70,
+         # why are some `no_of_weeks_of_pregnancy` equal to 0?
+         no_of_weeks_of_pregnancy > 0) %>% 
+  mutate(mother_age5 = mother_detailed_age - mother_detailed_age %% 5) %>% 
+  group_by(mother_age5, no_of_weeks_of_pregnancy) %>% 
+  summarize(n = n(), .groups = "drop") %>%
+  ungroup() %>% 
+  group_by(mother_age5) %>% 
+  mutate(dens = n / sum(n) ) 
+```
+
+Plot it as a ridge plot!
+```{r}
+density_by_mother_age %>% 
+  ggplot(aes(x = no_of_weeks_of_pregnancy, y = factor(mother_age5))) +
+  ggridges::geom_ridgeline(mapping = aes(x =no_of_weeks_of_pregnancy, height=dens, scale = 3)) +
+  xlim(30,46) 
+```
+
+Exercise: Repeat this ridge plot, except use fathers' age in 5-year age groups. Does the distribution seem to change its shape more by fathers' age or mothers' age?
+
+Exercise: again, throwing out unknown mother and father ages, calculate a new variable called `age_diff` (father age minus mother age). Use `case_when()` to categorize age differences into 3 bins: 
+1. `age_diff > 2`
+2. `between(age_diff,2,-2)`
+3. `age_diff < -2`
+Again, recreate the first ridgeplot (using `mother_age5`), and map `fill` color to your new 3-category `age_diff`. 
+
+### Solution (to be suppressed)
+```{r}
+density_by_mother_age_diff <-
+  KB %>% 
+  filter(mother_detailed_age < 60,
+         father_detailed_age < 70,
+         # why are some `no_of_weeks_of_pregnancy` equal to 0?
+         no_of_weeks_of_pregnancy > 0) %>% 
+  mutate(mother_age5 = mother_detailed_age - mother_detailed_age %% 5,
+         age_diff = father_detailed_age - mother_detailed_age,
+         age_diff = case_when(
+           age_diff > 2 ~ "father > mother",
+           age_diff < -2 ~ "mother < father",
+           TRUE ~ "approx equal"
+         )) %>% 
+  group_by(age_diff, mother_age5, no_of_weeks_of_pregnancy) %>% 
+  summarize(n = n(), .groups = "drop") %>%
+  ungroup() %>% 
+  group_by(mother_age5, age_diff) %>% 
+  mutate(dens = n / sum(n) ) 
+```
+
+Doesn't seem to make a big difference, except for when mothers' age >50 and fathers' age even higher, which shows more preterm births.
+```{r}
+density_by_mother_age_diff %>% 
+  ggplot(aes(x = no_of_weeks_of_pregnancy, 
+             y = factor(mother_age5),
+             fill = age_diff)) +
+  ggridges::geom_ridgeline(mapping = aes(x =no_of_weeks_of_pregnancy, height=dens, scale = 3),
+                           alpha = .3) +
+  xlim(30,46) 
+```
+
+These densities clearly blend out scale-differences between the distributions, but this varies too wildly over age. In this case, one could try to scale within mother age only as a different density:
+
+```{r}
+density_by_mother_age_diff2 <-
+  KB %>% 
+  filter(mother_detailed_age < 60,
+         father_detailed_age < 70,
+         # why are some `no_of_weeks_of_pregnancy` equal to 0?
+         no_of_weeks_of_pregnancy > 0) %>% 
+  mutate(mother_age5 = mother_detailed_age - mother_detailed_age %% 5,
+         age_diff = father_detailed_age - mother_detailed_age,
+         age_diff = case_when(
+           age_diff > 2 ~ "father > mother",
+           age_diff < -2 ~ "mother < father",
+           TRUE ~ "approx equal"
+         )) %>% 
+  group_by(age_diff, mother_age5, no_of_weeks_of_pregnancy) %>% 
+  summarize(n = n(), .groups = "drop") %>%
+  ungroup() %>% 
+  group_by(mother_age5) %>% 
+  mutate(dens = n / sum(n) ) 
+```
+Plot it. This makes clearer that for younger mothers, it's more common to have older fathers, but as mother ages increase, it becomes more prevalent to have younger fathers.
+```{r}
+density_by_mother_age_diff2 %>% 
+  ggplot(aes(x = no_of_weeks_of_pregnancy, 
+             y = factor(mother_age5),
+             fill = age_diff)) +
+  ggridges::geom_ridgeline(mapping = aes(x =no_of_weeks_of_pregnancy, height=dens, scale = 3),
+                           alpha = .3) +
+  xlim(30,46) 
+```
+
+But then, since the distribution shapes don't differ except in the top category, we really should simplify the display to show the *shifting age differences* balance.
+
+```{r}
+density_by_mother_age_diff3 <-
+  KB %>% 
+  filter(mother_detailed_age < 60,
+         father_detailed_age < 75) %>% 
+  mutate(mother_age5 = mother_detailed_age - mother_detailed_age %% 5,
+         age_diff = father_detailed_age - mother_detailed_age,
+         # 2-year diff bins, why not?
+         age_diff = age_diff - age_diff %% 2) %>% 
+  group_by(age_diff, mother_age5) %>% 
+  summarize(n = n(), .groups = "drop") %>%
+  ungroup() %>% 
+  group_by(mother_age5) %>% 
+  mutate(dens = n / sum(n) ) 
+```
+
+This density gets the shifting age differences over better. Remember each level is scaled to sum to 1, so this isn't a direct translation of a 2d age plot, which would give the full 2d density.
+```{r}
+density_by_mother_age_diff3 %>% 
+  ggplot(aes(x = age_diff, 
+             y = factor(mother_age5))) +
+  ggridges::geom_ridgeline(mapping = aes(x =age_diff, height=dens, scale = 3),
+                           alpha = .3) +
+  coord_fixed(ratio= 5)+
+  xlim(-15,15) +
+  labs(y = "mothers' age group",
+       x = "age difference")
+```
+
+Here's that density plot (age by age)
+
+```{r}
+ KB %>% 
+  mutate(mother_detailed_age = floor(mother_detailed_age),
+         father_detailed_age = floor(father_detailed_age)) %>% 
+  filter(mother_detailed_age < 60,
+         father_detailed_age < 75) %>% 
+  group_by(mother_detailed_age,
+           father_detailed_age) %>% 
+  summarize(n = n(), .groups = "drop") %>% 
+  ggplot(aes(x = mother_detailed_age,
+             y = father_detailed_age,
+             fill = n)) +
+  geom_tile() +
+  coord_equal() +
+  colorspace::scale_fill_continuous_sequential("PurpOr")+
+  geom_abline(slope = 1,intercept = 0, color = "#22222250")
+```
+
+This picture gives the overall count density, but really, we'd like to see this on a rate scale since cohorts of presumably varying size have passed through the data. Rates give a better reflection of a conditional intensity: conditional on there being people exposed. This is easy to do for mother's age-specific exposure or fathers' age-specific exposure separately, but to consider exposures jointly is a conundrum of formal demography (the two-sex problem).
+
+Exercise:
+1. Make a surface plot of `no_of_weeks_of_pregancy` by `birth_weight`
+2. Can you visually assess somehow if the relationship is stable over mothers' age?
+
+```{r}
+KB %>% 
+  pull(birth_weight) %>% hist()
+
+KB %>% 
+  filter(no_of_weeks_of_pregnancy > 0) %>% 
+  mutate(birth_weight = birth_weight - birth_weight %% .1 + 0.05 ) %>% 
+  group_by(no_of_weeks_of_pregnancy, birth_weight) %>% 
+  summarize(n = n(), .groups = "drop") %>% 
+  ggplot(aes(x = no_of_weeks_of_pregnancy,
+             y = birth_weight))+
+  geom_density2d_filled()
+```
+
+
+```{r}
+head(KB)
+```
+
+Question:
+Is birth-weight seasonal to any extent? What about age differences of parents? What strange questions? But how straightforward we can ask them of the data. 
+
+```{r}
+seasonal_birth_weight <-
+KB %>% 
+  filter(father_detailed_age < 75,
+         mother_detailed_age < 60) %>% 
+  group_by(date) %>% 
+  summarize(avg_birth_weight = mean(birth_weight),
+            med_birth_weight = median(birth_weight),
+            sd_birth_weight = sd(birth_weight)) %>% 
+  pivot_longer(avg_birth_weight:sd_birth_weight,
+               names_to = "measure",
+               values_to = "value")
+```
+
+Well, maybe not so odd, at first glance birth weight has a seasonal mean. Recall this is the mean of a rather wide distribution.
+```{r}
+seasonal_birth_weight %>% 
+  filter(measure != "sd_birth_weight") %>% 
+  ggplot(aes(x = date,
+             y = value,
+             color = measure,
+             group = measure)) +
+  geom_line() +
+  labs(title = "avg birth weight is seasonal")
+```
+
+Now this is just fascinating to me. The recent decoupling of the mean and median of `birth_weight` must be due to tail action. I wonder: how has the distribution changed over the years? How about we try again a ridge plot, with two-year periods as the levels? This way we can easily see how the distribution moves. Again, it's the shape that's interesting, so we can scale within periods. 
+
+```{r}
+KB %>% 
+  mutate(year2 = year_of_birth - year_of_birth %% 5,
+         birth_weight = birth_weight - birth_weight %% .1) %>% 
+  group_by(year2, birth_weight) %>% 
+  summarize(n =n()) %>% 
+  ungroup() %>% 
+  group_by(year2) %>% 
+  mutate(dens = n / sum(n)) %>% 
+  ggplot(aes(x = birth_weight, y = factor(year2), height=dens)) +
+  geom_ridgeline(scale = 8, fill = "red",alpha=.5) + 
+  xlim(1.8,4.2)
+  
+```
+
+
+
+
+
+
 
