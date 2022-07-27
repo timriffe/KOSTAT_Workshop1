@@ -32,8 +32,9 @@ To execute the code live, you can:
 3. Click the little green arrow in the upper right corner of the code chunk and it will run the whole chunk.
 
 ## code sharing
-2 ways to share code for this workshop. 
-1. I might paste small pieces in the Google Doc\
+Two ways to share code for this workshop. 
+
+1. I might paste small pieces in the Google Doc
 2. I can update a script in Markdown. To copy that text click on the file, and then on the button called `Raw`.
 
 ## Use earlier code
@@ -111,7 +112,7 @@ Note, you can make a multi-line cursor by holding down `Alt` and dragging the cu
 
 ## basic `R` objects
 
-
+Our toy vector `a` has no `dim()`ension, but it does have a `length()`.
 ```{r}
 dim(a)
 length(a)
@@ -147,6 +148,11 @@ D <- data.frame(a,
                 my_factor)
 D
 ```
+
+## closing remarks
+We ended the session with some words on what the experience of this workshop will be moving forward. I'd like for you to learn the basics of tidy coding, and to gain confidence and a positive attitude about data wrangling, as well as gain familiarity with basic demographic concepts like measures (rates, ratios, proportions, counts, annualization, etc.) standardization, the lifetable, decomposition, population heterogeneity, and so on. I explained that the workshop will be intense, and some things will only make sense in later days. For this reason, I'll be repeating concepts and narrating, and will work in exercises where pertinent.
+
+I then pointed to the exercises in the handout, which today were aimed at pointing your to external resources that can complement this workshop, as well as a request to vote on which data to analyze on the final day of the workshop.
 
 
 
