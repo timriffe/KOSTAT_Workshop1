@@ -1,208 +1,26 @@
 ---
-title: "Day 1 session notes"
+title: "Session 1 Notes"
 author: "Tim Riffe"
-date: "7/26/2021"
-output: pdf_document
+date: "2022-07-27"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Getting started
+## Intro to R Markdown
 
-You can use R as a little basic calculator:
+Whatever I type freely like this, is just text. Nothing bad can happen to your document by just typing here. So take all the notes you want.
 
-```{r}
-# This is R!!!!!
-1 + 1
-```
+## Code chunks
 
-The short cut to create a code chunk is:
+Hot-key for making a code chunk: `Ctrl + Alt +i`
 
-press these three keys on your keyboard:
-Ctrl + Alt + i
-
+Inside the code chunk, we need to have valid `R` code. In order to build this document, whatever code is executed in the code blocks needs to successfully run. I argue that this forces the analysis to be reproducible, and this is a good artifact of working in markdown.
 ```{r}
 
 ```
-
-That created a blank code chunk! So we can stick code in it that gets executed. Which is the only thing we're going to do in this course!
-
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r echo = FALSE}
-plot(pressure)
-```
-
-This space here is just for notes. What you write here is your business.
-Your note-taking space is for your own benefit, and you should be writing here ideally in your work language or native language.
-
-```{r, eval = FALSE}
-# install.packages("DemoDecomp")
-install.packages("readr")
-install.packages("readxl")
-install.packages("lubridate")
-install.packages("scales")
-install.packages("colorspace")
-install.packages("tidyverse")
-
-```
-
-Installing packages gets them into your R libraries on your computer, but it does not make them directly available to you in your R session. To load a package, use `library()` and type the package name inside it with no quotes.
-
-```{r}
-library(tidyverse)
-```
-
-Back to basics. Here are the operators, there are more!
-```{r}
-1 + 1
-1 / 2
-1 * 2
-1 - 2
-5^2
-# matrix multiplication is different
-# %*%
-```
-
-Create an object. Here we created a vector using `c()`. It has three elements, so we call it a vector of length 3. We use the `length()` function to ask how many elements it has.
-
-```{r}
-x <- c(2, 5, 7)
-length(x)
-```
-
-How can we look at data? (`View()`), or we can query metadata about an object using `str()` or `glimpse()`.
-
-```{r}
-View(x)
-str(x)   # metadata
-glimpse(x)
-```
-
-Using arithmetic functions on vectors.
-
-```{r}
-2 + 5 + 7
-sum(x)
-cumsum(x)
-mean(x)
-sd(x)
-var(x)
-exp(x)
-log(x)
-```
-
-How to learn how functions work and what they do?
-
-```{r}
-?sum
-y <- c(2,5,7,NA)
-sum(y, na.rm = FALSE)
-```
-
-Here are the examples from `?sum` (the help file) pasted directly into a new R chunk.
-```{r}
-## Pass a vector to sum, and it will add the elements together.
-sum(1:5)
-
-## Pass several numbers to sum, and it also adds the elements.
-sum(1, 2, 3, 4, 5)
-
-## In fact, you can pass vectors into several arguments, and everything gets added.
-sum(1:2, 3:5)
-
-## If there are missing values, the sum is unknown, i.e., also missing, ....
-sum(1:5, NA)
-## ... unless  we exclude missing values explicitly:
-sum(1:5, NA, na.rm = TRUE)
-```
-
-Lesson is: getting a help file is as easy as typing `?` and the function name. You can also search in the help tab in R Studio.
-
-```{r}
-x
-is.vector(x)
-class(x)
-is.integer(x)
-
-x <- as.integer(x)
-is.integer(x)
-length(x)
-dim(x)
-```
-
-Cleaning up, use `rm()` to remove objects from your *workspace*
-
-```{r}
-rm(y)
-```
-
-There are also character vectors (strings):
-```{r}
-b <- c("A","1","c","b")
-d <- c(TRUE, TRUE, FALSE, FALSE)
-```
-
-
-What about tabular data: rectangular data, or data organized in rows and columns, like in a spreadsheet:
-```{r}
-A <- data.frame(b, d)
-A
-```
-
-A `data.frame()` has a dimension! `dim()` tells us rows and then columns.
-
-```{r}
-dim(A)
-nrow(A) # ncol()
-```
-
-You can add rows to a `data.frame` using `rbind()`, `bind_rows()`. Rules for adding rows are that you need the same number and structure of columns in both pieces of data.
-
-```{r}
-B <- data.frame(b = c("adth","Tim"), 
-                d = c(FALSE, FALSE))
-# This is identical. No need to create intermediate objects.
-# becuase what we're doing is small
-# b2 <- c("adth", "Tim")
-# d2 <- c(FALSE, FALSE)
-# data.frame(b = b2, d = d2)
-
-D <- rbind(A, B)
-D <- bind_rows(A, B)
-```
-
-
-You can add a column to a `data.frame`:
-
-```{r}
-# old fashioned way:
-D$z <- runif(6)
-
-# Delete the column:
-D$z <- NULL
-
-# the tidy way:
-z <- runif(6)
-E <- bind_cols(D,z = z)
-
-# tidy column deletion
-select(E, -z)
-```
-
-
-
-
-
-
-
-
-
 
 
 
