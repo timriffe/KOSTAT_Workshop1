@@ -19,10 +19,47 @@ Hot-key for making a code chunk: `Ctrl + Alt +i`
 
 Inside the code chunk, we need to have valid `R` code. In order to build this document, whatever code is executed in the code blocks needs to successfully run. I argue that this forces the analysis to be reproducible, and this is a good artifact of working in markdown.
 ```{r}
+# use the hash to indicate a note
 
+# this is a little piece of R:
+a <- c(1,2,3)
+a
 ```
 
+To execute the code live, you can:
+1. select the code entirely and press `Ctrl + Enter`
+2. put the cursor somewhere on the line and press `Ctrl + Enter`
+3. Click the little green arrow in the upper right corner of the code chunk and it will run the whole chunk.
 
+## code sharing
+2 ways to share code for this workshop. 
+1. I might paste small pieces in the Google Doc\
+2. I can update a script in Markdown. To copy that text click on the file, and then on the button called `Raw`.
+
+## Use earlier code
+
+Code chunks are executed sequentially, and are therefore sequentially dependent (potentially), meaning that to use an object, it needs to have been created earlier, and earlier-created objects are available later
+```{r}
+a ^ 2
+age <- 0:100
+age + 2
+
+age_sq <- age ^ 2
+age_sq
+
+age <- age + 1
+age_sq
+```
+
+Objects retain their identities. Look at what we do using `age` above. We create `age_sq` using it, but when we then alter `age`, `age_sq` didn't change. That is, an object stores a result rather than a relationship that may have created it.
+
+You can create (using `<-`) or destroy objects at will (`rm()`)
+```{r}
+rm(age)
+```
+```{r}
+
+```
 
 
 
