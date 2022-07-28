@@ -144,6 +144,116 @@ gapminder %>%
 
 ```
 
+## `group_by()`
+
+Sometimes we wish to declare groups in the data. This allows us to repeat operations in each group. No matter what you're doing, even if it is an operation with sequential dependence over the rows of the data, this does not cross the group bounds. They are truly and absolutely independent.
+
+```{r}
+gapminder %>% 
+  group_by(continent, year) %>% 
+  filter(gdpPercap == max(gdpPercap)) %>% 
+  ungroup() %>% 
+  arrange(contine, year) # %>% View()
+```
+
+Mini exercise (groups)
+* filter out the highest life expectancy in each year of gapminder
+
+```{r}
+# from Sangmi Kim, and Md Irfan 
+
+gapminder %>% 
+  group_by(year) %>% 
+  filter(lifeExp == max(lifeExp)) %>% 
+  arrange(year) %>% 
+  ungroup() %>% 
+  # this is just for the sake of priming
+  ggplot(mapping = aes(x = year, y = lifeExp)) + 
+  geom_line()
+
+```
+
+## `select()` is for columns
+
+```{r}
+
+# remove
+gapminder %>% 
+  select(-gdpPercap)
+
+gapminder %>% 
+  select(-gdpPercap, -continent)
+
+gapminder %>% 
+  select(-6)
+
+gapminder %>% 
+  select(country, year, lifeExp)
+
+gapminder %>% 
+  select(le = lifeExp, country, year)
+
+gapminder %>% 
+  select(1:3)
+
+gapminder %>% 
+  select(country:lifeExp)
+
+gapminder %>% 
+  select(country,year,contains("p"))
+
+# ends_with(); starts_with()
+# ?ends_with
+```
+
+`select()` can be positive, negative, over a range (`:` (position or name)), or use string detection like `starts_with()`, etc.
+
+## `mutate()`
+
+This function creates or alters a column, and it does not create or destroy rows in the data.
+
+```{r}
+gapminder %>% 
+  mutate(gdp = gdpPercap * pop,
+         gdp100 = gdpPercap * 100,
+         stationary_births = pop / lifeExp,
+         gdp_alternative = stationary_births * gdp100,
+         gdp_ratio = gdp_alternative / gdp)
+```
+
+## `summarize()`
+
+We use `summarize()` to aggregate data (in any way), usually within groups. The number of rows of the result is equal to the number of unique groups in the data. You can comma separate operations inside `summarize()`, but note that they are sequentially dependent. Recall the example demonstrated (commented out).
+
+```{r}
+gapminder %>% 
+  group_by(continent, year) %>% 
+  summarize(#pop = sum(pop)
+            le_mean = mean(lifeExp),
+            weighted_mean_le = sum(pop * lifeExp) / sum(pop),
+            pop = sum(pop))
+```
+
+# today's final exercise
+
+Calculate within continent and year the population-weighted average of `gdpPercap.` and also the total population and the population-weighted `lifeExp`
+
+```{r}
+#from Md Irfan
+gapminder %>% 
+  group_by(continent, year) %>%
+  summarize(weighted_gdpPercap = sum(pop * gdpPercap) / sum(pop),
+            weighted_mean_le = sum(pop * lifeExp) / sum(pop),
+            pop = sum(pop),
+            .groups = "drop") # %>% 
+# ungroup()
+
+
+```
+
+
+
+
 
 
 
