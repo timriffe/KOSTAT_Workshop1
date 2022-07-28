@@ -14,6 +14,7 @@
 
 - `01` (Wednesday, 27 July 2022) "Introduction to `R`, `RStudio`, and `R markdown`"
    1. `01_handout` (`.Rmd`, `.pdf`)
+   2. `01_session.Rmd` (notes from session)
 - `02` (Thursday, 28 July 2022) "The tidy data approach" 
    1. `02_handout` (`.Rmd`, `.pdf`)
 - `03` (Friday, 29 July 2022) "Worked example of tidy data processing: birth data"
