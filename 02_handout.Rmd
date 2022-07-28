@@ -69,7 +69,7 @@ The so-called `gapminder` dataset is an example of *tidy* data that allows to de
 install.packages("gapminder")
 ```
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 library(gapminder)
 library(tidyverse)
 ?gapminder
@@ -91,7 +91,7 @@ summary(gapminder)
 
 The result tells us that there are 12 observations for each country, that there are 624 observations in Africa, 300 in the Americas, etc, and it usefully gives the range and quartiles of each variable. For example life expectancy observations in the data range from 23.6 to 82.6. Wow!
 
-One can also query specific columns like so: We can check the year range like so:
+One can also query specific columns: We can check the year range like so:
 
 ```{r}
 unique(gapminder$year)
@@ -110,11 +110,12 @@ List which countries are in the data, and write how many there are:
 
 ## pipes
 
-The pipe operator, more explicitly works by evaluating an object on the left and sending the result to the function on the right.
+The pipe operator `%>% ` (`Ctrl + Shift + m`), more explicitly works by evaluating an object on the left and sending the result to the function on the right.
 
 For example, the below pipe separates step 1 (the drawing of 10 random deviates of the uniform distribution) from step 2 (calculation of their mean).
 ```{r}
 runif(10) %>% mean()
+runif(1000000) %>% mean()
 ```
 
 One can chain together a sequence of operations like so:
@@ -128,7 +129,7 @@ This code reads in order "take ten random uniform draws, then sort them (in asce
 
 ### Mini Exercise for pipes 
 
-Take 100 random draws of the Poisson distribution, with lambda parameter equal to 100 (`rpois()`), and calculate the 95% prediction interval using `quantile(x, probs = c(.025,.975))`. Note that the argument `x` is simply going to be the incoming data from `rpois()`, and you don't need to specify the argument `x` at all.
+Take 100 random draws of the Poisson distribution, with `lambda` parameter equal to 100 (`rpois()`), and then calculate the 95% prediction interval using `quantile(x, probs = c(.025,.975))`. Note that the argument `x` is simply going to be the incoming data from `rpois()`, and you don't need to specify the argument `x` at all.
 ```{r}
 # 
 ```
@@ -214,6 +215,18 @@ gapminder %>%
 ```
 Some other useful options are `starts_with()`, and so on. The functions `contains()`, `starts_with()` and `ends_with()` are selecting columns using logical expressions, just as we've done for filtering rows. Try typing `?starts_with` into the console, and pick the help file from the `tidyselect` package to see a listing of other helper functions for column selection.
 
+When you use `select()`, resulting column structure will follow the order that columns are given in the call, observe:
+```{r}
+gapminder %>% 
+  select(gdpPercap, country, year)
+```
+
+You can also rename columns at the same time, like so:
+```{r}
+gapminder %>% 
+  select(gdp_percap = gdpPercap, country, year)
+```
+
 ## create columns with `mutate()`
 
 To create a column, potentially using other columns you already have, use `mutate()` like so:
@@ -237,15 +250,18 @@ gapminder_hypothetical <-
 
 Note that `GDP`, `GDP100`, `stationary_births`, and `GDP_alternative` are created, and each used later as well within the same `mutate()` call. Whenever it makes sense in your calculations, it's nice to include such operations in a single `mutate()` call rather than in a series of `mutate()` calls. It's cleaner that way. These calculations are meant to showcase `mutate()` usability, not 
 
-Aside: What are those strange measures? They're purely hypothetical and likely not useful extrapolations of the data points give, making strange invocations of a stationary world. `GDP` is a direct calculation, not controversial. `GDP100` is calculated on the assumption that if a newborn were to accumulate on average `gdpPercap` of income per year over 100 years, how much would the lifetime `gdpPercap` be? `stationary_births` makes use of the stationary relationship $b = N / e(0)$, meaning that the stationary crude birth rate $b$ is the population size `N` divided by life expectancy. For us `N` is `pop`, but of course neither the population size/structure nor period life expectancy are actually stationary. So this quantity is not usable per se. We then create `GDP_alternative`, which scales `GDP100` to a hypothetical cohort size and says "what would be the lifetime GDP in this fake longevous stationary population?". Finally, we take the ratio. It seems lengthening life to a consistent 100 years would (under these unrealistic constraints) increase GDP.
+Aside: What are those strange measures? Some are purely hypothetical and likely not useful extrapolations of the data points given, making strange invocations of a stationary world. `GDP` is a direct calculation, not controversial. `GDP100` is calculated on the assumption that if a newborn were to accumulate on average `gdpPercap` of income per year over a hypothetical lifespan of 100 years, how much would the lifetime `gdpPercap` be? `stationary_births` makes use of the stationary relationship $b = N / e(0)$, meaning that the stationary crude birth rate $b$ is the (stationary) population size `N` divided by life expectancy. For us `N` is `pop`, but of course neither the population size/structure nor period life expectancy are actually stationary. So this quantity is not usable per se. We then create `GDP_alternative`, which scales `GDP100` to a hypothetical cohort size and says "what would be the GDP in this fake longevous stationary population?". Finally, we take the ratio. It seems lengthening life to a consistent 100 years would (under these unrealistic constraints) increase GDP.
 
 What does the result look like? (plot code discussed later in workshop)
 ```{r}
 gapminder_hypothetical %>% 
-  ggplot(aes(x = year, y = GDP_ratio, group = country)) +
+  ggplot(aes(x = year, 
+             y = GDP_ratio, 
+             group = country)) +
   geom_line() +
   scale_y_log10() +
-  geom_hline(yintercept = 1, color = "red")
+  geom_hline(yintercept = 1, 
+             color = "red")
 ```
 
 Remember that since `mutate()` just creates columns, it does not change the number of rows in the data.
@@ -300,9 +316,9 @@ gapminder %>%
   arrange(year)
 ```
 
-Note, we should remove groups with `ungroup()` when we're done using them, and we sort the data on year for visual inspection using `arrange()`. This reads as "first take `gapminder`, then `group_by()` year, then `filter()` out the highest life expectancy per year, then remove the groups and sort years". Notice how the functions can be read as verbs, and the the pipes allow them to be combined into a rote kind of sentence. Indeed, it can help to add notes using `#`: don't worry: it won't break the chain! As the dataset goes down the pipeline, by default it becomes the first argument to the next function to be executed. Each of these functions has a first argument called either `data` or `.data`, which doesn't need to be specified because the incoming data is passed to it. 
+Note, we should remove groups with `ungroup()` when we're done using them, and we sort the data on year for visual inspection using `arrange()`. This reads as "first take `gapminder`, then `group_by()` year, then `filter()` out the highest life expectancy per group (year), then remove the groups and sort years". Notice how the functions can be read as verbs, and the the pipes allow them to be combined into a rote kind of sentence. Indeed, it can help to add notes using `#`: don't worry: it won't break the chain! As the dataset goes down the pipeline, by default it becomes the first argument to the next function to be executed. Each of these functions has a first argument called either `data` or `.data`, which doesn't need to be specified because the incoming data is passed to it. 
 
-Note: you can run this code by simply placing the cursor anywhere in the pipeline and pressing `Ctrl + Enter`. There is no need to select the whole statement before running, although this also works (you could in this case also click the green play arrow).
+* Note: you can run this code by simply placing the cursor anywhere in the pipeline and pressing `Ctrl + Enter`. There is no need to select the whole statement before running, although this also works (you could in this case also click the green play arrow).
 
 ### Exercises for `group_by()`
 
@@ -321,7 +337,7 @@ Note, the first or last year will get `NA`s. You should ensure that years are so
 
 ## reshape using `pivot_wider()` and `pivot_longer()`
 
-The `gapminder` data is already `tidy`, and most often we use long / wide reshaping operations to force non-tidy data into a tidy form. A wide version of `gapminder` might, for example, have years spread over columns rather than stacked. Sometimes government statistical offices distribute data like so. Here `names_from` is the column whose values will determine the new column names, whereas `values_from` is where data will be drawn from.
+The `gapminder` data is already `tidy`, and most often we use long / wide reshaping operations to force non-tidy data into a tidy form. A wide version of `gapminder` might, for example, have years spread over columns rather than stacked. Sometimes government statistical offices distribute data in this way. Here `names_from` is the column whose values will determine the new column names, whereas `values_from` is where data will be drawn from.
 
 ```{r}
 gapminder_wide <-
@@ -346,7 +362,7 @@ gapminder_wide %>%
                names_to = "year",
                values_to = "pop")
 ```
-That's fine if you happen to know the column names and if they happen to be in a continuous range, as we have here. You could also use position like so (if you know them)
+Specifying a column range like this is fine if you happen to know the column names and if they happen to be in a continuous range, as we have here. You could also use position like so (if you know them)
 
 ```{r}
 gapminder_wide %>% 
@@ -381,7 +397,7 @@ gapminder %>%
 
 ### Mini exercises
 
-1. Take the `gapminder` data, remove the `continent` column, then spread `country` over columns using `pivot_wider()`.
+1. Take the `gapminder` data, remove the `continent` column, then spread `country` over columns using `pivot_wider()`, keeping all three variables.
 
 2. Undo the result of part 1 of this exercise to return to the original `gapminder` data.
 
