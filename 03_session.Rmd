@@ -38,13 +38,13 @@ library(readxl)
 B <- read_excel(path = "Data/demo_fasec.xlsx",
                 range = "A10:H158",
                 na = ":")
-View(B)
+# View(B)
 # ?read_excel
 ```
 
 ## Step 1 reshape to long
 
-Pivot wider is for stacking columns. It usually results in fewer columns and always results in more rows. In our case, we're collecting 6 columns, each with 148 values, so that resulting data object shoul should have `148 * 6 = 888` rows. And we want TWO new columns, births and year. We create these names using `names_to` and `values_to`. There are flexible ways of specifying which columns to collect.
+Pivot wider is for stacking columns. It usually results in fewer columns and always results in more rows. In our case, we're collecting 6 columns, each with 148 values, so that resulting data object should have `148 * 6 = 888` rows. And we want TWO new columns, births and year. We create these names using `names_to` and `values_to`. There are flexible ways of specifying which columns to collect.
 
 ```{r}
 B <-
@@ -159,14 +159,7 @@ B <-
   
 ```
 
-### Exercise (not fully defined, beyond this workshop)
 
-When we redistribute to sum to the stated total, in this case, we are ALSO redistributing some births that happen in the tails (< 15, >= 50), and that is bad. If we wanted to do this more rigorously we would 
-1. calculate the total tail size (total - (15:49 + unkown))
-2. convert observed births to rates
-3. extrapolate using a model to cover a wider age range
-4. convert back to counts.
-5. rescale to total
 
 ## Now let's get exposures
 
@@ -296,52 +289,158 @@ E <-
   read_excel(path = "Data/demo_pjan.xlsx",
              range = "A10:CZ510",
              na = ":") %>% 
+  
+  # stack ages: column range via visual inspection,
+  # creating age and pop columns.
   pivot_longer(#cols = 3:104,
                `Less than 1 year`:Unknown,
                names_to = "age",
                values_to = "pop") %>% 
+  
+  # remove NAs, which are either missing years or highest ages
+  # for those countries with lower closeout ages
   filter(!is.na(pop)) %>% 
+  
+  # clean the names 
   rename(year = TIME,
          country = `GEO/AGE`) %>% 
+  
+  # redistribute unknown ages
   group_by(country, year) %>% 
   mutate(unk = pop[age == "Unknown"]) %>% 
   filter(age != "Unknown") %>% 
   mutate(pop1 = pop + pop / sum(pop) * unk) %>% 
   ungroup() %>% 
+  
+  # recode age
   mutate(age = 
            case_when(age == "Less than 1 year" ~ 0,
                      age == "Open-ended age class" ~ 100,
                      TRUE ~ parse_number(age))) %>% 
+  
+  # get jan 1 and dec1 (next year's jan 1) next to each other
+  # *try to understand the logical of sorting (arrange()) and
+  # groups.
   arrange(country, age, year) %>% 
   group_by(country, age) %>% 
   mutate(pop2 = lead(pop1)) %>% 
   ungroup() %>% 
+  
+  # removes final year, for which we can't calculate exposure
   filter(!is.na(pop2)) %>% 
+  
+  # finally, exposure as July 1 approximation.
+  # This isn't the only way to do it..
   mutate(expos = (pop2 + pop1) / 2)
 
 ```
 
 
 ## merge and calculate
+
+Now we have `B` and `E`, with `country`, `year`, and `age` with identical names and codes (values). That is, we can establish matches. `B` has a year that `E` does not have. `E` has countries, years, and ages that `B` does not have. We only care about overlapping cases, so we do the strictest kind of join, and `inner_join()`.
 ```{r}
 
 BE <-
   inner_join(B, 
              E, 
+             # what variables do we match on?
              by = c("country", "year","age")) %>% 
+  
+  # select only needed columns
   select(country, year, age, births, births_hat, expos) %>% 
+  
+  # Age-specific fertility (fx) is events / exposure
   mutate(fx = births_hat / expos)
 ```
 
+Now we are fully ready to calculate all kinds of indices. Any index in our case, will be calculated independently for each country and year, so we group by country and year. Each country-year combination will result in a row of the outgoing data. We calculate the total fertility rate (TFR), using the adjusted and unadjusted births, and we calculate the mean age at childbearing (MAB) using both counts and rates.
 ```{r}
-BE %>% 
+BEstats <- 
+  BE %>% 
   group_by(country, year) %>% 
+  
+  # TFR is a simple sum since we have single-age data
   summarize(tfr = sum(fx),
             tfr_no_scale = sum(births / expos),
+            
+            # MAB is a weighted average
             mab_counts = sum((age + .5) * births_hat) / sum(births_hat),
-            mab_fx = sum((age+5) * fx) / sum(fx))
+            mab_fx = sum((age+5) * fx) / sum(fx),
+            .groups = "drop")
 ```
 
+## NEW: visualize the results:
 
+### ASFR curves
+Again, this is just for priming! 
+```{r, warning = FALSE}
+BE %>% 
+  ggplot(aes(x = age, y = fx, color = country, alpha = year)) +
+  geom_line() +
+  theme_minimal()
+```
 
+### TFR
+
+```{r}
+BEstats %>% 
+  ggplot(aes(x = year, y = tfr, color = country, group = country)) +
+  geom_line() +
+  theme_minimal()
+```
+
+### MAB
+
+It appears to make a difference what we use as weights. This isn't just a general level shift: rankings and trends can also change!
+```{r}
+BEstats %>% 
+  # we want to stack the two mab variables
+  select(country, year, mab_counts, mab_fx) %>% 
+  pivot_longer(c(mab_counts, mab_fx),
+               names_to = "type",
+               values_to = "mab") %>% 
+  
+  # that way we can *map* the type of MAB to linetype...
+  ggplot(aes(x = year, 
+             y = mab, 
+             color = country, 
+             linetype = type, 
+             group = interaction(country, type))) +
+  geom_line() +
+  theme_minimal()
+```
+
+Note, comparing the TFR and MAB trends, and with some to still-to-acquire intuition, we may surmise that the downward TFR trends for Croatia and Belgium might be offset somewhat if we do the Bongaarts-Feeney adjustment proposed in the handout exercise. We'll only get results for the central 3 years though...
+
+## An adjustment beyond the intended scope of this workshop
+
+It was noticed by a participant (front row, sorry I didn't catch your name yet! Will update here when I find out) that the sum of births with stated age plus unknowns is less than the stated total, and we realized that this is likely due to data truncation below age 15 and over age 49. That means we have some births where they knew the mothers' age, but it is simply not included because they only give ages 15-49. First, before you read this, you should understand that anything beyond this point is not for the sake of a better TFR estimate-- it will barely budge. We add this rigor in case
+
+Let's first confirm this suspicion before considering doing anything about it.
+
+Observe, if the count in age 15 is actually "age 15 and under", and if age 49 is actually age "49+", then we should be able to detect this visually. Better in the rates than in the counts. Let's take a zoomed-in look:
+
+```{r}
+BE %>% 
+  filter(age < 19) %>% 
+  ggplot(aes(x = age, y = fx, group = interaction(country, year))) +
+  geom_line() +
+  scale_y_log10() +
+  labs(title = "I see no evidence that age 15 is actually the sum of ages 10-15.",
+       subtitle = "It's literally just age 15, so we're missing births below")
+```
+```{r}
+BE %>% 
+  filter(age > 46) %>% 
+  ggplot(aes(x = age, y = fx, group = interaction(country, year))) +
+  geom_line() +
+  scale_y_log10() +
+  labs(title = "Probably also the same story in age 49.",
+       subtitle = "I see one line that goes down and then up, but it's just 1")
+```
+
+So, we conclude that truncation is probably at work. It turns out the best way forward will be to model the tails on the rate scale, then convert back to counts, and rescale *only the tails* so that they sum to the remainder (total - (births ages 15-49 + unknown). On the other hand, one *could* reasonably suppose that any births of unknown maternal age are very likely not coming from ages outside the normal range. Ages outside the normal range might be more investigated (low end) or more assisted (higher end), and so likely be of known age. If that were the case, then we would want to redistribute unknowns over the observed age distribution rather than rescaling it to the total, and in that case the solution would look just like what we did for population counts, *except* we know that any resulting TFR would be an underestimate, because the tails are non-zero. It's worth reiterating that we only care about extrapolating to cover higher and lower ages if we care about the *entirety* of the fertile age range. We do not care to do this extrapolation if we care about the tails and the tails only. In that case you'd seek an alternate source of information without age truncation.
+
+Solution pending
 
