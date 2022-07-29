@@ -112,13 +112,52 @@ B %>%
 
 ## Step 4 convert age to integer
 
-
+I mentioned some other ways we could pick out the age numbers from the strings. The function `parse_number()`, which loaded with the tidyverse is usually the cheapest option.
 ```{r}
-B
+B %>% pull(age) %>% unique()
+B <-
+  B %>% 
+  mutate(age = parse_number(age))
 ```
 
 ## put it all together
 
+```{r}
+B <-
+  # 1. read in from range we got from visual inspection,
+  # explicitly specify the NA character
+  read_excel(path = "Data/demo_fasec.xlsx",
+             range = "A10:H158",
+             na = ":") %>% 
+  
+  # 2. then stack the columns for births by year,
+  # columns "2011" until "2016" are removed, 
+  # and year and births are created
+  pivot_longer(cols = `2011`:`2016`,
+               names_to = "year",
+               values_to = "births") %>% 
+  
+  # 3. clean the names
+  rename(age = AGE,
+         country =`GEO/TIME`) %>% 
+  
+  # 4. rescale to totals within unique subsets of year and country
+  group_by(country, year) %>% 
+  
+  # bring out total to a new column
+  mutate(total = births[age == "Total"]) %>% 
+  
+  # throw out these rows, otherwise they contaminate the distribution
+  filter(! age %in% c("Total", "Unknown")) %>% 
+  
+  # we assume unknowns follow same distribution as knowns
+  mutate(births_hat = births / sum(births) * total) %>% 
+  ungroup() %>% 
+  
+  # 5. clean age column
+  mutate(age = parse_number(age))
+  
+```
 
 
 
