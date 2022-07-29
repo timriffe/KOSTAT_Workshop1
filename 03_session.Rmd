@@ -1,0 +1,116 @@
+---
+title: "Session 3 notes"
+author: "Tim Riffe"
+date: "2022-07-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Review of tidyverse data processing function
+
+`filter()` is for rows, you need to know logical expressions
+`select()` is for columns, there are helper functions, like `contains()` or you can give ranges.
+`group_by()` whenever you want to do things separately in your data, don't forget to `ungroup()` when you're done!
+`mutate()` for creating or modifying columns
+`summarize()` is for making aggregations of various kinds, usually done together with `group_by()`.
+
+### we didn't yet cover:
+`pivot_longer()` for gathering columns and stacking them.
+`pivot_wider()` for spreading out the contents of a column over a new range of columns.
+
+## Get the data
+
+We went to github, clicked on the file name once, then clicked `Download` and put it in the `Data` folder.
+
+## Read in the data
+
+We use the `readxl` package to exract tables from spreadsheets.
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+# install.package("readxl")
+library(readxl)
+```
+
+```{r}
+B <- read_excel(path = "Data/demo_fasec.xlsx",
+                range = "A10:H158",
+                na = ":")
+View(B)
+# ?read_excel
+```
+
+## Step 1 reshape to long
+
+Pivot wider is for stacking columns. It usually results in fewer columns and always results in more rows. In our case, we're collecting 6 columns, each with 148 values, so that resulting data object shoul should have `148 * 6 = 888` rows. And we want TWO new columns, births and year. We create these names using `names_to` and `values_to`. There are flexible ways of specifying which columns to collect.
+
+```{r}
+B <-
+  B %>% 
+  pivot_longer(cols = `2011`:`2016`,
+               # cols = 3:8
+               # cols = 3:ncol(.)
+               names_to = "year",
+               values_to = "births")
+```
+
+### Time out for `pivot_wider()`
+
+Usage of `pivot_wider()` is a bit simpler: you just need to tell it which columns to spread out. One becomes the names (should be limited categories) (`names_from`), and the other is what to put in the cells `values_from`.
+```{r}
+B %>% 
+  pivot_wider(names_from = "year",
+              values_from = "births")
+```
+
+## Step 2 simplify column names
+
+We could use `select()`, but you can't leave any columns out.
+Instead we use `rename()` because it requires less typing, and does just this one thing. To be explicit we rename using `to = from`.
+```{r}
+# B %>% 
+#   select(age = AGE,
+#          country = `GEO/TIME`,
+#          year,
+#          births)
+B <-
+  B %>% 
+  rename(age = AGE,
+         country =`GEO/TIME`)
+```
+
+## Step 3 rescale births
+
+$$  \hat{B_x} = \frac{B_x}{\sum{B_x}} \cdot T $$
+
+```{r}
+B %>% 
+  filter(country == "Belgium",
+         year == 2015) %>% 
+  mutate(total = births[age == "Total"]) %>% 
+  filter(! age %in% c("Total", "Unknown")) %>% 
+  mutate(#dist = births / sum(births),
+         #births = dist * total
+         births_hat = births / sum(births) * total)
+
+# births / sum(births) * total
+```
+
+
+
+## Step 4 convert age to integer
+
+## put it all together
+
+
+
+
+
+
+
+
+
+
+
