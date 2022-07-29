@@ -39,7 +39,7 @@ Installing this will automatically install the latest `R` version `4.1.0`, which
 
 optional, but recommended to install:
 * `git` [https://git-scm.com/downloads]()https://git-scm.com/downloads No need for a separate `git` program. We'll just use it from `Rstudio` a bit.
-* `latex` [https://www.latex-project.org/get/](https://www.latex-project.org/get/)  Alternatively we can install it straight from `R` using the `tidytex` package.
+* `latex` [https://www.latex-project.org/get/](https://www.latex-project.org/get/)  Alternatively we can install it straight from `R` using the `tinytex` package.
 
 ## Further resources that might help installation:
 
