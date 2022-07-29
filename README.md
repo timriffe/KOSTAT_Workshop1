@@ -17,6 +17,7 @@
    2. `01_session.Rmd` (notes from session)
 - `02` (Thursday, 28 July 2022) "The tidy data approach" 
    1. `02_handout` (`.Rmd`, `.pdf`)
+   2. `02_session.Rmd` (notes from session)
 - `03` (Friday, 29 July 2022) "Worked example of tidy data processing: birth data"
    1. `03_data_prep` (`.Rmd`, `.pdf`)
    2. `03_handout` (`.Rmd`, `.pdf`)
