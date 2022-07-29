@@ -56,7 +56,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ## Definition
-Recall that tidy data follows a standard structure where each column is a variable, each row is an observation, and each cell is a value. Anything else is messy. It's literally that straightforward. A more complete definition can be found here: [https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) Demographic data is often delivered in a tidy format. When it is not, then it can be reshaped into a tidy format.
+Recall that tidy data follows a standard structure where each column is a variable, each row is an observation, and each cell is a value. Anything else is messy. Demographic data is often delivered in a tidy format. When it is not, then it can be reshaped into a tidy format.
 
 ## Example of not-tidy data
 
@@ -149,7 +149,7 @@ Long <-
      Births)
 ```
 
-This reads as "first `read_excel()`, then `pivot_longer()`, then `select()` columns, renaming some of them". 
+This reads as "first `read_excel()`, then `pivot_longer()`, then `select()` columns, renaming some of them". Of course we should always take the time to then annotate the code, for posterity:
 
 ```{r}
 Long <- 
@@ -176,7 +176,7 @@ We will augment this pipeline step by step and then recompose it in its entirety
 
 ### `filter()`, `mutate()`, `group_by()`
 
-So what age classes to we have? `unique()` picks out just the unique values present in a vector.
+So what age classes do we have? `unique()` picks out just the unique values present in a vector.
 ```{r}
 # same thing using tidy:
 Long %>% 
@@ -228,7 +228,7 @@ abcde[1:5 == 5]
 ```
 Namely, we get back the values where the logical vector evaluates to `TRUE`. 
 
-Given a columns `TOT`, we can remove age classes equal to `"Total"` or `"Unknown"` with `filter()`. `%in%` is a logical operator for set membership.
+Given a column `TOT`, we can remove age classes equal to `"Total"` or `"Unknown"` with `filter()`. `%in%` is a logical operator for set membership.
 
 ```{r}
 c("a","d","k") %in% abcde
@@ -339,7 +339,7 @@ You see all those annotations between many of the pipe steps? That's not *just* 
 
 ## Group to 5-year ages with `summarize()`
 
-Aggregation typically implies a reduction in the number of rows in a data set. Let's see examples of grouping countries, grouping ages, and calculating marginal sums. Grouping ages or years often follows a similar logic. We will exploit to the *modulo* operator, `%%`, which tells us the remainder after Euclidean division. Example:
+Aggregation typically implies a reduction in the number of rows in a data set. Let's see examples of grouping countries, grouping ages, and calculating marginal sums. Grouping ages or years often follows a similar logic. We will exploit the *modulo* operator, `%%`, which tells us the remainder after Euclidean division. Example:
 
 ```{r}
 a <- 1:10
@@ -443,7 +443,7 @@ MAB <-
 glimpse(MAB)
 ```
 
-While we're here, how about a plot teaser, even though we don't get serious about `ggplot2` until Thursday:
+While we're here, how about a plot teaser, even though we don't get serious about `ggplot2` until next week:
 ```{r}
 MAB %>% 
   ggplot(aes(x = Year, 
