@@ -83,24 +83,39 @@ B <-
 
 ## Step 3 rescale births
 
+We usually respect stated totals by rescaling observed distributions to be constrained to the stated total. We do this knowing that possibly the age (or whatever) distribution of births of unknown maternal age might not be the same. So this operation might induce bias if it is both the case that the fraction of births in unknown ages is high and the distributions is different.
+
 $$  \hat{B_x} = \frac{B_x}{\sum{B_x}} \cdot T $$
 
 ```{r}
-B %>% 
-  filter(country == "Belgium",
-         year == 2015) %>% 
+B <- 
+  B %>% 
+  # filter(country == "Belgium",
+  #        year == 2015) %>% 
+  group_by(country, year) %>% 
   mutate(total = births[age == "Total"]) %>% 
   filter(! age %in% c("Total", "Unknown")) %>% 
   mutate(#dist = births / sum(births),
          #births = dist * total
          births_hat = births / sum(births) * total)
 
+# quick check: are we being overly manipulative here or not?
+# conclusion: no, worst case is 1% unknown.
+B %>% 
+  group_by(country, year) %>% 
+  summarize(total = births[age == "Total"],
+            unk = births[age == "Unknown"]) %>% 
+  ungroup() %>% 
+  mutate(badness = unk / total * 100)
 # births / sum(births) * total
 ```
 
-
-
 ## Step 4 convert age to integer
+
+
+```{r}
+B
+```
 
 ## put it all together
 
