@@ -159,11 +159,188 @@ B <-
   
 ```
 
+### Exercise (not fully defined, beyond this workshop)
+
+When we redistribute to sum to the stated total, in this case, we are ALSO redistributing some births that happen in the tails (< 15, >= 50), and that is bad. If we wanted to do this more rigorously we would 
+1. calculate the total tail size (total - (15:49 + unkown))
+2. convert observed births to rates
+3. extrapolate using a model to cover a wider age range
+4. convert back to counts.
+5. rescale to total
+
+## Now let's get exposures
 
 
+### 1. read in population
+
+This works just as before
+```{r}
+P <- 
+  read_excel(path = "Data/demo_pjan.xlsx",
+             range = "A10:CZ510",
+             na = ":")
+
+```
+
+### 2. `pivot_longer()` for age
+
+reshape to longer, creating new columns for age and pop.
+```{r}
+P <-
+  P %>% 
+  pivot_longer(#cols = 3:104,
+               `Less than 1 year`:Unknown,
+               names_to = "age",
+               values_to = "pop")
+# P %>% colnames()
+```
+
+### 3. remove the NA rows
+
+We also do some checks in case some subsets have unexpected missings
+```{r}
+P <- 
+  P %>% 
+  filter(!is.na(pop))
+# check subset sizes; some close out at 85+ or 90+
+# P %>% 
+#   group_by(TIME, `GEO/AGE`) %>% 
+#   summarize(n = n()) %>% 
+#   View()
+# 
+# P %>% 
+#   filter(`GEO/AGE` == "Albania",
+#          TIME == 2012) %>% 
+#   View()
+```
+
+### 4. rename columns where helpful
+
+```{r}
+P <- 
+  P %>% 
+  rename(year = TIME,
+         country = `GEO/AGE`)
+```
+
+### 5. redisitribute unknowns
+
+$$ \hat{P_x} = P_x + \frac{P_x}{\sum P_x} * P_{Unk} $$
+
+```{r}
+P <- 
+  P %>% 
+  group_by(country, year) %>% 
+  mutate(unk = pop[age == "Unknown"]) %>% 
+  filter(age != "Unknown") %>% 
+  mutate(pop_hat = pop + pop / sum(pop) * unk) %>% 
+  ungroup() 
+
+  # eyeball check to make sure we actually did something:
+  # filter(country == "North Macedonia") %>% pull(pop_hat)
+
+  # just checking in case we need to be more rigourous,
+  # do we have missing unknown ages? NO
+  # ungroup() %>% 
+  # filter(is.na(unk))
+```
+
+### 6. recode age
 
 
+Since we have a few cases, we'll use `case_when()`, which is constructed like so, moving from specific to general cases because they are evaluated in order.
 
+```{r, eval = FALSE}
+case_when(condition_1 ~ case_1,
+          condition_2 ~ case_2,
+          condition_3 ~ case_3,
+          TRUE ~ everything_else)
+```
+
+Here used for our age classes:
+```{r, warning = FALSE}
+# handle cases:
+# P %>% pull(age) %>% unique()
+P <- 
+  P %>% 
+  mutate(age = 
+           case_when(age == "Less than 1 year" ~ 0,
+                     age == "Open-ended age class" ~ 100,
+                     TRUE ~ parse_number(age)))
+```
+
+
+### 7. calculate exposure
+```{r}
+a <- 0:10
+a
+lead(a)
+lag(a)
+```
+
+```{r}
+P <-
+  P %>% 
+  arrange(country, age, year) %>% 
+  group_by(country, age) %>% 
+  mutate(pop2 = lead(pop_hat)) %>% 
+  ungroup() %>% 
+  filter(!is.na(pop2)) %>% 
+  mutate(expos = (pop2 + pop_hat) / 2)
+```
+
+### 8. bring it all together
+
+```{r, message = FALSE}
+E <- 
+  read_excel(path = "Data/demo_pjan.xlsx",
+             range = "A10:CZ510",
+             na = ":") %>% 
+  pivot_longer(#cols = 3:104,
+               `Less than 1 year`:Unknown,
+               names_to = "age",
+               values_to = "pop") %>% 
+  filter(!is.na(pop)) %>% 
+  rename(year = TIME,
+         country = `GEO/AGE`) %>% 
+  group_by(country, year) %>% 
+  mutate(unk = pop[age == "Unknown"]) %>% 
+  filter(age != "Unknown") %>% 
+  mutate(pop1 = pop + pop / sum(pop) * unk) %>% 
+  ungroup() %>% 
+  mutate(age = 
+           case_when(age == "Less than 1 year" ~ 0,
+                     age == "Open-ended age class" ~ 100,
+                     TRUE ~ parse_number(age))) %>% 
+  arrange(country, age, year) %>% 
+  group_by(country, age) %>% 
+  mutate(pop2 = lead(pop1)) %>% 
+  ungroup() %>% 
+  filter(!is.na(pop2)) %>% 
+  mutate(expos = (pop2 + pop1) / 2)
+
+```
+
+
+## merge and calculate
+```{r}
+
+BE <-
+  inner_join(B, 
+             E, 
+             by = c("country", "year","age")) %>% 
+  select(country, year, age, births, births_hat, expos) %>% 
+  mutate(fx = births_hat / expos)
+```
+
+```{r}
+BE %>% 
+  group_by(country, year) %>% 
+  summarize(tfr = sum(fx),
+            tfr_no_scale = sum(births / expos),
+            mab_counts = sum((age + .5) * births_hat) / sum(births_hat),
+            mab_fx = sum((age+5) * fx) / sum(fx))
+```
 
 
 
