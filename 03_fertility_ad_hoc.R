@@ -3,8 +3,8 @@
 # code modified by TR
 graduate_CS_df <- function(data, K8, S){
   
-  Fx <- data %>% pull(ASFR)
-  Age <- data %>% pull(Age)
+  Fx <- data %>% pull(asfr)
+  Age <- data %>% pull(age)
   
   # columns of K8
   ka  <- seq(10,45,by=5)
@@ -23,8 +23,8 @@ graduate_CS_df <- function(data, K8, S){
   f1[f1 < 0] <- 0
   
   # return object:
-  data.frame(Age = as.integer(rownames(f1)),
-             ASFR = f1)
+  data.frame(age = as.integer(rownames(f1)),
+             asfr = f1)
   
 }
 
