@@ -29,7 +29,8 @@ graduate_CS_df <- function(data, K8, S){
 }
 
 # loads K8 object needs for method
-K8 <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/K8.csv") %>% 
+K8 <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/K8.csv",
+               show_col_types = FALSE) %>% 
   as.matrix()
 rownames(K8) <- seq(12.25,54.75,by=.5) %>% round(2)
 
