@@ -56,6 +56,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 So far we've focused on getting data tidy, processing within the tidy framework, and using custom functions in the tidy framework. Today, we focus on visualizing data that is already tidy and ready-to-go. It could be raw data, or a calculated or estimated quantity on your part. For most of this, you could imagine a tidy pipeline preceding the visualization code.
 
+The purpose of graphics in demographic research is varied. We us visualization in diagnostic ways. Such plots needn't be perfect, they just need to reveal the desired diagnostic check discernibly well. These should be quick to make and interpret. Other plots are exploratory in nature, also quick, but flexible. `ggplot2` functions make such explorations particularly easy. Finally there are presentation graphics, which aim to distill a clear message from the data, and where storeytelling and detail management matters. 
+
 # Example data
 For our toy data we'll again use the amazing tidy dataset delivered by the *gapminder* project [https://www.gapminder.org/](https://www.gapminder.org/), which is used often in the excellent book that I recommend you use to reinforce this workshop material, *Data Visualization, a practical introduction* (@healy2018data). You can get a free online version of the book here: [https://socviz.co/](https://socviz.co/)
 
@@ -90,7 +92,9 @@ gapminder %>%
   geom_point()
 ```
 
-Excellent, our first plot of the day!
+Excellent, our first plot of the day! 
+
+*NOTE: It's super common to have a pipeline run straight into a plot, and sometimes we forget to switch from `%>%` to `+` after the `ggplot()`. Happens all the time, but quick to fix.
 
 ## Setting scales
 Sometimes mapping the data to the desired `geom` is the hard part. See how the data is bunched up around low values of `gdpPercap` and tapers off in the high range of `lifeExp`? Often in this situation, logging one or another scale reveals the pattern in the data better in such situations. We can alter the x and y scales by adding this information to the plot with `scale_x_log()` (my preference here), for example. Here we log both axes:
@@ -102,6 +106,7 @@ gapminder %>%
   scale_x_log10() +
   scale_y_log10()
 ```
+I use `scale_x_log10()` because the default tick positions/labels are nice. 
 
 Having both axes logged lends itself to interpreting potential trends in terms of proportional changes. This dataset might not benefit much from logging life expectancy:
 
@@ -126,7 +131,7 @@ gapminder %>%
   scale_x_log10() 
 ```
 
-By default, a GAM smoother is used, but others are available to you, see `?geom_smooth` for more options. These smoothers are in fact doing some statistics on top of the data, but only for the purposes of plotting the result as an enhancement of the legibility of the plot, just to be clear on that point. 
+By default, a loess smoother is used for smaller datasets, a GAM smoother for larger, but others are available to you, see `?geom_smooth` for more options. These smoothers are in fact doing some statistics on top of the data, but only for the purposes of plotting the result as an enhancement of the legibility of the plot, just to be clear on that point. 
 
 ## Mapping to `size`
 Let's see how variables can map to more than just coordinates:
@@ -172,7 +177,7 @@ But you can't modify elements that have already been drawn without using other p
 
 
 ### Setting transparency, `alpha`
-Currently our plot has lots of overlapping points. We probably have very dense areas, but can't really know which is the densest, because the points are all pushed together. This is called overplotting, and it reduces the information content of the plot. There are some easy things we can do to offset this effect. We could deal with this by setting points to be semi-transparent, using an argument called `alpha` in this case, we might not want to *map* a variable to alpha (although we could), but rather just set a level for all points. To do this, we'll want to specify `alpha` (a number between 0 and 1) outside the `aes()`, directly inside the relevant `geom`:
+Currently our plot has lots of overlapping points. We probably have very dense areas, but can't really know which is the densest, because the points are all pushed together. This is called overplotting, and it reduces the information of the plot in an undesirable way. There are some easy things we can do to offset this effect. We could deal with this by setting points to be semi-transparent, using an argument called `alpha` in this case, we might not want to *map* a variable to alpha (although we could-- I did it in session 3...), but rather just set a level for all points. To do this, we'll want to specify `alpha` (a number between 0 and 1) outside the `aes()`, directly inside the relevant `geom`:
 
 ```{r}
 gapminder %>% 
@@ -227,7 +232,7 @@ In this example, points are undifferentiated by continent, but the smoother colo
 ## Adding within-country trends
 
 Does the overall continent trend match within-country trends? This will work better if we can reduce the number of series being plotted. To add `country` paths, we include `geom_line()`, which needs its own `aes()` mapping. To make sure each country is its own series, we specify `group = country` in the mapping. This serves to point out that country trajectories appear far steeper than the overall continent would suggest. It's also easier to see that some paths are linear while others are complex.
-```{r}
+```{r, message = FALSE}
 gapminder %>% 
   filter(continent == "Africa",
          pop > 1e7) %>% 
@@ -240,7 +245,7 @@ gapminder %>%
 ```
 In such plots with many series, the color legend is basically pointless. There are different ways to customize legends or turn them off. The `guides()` layer can toggle legends for specific mapped variables if we want. Just add `guides(color = "none")` to eliminate the pointless color legend. 
 
-```{r}
+```{r, message = FALSE}
 gapminder %>% 
   filter(continent == "Africa",
          pop > 1e7) %>% 
@@ -256,7 +261,7 @@ gapminder %>%
 
 If we want to remove the scientific notation from the size legend, we can use the super-helpful `scales` package. This gives access to the `number_format()` function, where we can scale down to per 1000 population sizes. 
 
-```{r}
+```{r, message = FALSE}
 library(scales)
 gapminder %>% 
   filter(continent == "Africa",
@@ -273,7 +278,7 @@ gapminder %>%
 ## Adjust legend title and axis labels
 It's nice to also adjust the legend title. We can control this also from the `guides()` function, just specify which aesthetic this applies to `size = ...`, and here the `guide_lenged()` gives access to this aspect of the plot. Note `\n` makes a line break.  `labs()` lets us specify axis labels and titles, subtitles, and captions.
 
-```{r}
+```{r, message = FALSE}
 gapminder %>% 
   filter(continent == "Africa",
          pop > 1e7) %>% 
@@ -284,7 +289,7 @@ gapminder %>%
   geom_smooth() +
   scale_x_log10() +
   guides(color = "none",
-         size = guide_legend(title = "Population\n(1000s)")) +
+         size = guide_legend(title = "Population\n(millions)")) +
   scale_size_continuous(labels = number_format(scale = 1/1e6)) +
   labs(x = "GDP per capita",
        y = "Life expectancy at birth",
@@ -296,7 +301,7 @@ gapminder %>%
 
 To have more control over how the plot turns out, you can use the `theme()` function, which has many potential arguments, see `?theme`. Or you could use some of the default themes. Type `theme_` to see some autocomplete suggestions. I'll apply `theme_minimal()`. There are many more themes available in the `ggthemes` package.
 
-```{r}
+```{r, message = FALSE}
 gapminder %>% 
   filter(continent == "Africa",
          pop > 1e7) %>% 
@@ -307,7 +312,7 @@ gapminder %>%
   geom_smooth() +
   scale_x_log10() +
   guides(color = "none",
-         size = guide_legend(title = "Population\n(1000s)")) +
+         size = guide_legend(title = "Population\n(millions)")) +
   scale_size_continuous(labels = number_format(scale = 1/1e6)) +
   labs(x = "GDP per capita",
        y = "Life expectancy at birth",
@@ -319,7 +324,7 @@ gapminder %>%
 ## *mapping* transparency, `alpha`
 
 Now in this plot we can detect the time trend quite well due to our priors, but the plot isn't telling us itself what the direction of movement is. Instead of setting `alpha`, we could *map* it to `year`. Here I'll do so for both the lines and the points. You see how transparency can even change along a line? I'm getting sick of that smooth trend, so now it's gone.
-```{r}
+```{r, message = FALSE}
 gapminder %>% 
   filter(continent == "Africa",
          pop > 1e7) %>% 
@@ -329,7 +334,7 @@ gapminder %>%
   geom_line(aes(group = country, color = country, alpha = year)) +
   scale_x_log10() +
   guides(color = "none",
-         size = guide_legend(title = "Population\n(1000s)")) +
+         size = guide_legend(title = "Population\n(millions)")) +
   scale_size_continuous(labels = number_format(scale = 1/1e6)) +
   labs(x = "GDP per capita",
        y = "Life expectancy at birth",
@@ -343,7 +348,7 @@ gapminder %>%
 
 Say we're happy with this plot form and now we want to repeat it for all the large countries of the world? Then `facet_wrap()` will help, we add `facet_wrap(~continent)`. From this we see that Simpson's paradox was biggest in Africa.
 
-```{r}
+```{r, message = FALSE}
 gapminder %>% 
   filter(pop > 1e7,
          continent != "Oceania") %>% 
@@ -353,7 +358,7 @@ gapminder %>%
   geom_line(aes(group = country, color = country, alpha = year)) +
   scale_x_log10() +
   guides(color = "none",
-         size = guide_legend(title = "Population\n(1000s)")) +
+         size = guide_legend(title = "Population\n(millions)")) +
   scale_size_continuous(labels = number_format(scale = 1/1e6)) +
   labs(x = "GDP per capita",
        y = "Life expectancy at birth",
@@ -366,14 +371,14 @@ gapminder %>%
 
 # Further learning
 
-`ggplot2` is a powerful and extensive graphical system, which deserves an entire workshop. I think that this introduction should serve to get you started. Further learning will happen when you look into further `geom` types, learn to control color palettes, and so forth. I suggest the Healy book @healy2018data for a very complimentary resource for this whole course, and I also suggest the book by Claus Wilke *Fundamentals of Data Visualization* @wilke2019fundamentals . Most of your problems can be solved using Stack Overflow [https://stackoverflow.com/](https://stackoverflow.com/), where most common questions have been answered. You can also refer to the data visualization course materials from Ilya Kashnitsky [https://github.com/ikashnitsky/dataviz-mpidr](https://github.com/ikashnitsky/dataviz-mpidr). Finally, always remember you can see example code for making particular kinds of plots in the help files, or with internet searches. 
+`ggplot2` is a powerful and extensive graphical system, which deserves an entire workshop. I think that this introduction should serve to get you started. Further learning will happen when you look into further `geom` types, learn to control color palettes, and so forth. I suggest the Healy book @healy2018data for a very complimentary resource for this whole course, and I also suggest the book by Claus Wilke *Fundamentals of Data Visualization* @wilke2019fundamentals . Most of your problems can be solved using Stack Overflow [https://stackoverflow.com/](https://stackoverflow.com/), where most common questions have been answered. You can also refer to the data visualization course materials from Ilya Kashnitsky [https://github.com/ikashnitsky/dataviz-mpidr](https://github.com/ikashnitsky/dataviz-mpidr) or [https://github.com/ikashnitsky/dataviz-art-skill](https://github.com/ikashnitsky/dataviz-art-skill). Finally, always remember you can see example code for making particular kinds of plots in the help files, or with internet searches. 
 
-In my opinion the most involved aspect of making the plots is in the data prep, and that is the focus of this course. More examples will be done spontaneously or on request in the session.
+In my opinion the most involved aspect of making the plots, but also the most neglected is in the data prep. In this lesson we have not done a *tour de force* of a wide variety of `geom_` options. These we can sample on the fly as we work with different datasets in the remainder of the workshop. More examples will be done spontaneously or on request in the session. 
 
 # Exercises
 Here the exercise is the verbalized pipeline I'd like you to try and create:
 
-1. Make a density plot of the sex gap in life expectancy at birth from our results from yesterday's lesson. Steps: Read in the African lifetable results from yesterday (`"Data/LT_results.csv"`), filter down to age 0, then select `Country`, `Year`, `Sex`, and `ex`, then pivot wider so that `Sex` becomes the column names and `ex` the values, then calculate the sex gap in life expectancy as `gap = f - m`, then plot this, assigning `x = gap` and using `geom_density()`. 
+1. Make a density plot of the sex gap in life expectancy at birth from our results from *yesterday's* lesson. Steps: Read in the African lifetable results from yesterday (`"Data/LT_results.csv"`), filter down to age 0, then select `Country`, `Year`, `Sex`, and `ex`, then pivot wider so that `Sex` becomes the column names and `ex` the values, then calculate the sex gap in life expectancy as `gap = f - m`, then plot this, assigning `x = gap` and using `geom_density()`. You can find examples of using `geom_density()` in the help file, in graph galleries, or Stack Overflow.
 
 2. Using yesterday's lifetable results, make a single plot showing all death density distributions, where `Sex` is in panels, and `Year` maps to `alpha` (more recent years more opaque). What are the main features of these distributions that you notice?
 

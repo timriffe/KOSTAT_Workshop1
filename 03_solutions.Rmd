@@ -65,12 +65,15 @@ Let's see whether it makes any difference for anyone in this this small dataset:
 
 ```{r}
 TFRadj %>% 
+  
+  # stack in order to *map* in ggplot,
+  # will explain Tuesday
   select(country, year, TFR, TFRadj) %>% 
   pivot_longer(c(TFR, TFRadj), names_to = "version", values_to = "TFR") %>% 
+  
   ggplot(aes(x = year, y= TFR, color = country, linetype = version)) +
   geom_line() +
-  labs(title = "Yes, this adjustment does make quite a difference!") +
-  theme_minimal()
+  labs(title = "Yes, this adjustment does make quite a difference!")
 ```
 
 
@@ -88,24 +91,31 @@ mab1 <-
 
 mab5 <-
   B %>% 
+  
+  # %% is modulo, try it out, neat trick to group ages
   mutate(age5 = age - age %% 5) %>% 
   group_by(country, year, age) %>% 
   summarize(births = sum(births),
             expos = sum(expos),
              .groups = "drop") %>% 
+  
+  # asfr recalculated after grouping
   mutate(asfr = births / expos) %>% 
   group_by(country, year) %>% 
-  summarize(MAB = (sum((age+2.5) * asfr)/sum(asfr)), 
+  
+  # same weighted avg, different midpoint, 2.5
+  summarize(MAB = (sum((age + 2.5) * asfr)/sum(asfr)), 
             .groups = "drop")%>% 
   mutate(version = "5-year age mean")
 
+# join
 mab_compare <-
   bind_rows(mab1, mab5)
 
+# Visual comparison
 mab_compare %>% 
   ggplot(aes(x = year, y = MAB, color = country, linetype = version)) +
   geom_line() +
-  theme_minimal() +
   labs(title = "Yes, age groups can matter for some statistics!")
 ```
 
