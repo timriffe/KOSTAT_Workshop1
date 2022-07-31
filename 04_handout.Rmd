@@ -166,7 +166,7 @@ Knowing the basics for creating and wrapping functions is all we need to be able
 
 ## Reading in data from WHO
 
-We will take death rates ${}_nM_x$ and a quantity we write as ${}_nA_x$ (which is interpreted as the mean time spent in an age interval by those that die in an interval) as givens for calculating lifetables. I read in data from the WHO Global Health Observatory (GHO) using an API package called `rgho` (@rgho). You can examine my (expedient, not necessarily as efficient as could be) data wrangling code in a separate markdown script that we don't have time to cover in class in a file called `04_data_prep.Rmd` (or `.pdf`). The data is called `LT_inputs.csv`, and we can read it straight into `R` from `GitHub` without needing to manually download anything.
+We will take death rates ${}_nM_x$ and a quantity we write as ${}_nA_x$ (which is interpreted as the mean time spent in an age interval by those that die in an interval) as givens for calculating lifetables. I read in data from the WHO Global Health Observatory (GHO) using an API package called `rgho` (@rgho). That package will cease to work soon unless it is fixed, but so far it worked for me! You can examine my (expedient, not necessarily as efficient as could be) data wrangling code in a separate markdown script that we don't have time to cover in class in a file called `04_data_prep.Rmd` (or `.pdf`). The data is called `LT_inputs.csv`, and we can read it straight into `R` from `GitHub` without needing to manually download anything.
 
 We'll use `read_csv()`, which has nice default settings for reading in delimited files like this.
 ```{r, message = FALSE, warning = FALSE}
@@ -216,7 +216,8 @@ LT %>%
   geom_line() +
   scale_y_log10() +
   labs(title = "nqx Algeria, 2000",
-       subtitle = "Data: GHO")
+       subtitle = "Data: GHO",
+       caption ="The fact that the last two values are equal to 1 means that the nqx formula didn't work well.")
 ```
 Often we're sure to *close out* the lifetable by making the *final* ${}_nq_x$ value equal to 1. You could optionally modify the function to impute 1 like so `nqx[length(nqx)] <- 1`.
 
@@ -232,9 +233,11 @@ calc_nqx(.21, 2/5, 1)
 1 - (1 - calc_nqx(.21, 2/5, 1))^5
 # quite a reasonable value
 ```
-Formally, we have:
+That is, if we assume a constant rate in the interval ($n$), we have an implied single-age $q_x$ of:
 
 $$ {}_1q_x = \frac{{}_nM_x}{1 + (1 - \frac{{}_nA_x}{n}) \cdot{}_nM_x} $$
+The compliment of the $n^{th}$ power of its compliment (cumulative survival in the interval) can then be got as:
+
 $$ {}_nq_x = 1 - (1 - {}_1q_x)^n$$
 
 Here is the alternative conversion approach as an `R` function:
@@ -252,7 +255,7 @@ calc_nqx_v2 <- function(nMx, nAx, n){
 }
 ```
 
-I suggest we use this second version for purely pragmatic reasons with these data, unless someone comes along and tells me what's going on with the standard formula. 
+I suggest we use this second version for purely pragmatic reasons with these data, unless someone comes along and tells me what's going on with the standard formula, or an error is detected somewhere else. A possibility which I've not explored is that the GHO's delivered `nMx` and `nqx` values are not aligned so as to give an accurate `nAx`. It's possible, but it shouldn't be that way. 
 
 Note, neither $q(x)$ formula needs to be committed to memory. This is something we either derive or look up as needed, and the second version I give here is a pragmatic improvisation for the sake of this lesson. From the point where we are satisfied with our values of $q(x)$, $m(x)$ and $a(x)$, the remainder of the lifetable is now determined.
 
@@ -307,7 +310,7 @@ The life table deaths (${}_nd_x$) is the number of (synthetic) persons dying bet
 $$
 {}_nd_x = {}_nq_x * l_x
 $$
-One could ask, do we really need this function?
+One could ask, do we really need this function? This is something we can remember, right?
 ```{r}
 calc_ndx <- function(nqx, lx){
    nqx * lx
@@ -319,18 +322,18 @@ calc_ndx <- function(nqx, lx){
 The number of person-years between age $x$ and $x+n$ (${}_nL_x$) is calculated as:
 
 $$
-{}_nL_x = n(l_x - {}_nd_x) + {}_na_x\cdot{}_nd_x \\
+{}_nL_x = n(l_{x} - {}_nd_x) + {}_na_x\cdot{}_nd_x \\
 $$
 $$
-= n \cdot l_x - (n-_na_x) _nd_x
+= n \cdot l_x - (n - {}_na_x) _nd_x
 $$
 **Note**
 
-$_nm_x = _nd_x/_nL_x$
+${}_nm_x = {}_nd_x/{}_nL_x$
 
 and 
 
-$_nq_x = _nd_x/l_x$
+${}_nq_x = {}_nd_x/l_x$
 
 ```{r}
 calc_nLx <- function(lx, ndx, nAx, n){
@@ -404,7 +407,7 @@ LT %>%
 
 # A Lifetable function
 
-You probably noticed that a whole lifetable operation can fit in a single `mutate()` call! Well, that may be so, but there's still value in creating a wrapper function that does the whole thing:
+You probably noticed that a whole lifetable operation can fit in a single `mutate()` call! Note, you could calculate all lifetables for each subset by simply including a `group_by()`. Well, that may be so, but there's still value in creating a wrapper function that does the whole thing:
 
 ```{r}
 calc_LT <- function(nMx, nAx, n, radix){
