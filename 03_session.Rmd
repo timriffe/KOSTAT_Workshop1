@@ -602,4 +602,11 @@ B_stats_compare %>%
   pivot_wider(names_from = version, values_from = mab_counts)
 ```
 
-Fin
+Save a copy for the exercises
+
+```{r}
+B_final %>% 
+  write_csv("Data/03_results.csv")
+```
+
+*Fin*
