@@ -605,7 +605,7 @@ B_stats_compare %>%
 Save a copy for the exercises
 
 ```{r}
-B_final %>% 
+BE_compare %>% 
   write_csv("Data/03_results.csv")
 ```
 
