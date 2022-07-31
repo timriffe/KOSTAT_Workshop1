@@ -19,12 +19,13 @@
    1. `02_handout` (`.Rmd`, `.pdf`)
    2. `02_session.Rmd` (notes from session)
 - `03` (Friday, 29 July 2022) "Worked example of tidy data processing: birth data"
-   1. `03_data_prep` (`.Rmd`, `.pdf`)
-   2. `03_handout` (`.Rmd`, `.pdf`)
+   1. `03_handout` (`.Rmd`, `.pdf`)
+   2. `03_session.Rmd`
    3. `03_solutions.Rmd`
    4. `03_fertility_ad_hoc.R`
 - `04` (Monday, 1 August 2022) "Writing functions: the lifetable"
-   1. `04_handout` (`.Rmd`, `.pdf`)
+   1. `04_data_prep` (`.Rmd`, `.pdf`)
+   2. `04_handout` (`.Rmd`, `.pdf`)
 - `05` (Tuesday, 2 August 2022) "Visualizing data using `ggplot2`"
    1. `05_handout` (`.Rmd`, `.pdf`)
 - `06` (Wednesday, 3 August 2022) "Processing and visualizing South Korean fertility microdata"
