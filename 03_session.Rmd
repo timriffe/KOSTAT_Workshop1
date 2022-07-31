@@ -415,7 +415,8 @@ Note, comparing the TFR and MAB trends, and with some to still-to-acquire intuit
 
 ## An adjustment beyond the intended scope of this workshop
 
-It was noticed by a participant (front row, sorry I didn't catch your name yet! Will update here when I find out) that the sum of births with stated age plus unknowns is less than the stated total, and we realized that this is likely due to data truncation below age 15 and over age 49. That means we have some births where they knew the mothers' age, but it is simply not included because they only give ages 15-49. First, before you read this, you should understand that anything beyond this point is not for the sake of a better TFR estimate-- it will barely budge. We add this rigor in case
+### Summary
+It was noticed by a participant (front row, sorry I didn't catch your name yet! Will update here when I find out) that the sum of births with stated age plus unknowns is less than the stated total, and we realized that this is likely due to data truncation below age 15 and over age 49. That means we have some births where they knew the mothers' age, but it is simply not included because they only give ages 15-49. First, before you read this, you should understand that anything beyond this point is not for the sake of a better TFR estimate-- it will barely budge. We add this rigor in case, in some unforeseen application, the full age range of ASFR is of interest.
 
 Let's first confirm this suspicion before considering doing anything about it.
 
@@ -437,10 +438,168 @@ BE %>%
   geom_line() +
   scale_y_log10() +
   labs(title = "Probably also the same story in age 49.",
-       subtitle = "I see one line that goes down and then up, but it's just 1")
+       subtitle = "I see only one line that goes down and then up")
 ```
 
 So, we conclude that truncation is probably at work. It turns out the best way forward will be to model the tails on the rate scale, then convert back to counts, and rescale *only the tails* so that they sum to the remainder (total - (births ages 15-49 + unknown). On the other hand, one *could* reasonably suppose that any births of unknown maternal age are very likely not coming from ages outside the normal range. Ages outside the normal range might be more investigated (low end) or more assisted (higher end), and so likely be of known age. If that were the case, then we would want to redistribute unknowns over the observed age distribution rather than rescaling it to the total, and in that case the solution would look just like what we did for population counts, *except* we know that any resulting TFR would be an underestimate, because the tails are non-zero. It's worth reiterating that we only care about extrapolating to cover higher and lower ages if we care about the *entirety* of the fertile age range. We do not care to do this extrapolation if we care about the tails and the tails only. In that case you'd seek an alternate source of information without age truncation.
 
-Solution pending
+### Worked solution
 
+To handle the tails and overall rescaling in a more rigorous fashion is, to put it lightly, a bit more involved. The code below gets the job done in one of the many possible ways. This is probably how I would do it myself if I found myself in exactly this situation and needed to publish an official report, or similar. In that situation, realistically, we'd have access to the full age range. So this exercise is somewhat contrived, but it serves, if you follow the logic, to demonstrate assumptions commonly applied in the field.
+
+First, we should size up the discrepancy
+```{r}
+# save this bit, since we need to handle the part afterwards in different ways
+B_in <-  read_excel(path = "Data/demo_fasec.xlsx",
+             range = "A10:H158",
+             na = ":") %>% 
+  pivot_longer(cols = `2011`:`2016`,
+               names_to = "year",
+               values_to = "births") %>% 
+  rename(age = AGE,
+         country =`GEO/TIME`)
+
+# save totals, which we can re-join later for final scale
+B_totals <- 
+  B_in %>% 
+  filter(age == "Total") %>% 
+  rename(total = births) %>% 
+  select(-age)
+```
+Go ahead and View this object to get a sense of it. We save this object for instrumental use later.
+
+Now we infer / calculate the tail totals. That is, how many births had a known maternal age but were truncated? We save this object for instrumental use later.
+```{r}
+# infer size of "known-age" component of tails
+B_tail_totals <-
+  B_in %>% 
+  group_by(country, year) %>% 
+  summarize(total = births[age == "Total"],
+            marginal_total = sum(births[age != "Total"]),
+            .groups = "drop") %>% 
+  mutate(both_tails = total - marginal_total) %>% 
+  select(country, year, both_tails)
+```
+
+Now, we opt to infer the tail *rate* distribution by applying a graduation method developed by Carl Schmertmann, which you can find documented here: [https://schmert.net/calibrated-spline/REBEP/](https://schmert.net/calibrated-spline/REBEP/). Demographers usually extrapolate things on the rate scale because rates are a mirror to forces that behave in (ideally) regular ways. Counts on the other hand are part due to rates and part due to population structure. The graduation method we'll apply is premised on rates in 5-year age groups. It works really well in my experience. I've taken a version of Prof Schmertmann's code and modified / simplified it for our case. This was only possible because his original code was fully reproducible. The plan is to aggregate births and exposures to 5-year age groups, then calculate rates, then graduate using the Schmertmann method, which will give back rates single ages 12-54. 
+
+`R` note: it would be cool to do `group_by()` then `mutate()` to move the 5-year data to single ages, but `mutate()` requires us to keep the same rows, so that won't work. `group_modify()`, can handle this. To apply it, our function (we see how to write them Monday!) needs to take a `tibble` and return a `tibble`, so it's written in that way. The objects `K8` and `S` are instrumental to the method used. 
+```{r}
+
+# extrapolate rates to tails
+# we'll treat this as a rate graduation problem, just for the sake
+# of the tails. Will require a check on plausibility.
+
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/03_fertility_ad_hoc.R")
+
+B_infer_cs <-
+  BE %>% 
+  select(country, year, age, births, expos) %>% 
+  
+  # create 5-year ages
+  mutate(age = age - age %% 5) %>% 
+  arrange(country, year, age) %>% 
+  group_by(country, year, age) %>% 
+  summarize(births = sum(births),
+            expos = sum(expos),
+            .groups = "drop") %>% 
+  
+  # get rates and then graduate
+  mutate(asfr = births / expos) %>% 
+  group_by(country, year) %>% 
+  group_modify(~graduate_CS_df(data = .x,S=S,K8=K8)) %>% 
+  ungroup()
+```
+The above result `B_infer_cs` just has rates, however, so we need to rejoin to `E` to get exposures for all ages 12-54. After joining we can convert tail rates back to counts, then only keep ages 12-14 and 50-54, then join our previously calculate `tail_totals` and do our first-pass rescale of the tails.
+```{r}
+# convert rate extrapolation in tails to births,
+# then rescale to previously inferred tail totals,
+# save only the tail ages (<15 and >= 50)
+B_tails <-
+  # match exposures to the newly estimated rates
+  E %>% 
+  select(year, country, age, expos) %>% 
+  inner_join(B_infer_cs, by = c("country","year","age")) %>% 
+  
+  # get implied births
+  mutate(births_cs = asfr * expos) %>% 
+  select(-asfr) %>% 
+  
+  # cut to tail ages
+  filter(age < 15 | age >= 50) %>% 
+  
+  # append tail totals and rescale
+  left_join(B_tail_totals, by = c("country","year")) %>% 
+  arrange(country, year, age) %>% 
+  group_by(country, year) %>% 
+  mutate(births_cs_scaled = births_cs / sum(births_cs) * both_tails) %>% 
+  
+  # mimic column names of original births so we can bind the rows
+  select(country, year, age, births = births_cs_scaled)
+```
+`B_tails` contains our initial estimate of births in single ages in the tails. We append this to the original births using `bind_rows()`, then re-join exposures, then join our stated totals, and finally calculate ASFR.
+
+```{r}
+# stack with births aged 15-49, and
+# *now* we can rescale to total
+B_final <-
+  # append new tails
+  B %>% 
+  select(-total,-births_hat) %>% 
+  bind_rows(B_tails) %>% 
+  arrange(country, year, age) %>% 
+  filter(year > 2011) %>% 
+  
+  # re-join exposure
+  inner_join(E, by = c("age", "country", "year")) %>% 
+  select(country, year, age, births, expos) %>% 
+  
+  # add country-year total births
+  left_join(B_totals, by = c("country","year")) %>% 
+  
+  # rescale (all ages 12-54)
+  group_by(country, year) %>% 
+  mutate(births = births / sum(births) * total) %>% 
+  select(-total) %>% 
+  
+  # final asfr estimate
+  mutate(asfr = births / expos,
+         version = "final")
+```
+
+Now we'd like to combine these with our original ASFR estimates from the session, which we had stored in an object `BE`. THis we do by stacking because it eases visual comparisons with `ggplot()`, we just need to differentiate them with `version` (`"sesion"` or `"final"`).
+```{r}
+# combine the two versions
+BE_compare <-
+  BE %>% 
+  select(country, year, age, births = births_hat, expos, asfr = fx) %>% 
+  mutate(version = "session") %>% 
+  bind_rows(B_final) 
+```
+
+Now let's recalculate summary statistics for both versions, so we can see how much difference all this made
+```{r}
+# compare summary statistics
+B_stats_compare <-
+  BE_compare %>% 
+  group_by(country, year, version) %>% 
+  summarize(tfr = sum(asfr),
+            mab_rates = sum((age+.5) * asfr) / sum(asfr),
+            mab_counts = sum((age + .5) * births) / sum(births),
+            total = sum(births),
+            .groups = "drop")
+```
+
+It turns out, none of this work was for the sake of better summary statistics! We just got a more complete age range. Any value perturbations are *within* the normal stochastic range, so this is a trivial adjustment. Really, I'd still do it for the sake of a full age range that ends with 0s on the left and right. If unknowns were very high, or if tail values were comparatively high, then this exercise would be less innocuous, and some more decisions would need to be made.
+```{r}
+# observe, this was not for the sake of summary stats!
+B_stats_compare %>% 
+  select(country, year, tfr, version) %>% 
+  pivot_wider(names_from = version, values_from = tfr)
+
+B_stats_compare %>% 
+  select(country, year, mab_counts, version) %>% 
+  pivot_wider(names_from = version, values_from = mab_counts)
+```
+
+Fin
