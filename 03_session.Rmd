@@ -488,7 +488,7 @@ B_tail_totals <-
 
 Now, we opt to infer the tail *rate* distribution by applying a graduation method developed by Carl Schmertmann, which you can find documented here: [https://schmert.net/calibrated-spline/REBEP/](https://schmert.net/calibrated-spline/REBEP/). Demographers usually extrapolate things on the rate scale because rates are a mirror to forces that behave in (ideally) regular ways. Counts on the other hand are part due to rates and part due to population structure. The graduation method we'll apply is premised on rates in 5-year age groups. It works really well in my experience. I've taken a version of Prof Schmertmann's code and modified / simplified it for our case. This was only possible because his original code was fully reproducible. The plan is to aggregate births and exposures to 5-year age groups, then calculate rates, then graduate using the Schmertmann method, which will give back rates single ages 12-54. 
 
-`R` note: it would be cool to do `group_by()` then `mutate()` to move the 5-year data to single ages, but `mutate()` requires us to keep the same rows, so that won't work. `group_modify()`, can handle this. To apply it, our function (we see how to write them Monday!) needs to take a `tibble` and return a `tibble`, so it's written in that way. The objects `K8` and `S` are instrumental to the method used. 
+`R` note: it would be cool to do `group_by()` then `mutate()` to move the 5-year data to single ages, but `mutate()` requires us to keep the same number of rows, so that won't work. `group_modify()`, can handle this. To apply it, our function (we see how to write them Monday!) needs to take a `tibble` and return a `tibble`, so it's written in that way. The objects `K8` and `S` are instrumental to the method used. 
 ```{r}
 
 # extrapolate rates to tails
@@ -512,7 +512,9 @@ B_infer_cs <-
   # get rates and then graduate
   mutate(asfr = births / expos) %>% 
   group_by(country, year) %>% 
-  group_modify(~graduate_CS_df(data = .x,S=S,K8=K8)) %>% 
+  group_modify(~graduate_CS_df(data = .x, 
+                               S = S, 
+                               K8 = K8)) %>% 
   ungroup()
 ```
 The above result `B_infer_cs` just has rates, however, so we need to rejoin to `E` to get exposures for all ages 12-54. After joining we can convert tail rates back to counts, then only keep ages 12-14 and 50-54, then join our previously calculate `tail_totals` and do our first-pass rescale of the tails.
