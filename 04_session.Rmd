@@ -142,14 +142,40 @@ tibble(age = age,
 ### Exercise (4 min) lifetable deaths
 
 $$ {}_nd_x = {}_nq_x \cdot l_x $$
+
+```{r}
+nqxlx_to_ndx <- function( nqx, lx){
+  nqx * lx
+}
+```
+
 ### Exercise (5 min) Person-years lived between $x$ and $x+n$
 
 $$ {}_nL_x = n \cdot l_x - (n - {}_nA_x)\cdot{}_nd_x  $$
-### Exercise (5 min) Person-years lived avoce age $x$
+
+```{r}
+get_Lx <- function(lx,nAx,ndx,n){
+  n * lx - (n - nAx) * ndx
+}
+```
+
+
+### Exercise (5 min) Person-years lived over age $x$
 
 $$ T_x = \sum _{y=x}^\omega {}_nL_y $$
 
+```{r}
+get_Tx <- function(nLx){
+  nLx %>% rev() %>% cumsum() %>% rev()
+}
+```
 
+$$ e_x = \frac{T_x}{l_x} $$
+```{r}
+get_ex <- function(Tx, lx){
+  Tx / lx
+}
+```
 
 
 
