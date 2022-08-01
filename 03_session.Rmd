@@ -371,7 +371,7 @@ BEstats <-
             
             # MAB is a weighted average
             mab_counts = sum((age + .5) * births_hat) / sum(births_hat),
-            mab_fx = sum((age+5) * fx) / sum(fx),
+            mab_fx = sum((age + .5) * fx) / sum(fx),
             .groups = "drop")
 ```
 
