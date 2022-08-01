@@ -425,7 +425,7 @@ It was noticed by participant Sangmi Kim that the sum of births with stated age 
 
 Let's first confirm this suspicion before considering doing anything about it.
 
-Observe, if the count in age 15 is actually "age 15 and under", and if age 49 is actually age "49+", then we should be able to detect this visually. Better in the rates than in the counts. Let's take a zoomed-in look:
+Observe, if the count in age 15 is actually "age 15 and under", and if age 49 is actually age "49+", then we should be able to detect this visually. Better see this in the rates rather than in the counts. Let's take a zoomed-in look:
 
 ```{r}
 BE %>% 
