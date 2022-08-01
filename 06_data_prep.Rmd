@@ -51,7 +51,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Summary
 
-This markdown file steps through the data prep of the microdata. Here I have the simple task of converting the (very nicely formatted) `.csv` files provided by KOSTAT into a fixed width format. I want to do this because very often when we get microdata from official statistics offices, it is delivered in fixed-width files, often public-use files where we need to to know column positions and widths in order to read the data into `R`. That is, here we take a step *backwards*! The metadata about which column is located in which position, and how wide it is is best delivered in a spreadsheet, but sometimes it is given in in `pdf` files, which can be laborious to prepare.
+This markdown file steps through the data prep of Koeran births microdata. Here I have the simple task of converting the (very nicely formatted) `.csv` files provided by KOSTAT into a fixed width format. I want to do this because very often when we get microdata from official statistics offices, it is delivered in fixed-width files, often public-use files where we need to to know column positions and widths in order to read the data into `R`. That is, here we take a step *backwards*! The metadata about which column is located in which position, and how wide it is is best delivered in a spreadsheet, but sometimes it is given in in `pdf` files, which can be laborious to prepare.
 
 # examine file
 ```{r, message = FALSE}
@@ -71,9 +71,9 @@ A <- read_csv(file.path(folder, files[1]),
 
 ## Improvise way to write fwf
 Solution inspired by: Hao Zhu's GitHub gist: [https://gist.githubusercontent.com/haozhu233/28d1309b58431f4929f78243054f1f58/raw/3c888574eba9bdde41b5f9081de7c9533e84f20d/write_fwf.R](https://gist.githubusercontent.com/haozhu233/28d1309b58431f4929f78243054f1f58/raw/3c888574eba9bdde41b5f9081de7c9533e84f20d/write_fwf.R)
-I have modified the function a bit to get the result we want: no headers given, this information is delivered with the column positions in a metadata file.
+I have modified the function a bit to get the result we want: no headers given, this information is delivered with the column positions in a metadata file in most real life situations.
 
-In real life, you will NEVER need to do what I'm doing here.
+In real life, you will NEVER need to do what I'm doing here. This is a step backwards!
 
 ```{r}
 write_fwf = function(dt, file, width, 
@@ -137,9 +137,12 @@ for (i in 1:length(years)){
 
 ```
 
+## now zip
+I did this step in the command line rather than from `R` no diff.
+
 ## Read back in?
 
-```{r}
+```{r, message = FALSE}
 library(vroom)
 
 specs <- fwf_widths(widths = positions_names$width,
@@ -171,4 +174,6 @@ unzip("Data/Korea_births_fwf.zip",
 ```
 
 Objective achieved!
+
+To set up the class experience, I remove `Korea_birth_Fwf` folder and its zip, and we download them together.
 
