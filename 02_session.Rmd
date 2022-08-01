@@ -153,7 +153,7 @@ gapminder %>%
   group_by(continent, year) %>% 
   filter(gdpPercap == max(gdpPercap)) %>% 
   ungroup() %>% 
-  arrange(contine, year) # %>% View()
+  arrange(continent, year) # %>% View()
 ```
 
 Mini exercise (groups)

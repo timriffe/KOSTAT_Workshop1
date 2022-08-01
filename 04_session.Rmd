@@ -1,0 +1,70 @@
+---
+title: "Session 4 notes"
+author: "Tim Riffe"
+date: "2022-08-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Functions
+
+```{r}
+
+hello <- function(your_name){
+  paste0("Hello, ", 
+         your_name, 
+         "! Have a nice day!")
+}
+paste0("a","b")
+hello(your_name = c("Tim","Sugyeong","Gowoon"))
+```
+
+## a numerical example
+
+```{r}
+my_mathy_function <- function(x){
+  35 + 3 * x^2 + x*sin(x^2)
+}
+x <- seq(0,100,by=.01)
+my_mathy_function(x)
+
+tibble(x, 
+       y = my_mathy_function(x)) %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_line()
+```
+
+### function of n arguments
+
+Note
+
+1. arguments `x`, `y`, and `z` should all be the same length, or just one element.
+2. you can use other functions inside your functions. They also can be YOUR functions.
+3. Whatever is evaluated last in the function gets returned. However, it's better to explicitly return using `return()`.
+4. You can and should annotate code inside of functions.
+```{r}
+a_bigger_function <- function(x, y, z){
+  x <- my_mathy_function(x = x)
+  x * y^z
+}
+
+a_bigger_function <- function(x, y, z){
+  # apply earlier-written function
+  x   <- my_mathy_function(x = x)
+  out <- x * y^z
+  return(out)
+}
+
+# a_bigger_function(x = 4, y = 2, z = 13:76)
+```
+
+
+```{r}
+
+```
+
+
+

@@ -26,7 +26,9 @@ Btfr <-
   summarize(TFR = sum(asfr)) 
 
 Btfr %>% 
-  ggplot(aes(x=year,y=TFR,color=country))+
+  ggplot(aes(x = year,
+             y = TFR,
+             color = country))+
   geom_line() +
   theme_minimal()
 ```
@@ -42,8 +44,9 @@ NOTE: for this I didn't say whether to use the count or rate MAB. We should use 
 Brt <-
   B %>% 
   group_by(country, year) %>% 
-  summarize(mab = (sum((age+.5) * asfr)/sum(asfr)), 
+  summarize(mab = (sum((age + .5) * asfr) / sum(asfr)), 
             .groups = "drop") %>% 
+  arrange(country, year) %>% 
   group_by(country) %>% 
   mutate(rt = (lead(mab) - lag(mab)) / 2) %>% 
   filter(!is.na(rt))
@@ -52,7 +55,8 @@ Brt <-
 
 Here $r(t)$ (in R call the new variable `rt`) approximates the average rate of change in the mean age at childbearing. We can use it to calculate an adjusted form of TFR, `TFR_adj` like so:
 
-$$ TFR_{adj}(t) = \frac{TFR(t)}{1 - r(t)}$$
+$$ TFR_{adj}(t) = \frac{TFR(t)}{1 - r(t)} $$
+
 
 ```{r}
 TFRadj <- 
