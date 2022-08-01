@@ -159,7 +159,7 @@ B <-
   
 ```
 
-
+Note, I give a more rigorous but complicated approach to this issue at the end of this tutorial! This is a simple version, whose primary value is in seeing how one can programmatically rescale like this. We later check and note that the age pattern and each of our synthetic indices later calculated (TFR or MAB) was basically unphased after taking the rigorous approach.
 
 ## Now let's get exposures
 
@@ -177,7 +177,7 @@ P <-
 
 ### 2. `pivot_longer()` for age
 
-reshape to longer, creating new columns for age and pop.
+Reshape to longer, creating new columns for age and pop.
 ```{r}
 P <-
   P %>% 
@@ -250,7 +250,7 @@ case_when(condition_1 ~ case_1,
           TRUE ~ everything_else)
 ```
 
-Here used for our age classes:
+Here used to recode our age classes:
 ```{r, warning = FALSE}
 # handle cases:
 # P %>% pull(age) %>% unique()
@@ -264,6 +264,8 @@ P <-
 
 
 ### 7. calculate exposure
+
+We do this by getting *this year* January 1 next to *next year* Jan 1, using `lead()`, then averaging to approximate a July 1 population.
 ```{r}
 a <- 0:10
 a
@@ -276,6 +278,8 @@ P <-
   P %>% 
   arrange(country, age, year) %>% 
   group_by(country, age) %>% 
+  # lead() needs to happen inside groups!! Otherwise the shift
+  # would cross between populations!!
   mutate(pop2 = lead(pop_hat)) %>% 
   ungroup() %>% 
   filter(!is.na(pop2)) %>% 
@@ -284,6 +288,7 @@ P <-
 
 ### 8. bring it all together
 
+Here are all the exposure calculation steps in a single annotated pipeline:
 ```{r, message = FALSE}
 E <- 
   read_excel(path = "Data/demo_pjan.xlsx",
@@ -416,7 +421,7 @@ Note, comparing the TFR and MAB trends, and with some to still-to-acquire intuit
 ## An adjustment beyond the intended scope of this workshop
 
 ### Summary
-It was noticed by a participant (front row, sorry I didn't catch your name yet! Will update here when I find out) that the sum of births with stated age plus unknowns is less than the stated total, and we realized that this is likely due to data truncation below age 15 and over age 49. That means we have some births where they knew the mothers' age, but it is simply not included because they only give ages 15-49. First, before you read this, you should understand that anything beyond this point is not for the sake of a better TFR estimate-- it will barely budge. We add this rigor in case, in some unforeseen application, the full age range of ASFR is of interest.
+It was noticed by participant Sangmi Kim that the sum of births with stated age plus unknowns is less than the stated total, and we realized that this is likely due to data truncation below age 15 and over age 49. That means we have some births where they knew the mothers' age, but it is simply not included because they only give ages 15-49. First, before you read this, you should understand that anything beyond this point is not for the sake of a better TFR estimate-- it will barely budge. We add this rigor in case, in some unforeseen application, the full age range of ASFR is of interest.
 
 Let's first confirm this suspicion before considering doing anything about it.
 
