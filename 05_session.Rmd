@@ -1,0 +1,55 @@
+---
+title: "session 5 notes"
+author: "Tim Riffe"
+date: "2022-08-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Grammar of graphics
+
+The grammar of graphics systematizes the mapping of data to aspects of a visualization. 
+
+A mapping means a translation of a variable (qualitative, discrete, continuous) to coordinate, or aesthetic attributes of the target data visualization.
+
+## Anatomy of a ggplot2 call
+
+```{r}
+library(tidyverse)
+LT <- read_csv("Data/LT_results.csv", show_col_types = FALSE) 
+
+LT %>% 
+  filter(Country == "Algeria",
+         Year == 2000) %>% 
+  ggplot(mapping = aes(
+    x = Age,
+    y = nMx,
+    color = Sex
+  )) +
+  geom_line()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
