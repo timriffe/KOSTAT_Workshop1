@@ -246,5 +246,29 @@ LT_inputs <-
 # save the results
 write_csv(LT_inputs, file = here("Data","LT_inputs.csv"))
 ```
+### redux on ${}_nA_x$
+This resulting file will be what we use in class for lifetables. And indeed it's what we used at first, until I noticed that some of the ${}_nA_x$ values were no good. I infer that it's the case that ${}_nQ_x$ and ${}_nM_x$ from this GHO data are out of sync! Ouch. Possibly it's that each is the median of a distribution, but not a matched pair??? No problem, we can derive ${}_nA_x$ from ${}_nM_x$ alone using the UN WPP approach! I'll here restart using `LT_inputs.csv` because the code above is onerous to say the least. Then I'll derive entire abridged lifetables and siphon off just the columns we need for class.
 
-This resulting file will be what we use in class for lifetables.
+
+```{r}
+library(tidyverse)
+library(DemoTools)
+
+MX <- read_csv("Data/LT_inputs.csv", show_col_types = FALSE)
+LT <-
+  MX %>% 
+  mutate(Sex = if_else(Sex == "t","b",Sex)) %>% 
+  group_by(ISO3, Country, Year, Sex) %>% 
+  do(lt_abridged(nMx = .data$nMx, 
+                  Age = .data$Age, 
+                  axmethod = "un", 
+                  region = "s",
+                  Sex = .data$Sex[1])) %>% 
+  ungroup()
+# LT %>% 
+#   filter(Country == "Algeria", Year == 2000) %>% View()
+LT %>% 
+  select(ISO3, Country, Year, Sex, nMx, nAx) %>% 
+  write_csv("Data/LT_inputs.csv")
+```
+
