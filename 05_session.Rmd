@@ -149,8 +149,10 @@ p <-
   geom_line() +
   scale_y_log10() +
   facet_wrap(~Country)
+
 # to render the plot, just evaluate the object p
 p
+
 # args(ggsave)
 # ggsave(filename = "Africa_nMx_facet.pdf", p)
 ```
