@@ -249,7 +249,8 @@ Originally I assumed that `.data` was the name of the imaginary chunk of data be
 ```{r}
 mx %>% 
   group_by(Country, Year, Sex) %>% 
-  group_modify(~my_lifetable(Data = .x,radix = 1)) %>% 
+  group_modify(~my_lifetable(Data = .x,
+                             radix = 1)) %>% 
   ungroup()
 
 ```
