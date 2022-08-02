@@ -9,6 +9,9 @@
 #       are not 
 
 # NEW name
+
+# this is a common formula for getting
+# probabilities from rates.
 get_nqx <- function(nMx, nAx, n){
   nqx <- (n * nMx) / ( 1 + (n - nAx) * nMx)
   
@@ -50,6 +53,7 @@ get_Lx <- function(lx, nAx, ndx, n){
   # NEW care for closeout
   N        <- length(nLx)
   nLx[N]	 <- lx[N] * nAx[N] 
+  nLx
 }
 
 # same
