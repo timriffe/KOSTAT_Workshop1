@@ -30,8 +30,9 @@
    4. `04_lifetable_functions.R` (used in follow-up to session)
 - `05` (Tuesday, 2 August 2022) "Visualizing data using `ggplot2`"
    1. `05_handout` (`.Rmd`, `.pdf`)
+   2. `05_session.Rmd`
 - `06` (Wednesday, 3 August 2022) "Processing and visualizing South Korean fertility microdata"
-   1. `06_handout` (`.Rmd`, `.pdf`) *in progress*
+   1. `06_handout` (`.Rmd`, `.pdf`) 
 - `07` (Thursday, 4 August 2022) "Demographic standardization and decomposition"
    1. `07_handout` (`.Rmd`, `.pdf`) *in progress*
 - `08` (Thursday, 6 August 2022) "Advanced pipelines: Data chosen by participants"
