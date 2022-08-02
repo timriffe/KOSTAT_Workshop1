@@ -30,14 +30,128 @@ LT %>%
     color = Sex
   )) +
   geom_line()
+  #geom_point()
+  #geom_step()
 ```
 
+### log the y scale
 
+We do things like log a scale by adding `scale_x_*` or `scale_y_*` statements.
+```{r}
+LT %>% 
+  filter(Country == "Algeria",
+         Year == 2000) %>% 
+  ggplot(mapping = aes(
+    x = Age,
+    y = nMx,
+    color = Sex
+  )) +
+  geom_line() +
+  scale_y_log10()
+```
 
+### adding another graphical element
 
+You can add on geometric elements, but note that the order matters. Last = on top. In this case, overlapping things are basically the same color, so it doesn't matter. But if you wanted to put a smooth line through a cloud of points then you'd care!
+```{r}
+LT %>% 
+  filter(Country == "Algeria",
+         Year == 2000) %>% 
+  ggplot(mapping = aes(
+    x = Age,
+    y = nMx,
+    color = Sex
+  )) +
+  geom_line() +
+  geom_point() +
+  scale_y_log10()
+```
 
+### How to plot a density
 
+A density plot really only needs `x`. We can specify colored densities (fill color specifically) by mapping `fill` to `Sex`, and if we want the polygon border colors to match, then we also map `color`. Note that `alpha`, which sets transparency, is not *mapped*, it is *set*.
+```{r}
+LT %>% 
+  filter(Age == 0) %>% 
+  ggplot(mapping = aes(x = ex, 
+                       fill = Sex, 
+                       color = Sex)) +
+  geom_density(alpha = .4)
+```
 
+### mapping a point cloud
+
+Note that the smoother is drawn on TOP of the points.
+```{r}
+LT %>% 
+  filter(Age == 0) %>% 
+  select(Country, Sex, Year, ex) %>% 
+  pivot_wider(names_from = Sex, values_from = ex) %>% 
+  mutate(gap = f - m) %>% 
+  ggplot(mapping = aes(x = b,
+                       y = gap)) +
+  geom_point(alpha = .3, size = 3) +
+  geom_smooth(size = 2) +
+  labs(title = "There does not seem to be a relationship\nbetween e0 and the sex gap in e0 in this data")
+```
+
+### Second try for a usable point cloud
+
+$$ {}_{45}q_{15} = 1 - \frac{l_{60}}{l_{15}} $$
+Notes on the `ggplot()` code:
+1. We have a point cloud, but some variable mappings should be applied to points only, whereas others should be shared by both the points and the smoother on top. We do this by mapping within particular geoms.
+2. We log both `x` and `y` in order to try to linearize this relationship.
+3. We mapped color to Country but really this isn't super useful because you can't tell the difference. We at least turn off the legend, which is pointless, with ` guides(color = "none")`.
+4. We split the plot into subset panels using `facet_wrap()`
+```{r, fig.width = 15, fig.height = 7}
+LT %>% 
+  # calculate indicators
+  group_by(Country, Year, Sex) %>% 
+  summarize(IMR = nqx[Age == 0],
+            AMR = 1 - lx[Age == 60] / lx[Age == 15],
+            .groups = "drop") %>% 
+  
+  
+  ggplot(mapping = aes(x = IMR,
+                       y = AMR)) +
+  geom_point(mapping = aes(
+                        alpha = Year,
+                        color = Country)) +
+  geom_smooth() +
+  scale_x_log10() +
+  scale_y_log10() +
+  guides(color = "none") +
+  facet_wrap(~Sex) 
+```
+
+### facetting examples
+```{r, fig.width = 12, fig.height = 5}
+LT %>% 
+  ggplot(mapping = aes(x = Age, 
+                       y = nMx, 
+                       group = interaction(Country, Year))) +
+  geom_line(alpha = .1) +
+  scale_y_log10() +
+  facet_wrap(~Sex)
+```
+But we can also facet on Country and get LOTS of subplots. Note we needed to specify `group` mapping to successfully separate the Sex-Year subsets (which were mapped to `color` and `alpha`).
+
+In the commented out code at the end, we see how to save out a vector pdf of the plot. You can specify dimensions and so on in the `ggsave()` arguments.
+
+```{r, fig.height = 12, fig.width = 12}
+p <-
+  LT %>% 
+  ggplot(mapping = aes(x = Age,
+                       y = nMx,
+                       color = Sex,
+                       alpha = Year,
+                       group = interaction(Sex, Year))) +
+  geom_line() +
+  scale_y_log10() +
+  facet_wrap(~Country)
+# args(ggsave)
+# ggsave(filename = "Africa_nMx_facet.pdf", p)
+```
 
 
 
