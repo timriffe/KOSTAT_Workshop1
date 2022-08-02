@@ -65,8 +65,8 @@ a_bigger_function <- function(x, y, z){
 
 ```{r}
 library(tidyverse)
-mx <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/LT_inputs.csv",
-               show_col_types = FALSE)
+# mx <- read_csv("Data/LT_inputs.csv")
+mx <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/LT_inputs.csv", show_col_types = FALSE)
 mx$Country %>% unique()
 mx$Age %>% unique()
 mx$Year %>% unique()

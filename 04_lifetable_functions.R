@@ -4,6 +4,10 @@
 # 1) simplify function names
 # 2) handle the open age group in some cases
 
+# NOTE: function arguments refer to lifetable columns
+#       that need to have been previously created. These
+#       are not 
+
 # NEW name
 get_nqx <- function(nMx, nAx, n){
   nqx <- (n * nMx) / ( 1 + (n - nAx) * nMx)
