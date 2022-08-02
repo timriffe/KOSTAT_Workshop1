@@ -47,7 +47,7 @@ get_ndx_2 <- function( nqx, lx){
 }
 
 # NEW name 
-get_Lx <- function(lx, nAx, ndx, n){
+get_nLx <- function(lx, nAx, ndx, n){
   nLx      <- n * lx - (n - nAx) * ndx
   
   # NEW care for closeout
