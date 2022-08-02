@@ -251,8 +251,8 @@ mx %>%
   group_by(Country, Year, Sex) %>% 
   group_modify(~my_lifetable(Data = .x,
                              radix = 1)) %>% 
-  ungroup()
-
+  ungroup() %>% 
+  write_csv("Data/LT_results.csv")
 ```
 
 
