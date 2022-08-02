@@ -26,6 +26,8 @@
 - `04` (Monday, 1 August 2022) "Writing functions: the lifetable"
    1. `04_data_prep` (`.Rmd`, `.pdf`)
    2. `04_handout` (`.Rmd`, `.pdf`)
+   3. `04_session.Rmd` (continued next day)
+   4. `04_lifetable_functions.R` (used in follow-up to session)
 - `05` (Tuesday, 2 August 2022) "Visualizing data using `ggplot2`"
    1. `05_handout` (`.Rmd`, `.pdf`)
 - `06` (Wednesday, 3 August 2022) "Processing and visualizing South Korean fertility microdata"
