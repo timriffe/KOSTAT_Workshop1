@@ -270,7 +270,7 @@ LT <-
 LT %>% 
   select(ISO3, Country, Year, Sex, Age, AgeInt, nMx, nAx) %>% 
   write_csv("Data/LT_inputs.csv")
-
+LT
 # Age <- c(0,1,seq(5,85,by=5))
 # length(Age)
 # AgeInt <- c(1,4,rep(5,16), NA)

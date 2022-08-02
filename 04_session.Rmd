@@ -180,7 +180,85 @@ get_ex <- function(Tx, lx){
 # Reboot on 2nd day!
 
 ```{r}
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/04_lifetable_functions.R")
+
+library(tidyverse)
+mx <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/LT_inputs.csv", show_col_types = FALSE)
+```
+
+
+Once we load our proto-library (`source("script.R")`) then we can freely use our functions without needing to re-copy them into this code. We do this because it's clean and simpler the hand-copying the new code into here. The difference between the functions we load and the ones above this point in the file are the names mostly. And in some cases the closeout details. Closeout details means "how we handle the highest age in the lifetable".
+
+We show how our lifetable transformation functions can be used in a single call to `mutate()`, which makes it easy to do calculations in bulk.
+```{r}
+mx %>% 
+  group_by(Country, Year, Sex) %>% 
+  mutate(nqx = get_nqx(nMx = nMx,
+                       nAx = nAx,
+                       n = AgeInt),
+         lx = get_lx(nqx = nqx,
+                     radix = 100000),
+         ndx = get_ndx(nqx = nqx,
+                       lx = lx),
+         nLx = get_nLx(lx = lx,
+                 ndx = ndx,
+                 nAx = nAx,
+                 n = AgeInt),
+         Tx = get_Tx(nLx = nLx),
+         ex = get_ex(Tx = Tx,
+                     lx = lx)) 
+```
+
+## Turn the `mutate()` part into a function
+
+We have copied the `mutate()` part of the pipeline above into a function,
+where we gave the incoming data a generic name `data`, and we assume the columns needed have the same names as what our lifetable minifunctions are anticipating, `nMx`, `aX`, and `AgeInt`, and we also made `radix` a top-level argument with a default value.
+```{r}
+my_lifetable <- function(Data, radix = 100000){
+  out <-
+   Data %>% 
+     mutate(
+     # convert death rates to probabilities
+         nqx = get_nqx(nMx = nMx,
+                       nAx = nAx,
+                       n = AgeInt),
+     # derive survival function
+         lx = get_lx(nqx = nqx,
+                     radix = radix),
+     # derive lifetable deaths distribution
+         ndx = get_ndx(nqx = nqx,
+                       lx = lx),
+     # lifetable exposure
+         nLx = get_nLx(lx = lx,
+                 ndx = ndx,
+                 nAx = nAx,
+                 n = AgeInt),
+     # total exposure above exact age x
+         Tx = get_Tx(nLx = nLx),
+     # conditional average remaining lifetime
+         ex = get_ex(Tx = Tx,
+                     lx = lx)) 
+  return(out)
+}
+```
+
+How do we use this function. Note, we have "data frame in, data frame out".
+
+Originally I assumed that `.data` was the name of the imaginary chunk of data being passed, but indeed it's `.x`, HT JinSeok Song for noticing.
+
+```{r}
+mx %>% 
+  group_by(Country, Year, Sex) %>% 
+  group_modify(~my_lifetable(Data = .x,radix = 1)) %>% 
+  ungroup()
 
 ```
+
+
+
+
+
+
+
 
 
