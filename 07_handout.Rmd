@@ -103,7 +103,7 @@ M %>%
 
 Japan has a higher CDR than Taiwan. On the surface it may seem as if Japan had *higher mortality* than Taiwan. However, if we look at the age-specific death rates, we have a different story.
 
-```{r message=F, warning=F}
+```{r, message = FALSE, warning = FALSE}
 # Age-specific death rates
 M %>% 
   filter(Sex == "total",
@@ -121,7 +121,7 @@ M %>%
 
 Here, we see that Japan has lower age-specific death rates than Taiwan at all ages, despite having a higher CDR. This occurs because 1) mortality has a strong age gradient: stronger than the international differences in this comparison, and 2) therefore the CDR is very sensitive to the population age structure, which is acts as weight for the CDR. 
 
-```{r message=F, warning=F}
+```{r, message = FALSE, warning = FALSE}
 breaks = seq(-0.01, 0.01, 0.0025)
 
 M %>% 
@@ -161,8 +161,7 @@ R = \sum_c^{\infty} r_c s_c
 
 where $s_c$ is the population structure by component $c$ (for example age, or age and sex). For the crude death rates, 
 
-$$CDR = \frac{\sum D_x}{\sum P_x} = \sum_x^{\infty} m_x s_x
-$$.
+$$ CDR = \frac{\sum D_x}{\sum P_x} = \sum_x^{\infty} m_x s_x $$.
 
 where $s_x = \frac{P_x}{\sum (P_x)}$, i.e. the population structure net of its size.
 
@@ -173,12 +172,7 @@ The direct standardization method consists in:
 * The standardized crude rates are found by summing $s^A_c r_c$
 
 
-```{r message=F, warning=F}
-
-# Standardizing CDR of Taiwan and Japan
-
-breaks = seq(-0.01, 0.01, 0.0025)
-
+```{r, message = FALSE, warning = FALSE}
 # calculate structure for each country
 Str <-
   M %>% 
@@ -194,33 +188,37 @@ ST <-
   summarize(Structure = mean(Structure), 
             .groups= "drop") %>% 
   mutate(Country = "Standard")
+```
 
-# stick together and plot to examine the standard against the original structure
+Now let's combine the country-specific and mean structures into a single data object and plot them again as a pyramid so that we see what the shared structure looks like:
+```{r}
+# object to help with plotting breaks and labels
+my_breaks <- seq(-0.01, 0.01, 0.0025)
 Str %>% 
   bind_rows(ST) %>% 
   mutate(Population = ifelse(Sex == "male", -Structure, Structure)) %>% 
   ggplot(aes(x = Age, y = Population, color = Country, group = interaction(Sex, Country))) +
   geom_step() + 
   coord_flip() +
-  scale_y_continuous(breaks = seq(-0.01, 0.01, 0.0025),
+  scale_y_continuous(breaks = my_breaks,
                    labels = paste0(as.character(
                        c(seq(.01, 0, -.0025), seq(0.0025, 0.01, 0.0025))*100), "%")) +
   labs(title = "Population structure in Japan and Taiwan",
        subtitle = "The standard") +
   theme_minimal()
+```
 
+
+```{r}
 # Step 2: Find the standardized CDR
 
-# removing Country so we can join on age and sex
-# Call structure Standard instead, because that's what
-# it is now!
-# Also, we're just standardizing on total, the sex-specific part was just for
-# the pyramid, so we can aggregate it out. Alternatively we could recalculate it
-# using total from DAT, but I found this more expedient.
+M %>% 
+  filter(Year == 2014)
+
 ST2 <- ST %>% 
-  select(-Country, Standard = Structure, Age) %>% 
+  select(-Country, Structure, Age) %>% 
   group_by(Age) %>% 
-  summarize(Standard = sum(Standard))
+  summarize(Standard = mean(Structure))
 
 # Filter down to our year, join the standard to it,
 # then calculate within countries
@@ -281,12 +279,11 @@ M %>%
 
 Decomposition methods are common tools in demography, used to understand differences in a demographic measure between two or more populations. These methods allow quantifying the exact contribution of specific components, such as ages and causes of death, to this difference between populations. 
 
-
 ## Kitagawa decomposition: Decomposing differences in crude rates
 
 Kitagawa decomposition [@kitagawa1955components] aims at quantifying how much of the difference between two crude rates is due to composition effects (e.g. difference in the age-structures) and how much is due to differences in the component-specific rates.
 
-The Kitagawa decomposition [@kitagawa1955components] was the first to decompose the difference between two rates by a composition effect and a rate effect, using multiple standardizations. It brings together both direct and indirect standardizations. 
+The Kitagawa decomposition [@kitagawa1955components] was the first to decompose the difference between two rates by a composition effect and a rate effect, using multiple standardization. It brings together both *direct* and *indirect* standardization. 
 
 For example, when applied to the CDR, the decomposition is written as:
 
