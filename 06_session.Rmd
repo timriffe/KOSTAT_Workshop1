@@ -18,6 +18,11 @@ install.packages("ggridges")
 install.packages("vroom")
 install.packages("countrycode")
 install.packages("remotes")
+# this doesn't work for everyone? If that's
+# you, then maybe update your R installation?
+# if you have 4.2, then I'm not sure why it 
+# would fail. Solution below assumes manual download 
+# of wpp2022 data needed.
 remotes::install_github("PPgp/wpp2022")
 ```
 
@@ -27,7 +32,8 @@ library(lubridate)
 library(ggridges)
 library(vroom)
 library(countrycode)
-library(wpp2022)
+# handout uses the R package commented out for data
+#library(wpp2022)
 library(janitor)
 ```
 
@@ -84,6 +90,7 @@ KB <-
 
 ## create a helper column for dates
 
+We create this date column mostly for the sake of plotting
 ```{r}
 ymd("2000 1 1")
 paste("2000" , 1, "01") %>% ymd()
@@ -96,11 +103,13 @@ KB
 
 ## What is the trend and seasonality of births
 
+The tabulation is straightforward in that `n()` counts rows in a subset. That's all we need to do for individual registry data. Note for plotting we take advantage of the ability to give different data pieces to two `geom_point()` calls to get the Dec-Jan points. By the way, no one offered me an explanation of why there are so many more January births than December births!
 ```{r}
 KBmonths <-
   KB %>% 
   group_by(date) %>% 
   summarize(births = n()) 
+
 KBmonths %>% 
   ggplot(mapping = aes(x = date, y = births)) +
   geom_line() +
@@ -115,8 +124,8 @@ KBmonths %>%
 ## Exercise 1 (8 minutes)
 
 Make a time series graph of average and median birth weight.
-`mean()`, `median()`
-`pivot_longer()`
+Instead of `n()`, use `mean()` and `median()` inside `summarize()`, then 
+`pivot_longer()` to stack them for mapping...
 *map `color` or `linetype` to the centrality measure.
 
 Tell me if birth weight is seasonal and shout out a hypothesis as to why or why not.
@@ -132,29 +141,46 @@ KB %>%
   ggplot(mapping = aes(x = date,
                        y = kg,
                        color = variant)) +
-    geom_line()
+  geom_line() +
+  labs(title = "Yes, birth weight is seasonal, but why?")
 ```
 
-General way to make a density
+Here's a general way to make a density
 ```{r, eval = FALSE}
 KB %>% 
   ggplot(aes(x = kg)) +
   geom_density()
 ```
 
+Or a discretized version, accounting for the fact that digit precision varies in this data:
+
+```{r}
+KB %>% 
+  mutate(kg = round(kg,1)) %>% 
+  group_by(kg) %>% 
+  summarize(births = n()) %>% 
+  ggplot(mapping = aes(x=kg,y=births)) +
+  geom_col()
+```
+
+
 Question: how much does this distribution vary by mother or father age? Target graphical form: `ridgeplot()`
 
+The mapping: `x` is as usual. `y` refers to the baseline levels, and it needs to be `character` or `factor` apparently. `height` is the curve of each ridgeline.
 ```{r}
 KB_kg_ridge_data <- 
   KB %>% 
+  # throw out unknowns and mystery 0s
   filter(mo_age != 999,
          kg > 0) %>% 
+  # aggregation bins
   mutate(mo_age = mo_age - mo_age %% 5,
          kg = round(kg, 1)) %>% 
   group_by(mo_age, kg) %>% 
   summarize(births = n(),
             .groups = "drop") %>% 
   group_by(mo_age) %>% 
+  # densities so we can compare shape
   mutate(dens = births / sum(births))
   
 KB_kg_ridge_data %>% 
@@ -164,10 +190,27 @@ KB_kg_ridge_data %>%
              height = dens)) +
   geom_ridgeline(scale = 15, alpha = .5)
 ```
+Tim's interpretation, I see fatter left tails for ages <20 and >35. More variance in higher ages. That's what I see. It's measurable of course, shall we check? Here's a solution for variance:
+
+```{r}
+KB %>% 
+  # throw out unknowns and mystery 0s
+  filter(mo_age != 999,
+         kg > 0) %>%
+  mutate(mo_age = mo_age - mo_age %% 5) %>% 
+  group_by(mo_age) %>% 
+  summarize(vkg = var(kg)) %>% 
+  ggplot(mapping = aes(x= mo_age, y = vkg))+
+  geom_line() +
+  labs(title = "So, there's a U-shape to variance f birth weight by mother age")
+```
+
+
 
 ## Question: 
 Is the above age pattern of the distribution of birth weight different or identical for boys and girls?
 
+This is just plugging in `sex` strategically to the earlier pipeline. We group on `sex` for tabulation, for instance, and then just include it for the `fill` arg.
 ```{r}
 KB_kg_ridge_data_sex <- 
   # remove unk ages of mothers
@@ -195,14 +238,19 @@ KB_kg_ridge_data_sex %>%
              y = factor(mo_age), # the baseline of the ridgeplot
              height = dens,
              fill = sex)) +
-  geom_ridgeline(scale = 15, alpha = .5)
+  geom_ridgeline(scale = 15, alpha = .5) +
+  labs(title = "boy births have greater birth weight on average, it seems.")
 ```
 
 ## Process exposure data
 
-```{r}
-library(readxl)
+Now it's time to process the exposure data. I ran into an unexpected roadblock here, since I has assumed the `wpp2022` package would work for everyone. You can see how to process that data in the handout. Instead we downloaded the main Excel files. Note we originally tried letting `read_excel()` guess the column types, but (i) it did a bad job, and (ii) every time it made a mistake it printed a warning, and (iii) since there were thousands of warnings, my `R` session crashed (how embarrassing). 
 
+I then restarted my session and *tried* telling `read_excel()` what the data types of each column were, but I made the mistake of using the same column class shorthand trick from the `readr` package. Instead of e.g. `ttnn` we ought to specify something of the form `c("text","text","numeric","numeric")`. HT Rustam for coming to this solution and carrying the session to the end!
+
+Here's the completed exposure processing code. The output is now part of the repository, so you don't need to run this unless you want to explore how it's working.
+```{r, eval = FALSE}
+library(readxl)
 col_types <- c(rep("text",10),rep("numeric",102))
 Ef <- suppressWarnings(read_excel("Data/WPP2022_POP_F01_3_POPULATION_SINGLE_AGE_FEMALE.xlsx", 
                 skip = 16, 
@@ -214,12 +262,39 @@ Ef <- suppressWarnings(read_excel("Data/WPP2022_POP_F01_3_POPULATION_SINGLE_AGE_
                values_to = "expos") %>% 
   select(year = Year,
          age, 
-         expos,
-         sex = "")
+         expos) %>% 
+  mutate(sex = "f")
+Em <- suppressWarnings(read_excel("Data/WPP2022_POP_F01_2_POPULATION_SINGLE_AGE_MALE.xlsx", 
+                skip = 16, 
+                n_max = 10000,
+                col_types = col_types)) %>% 
+  filter(`Location code` == 410) %>% 
+  pivot_longer(`0`:`100+`,
+               names_to = "age",
+               values_to = "expos") %>% 
+  select(year = Year,
+         age, 
+         expos) %>% 
+  mutate(sex = "m")
 
+E <-
+  bind_rows(Ef,Em)
 
-
+write_csv(E, "Data/Korea_exposures.csv")
 ```
 
 
+## Big Exercise
+
+We ended with an ambitious exercise to work through at the start of the next session. I believe it will consist in a somewhat novel question
+
+1. Look in the git repo for a file called `Korea_exposures.csv` in the `Data` folder. Read it in directly from the web using `read_csv()`.
+2. Tabulate the births data by single ages. Note that some ages have decimals, you can round them down using floor() before tabulating.
+3. Note that 999 is the missing code for ages.
+4. Redistribute missing ages in each year for men and women.
+5. Join the join the mothers’ file and fathers’ file (births) into a single file that can be joined with the exposures. To do this right before joining you’ll rename `mo_age` to `age` and `fa_age` to `age`, and you'll need to create a `sex` variable, with value `"f"` in the women file and `"m"` for the men file. This is for the sake of an easy join with the exposure data. You may with to complete the age range with 0s to pad any missing ages, using the `complete()` function as in the handout.
+6. Then calculate male and female fertility rates
+7. Calculate `TFR` and `MAB` for men and women in each year
+8. Calculate `TFRadj` (see Friday solution) for men and women in each year.
+9. Tell me how similar / parallel / convergent / divergent the male and female trends in `TFR` and `TFRadj` are.
 
