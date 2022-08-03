@@ -121,8 +121,49 @@ Make a time series graph of average and median birth weight.
 
 Tell me if birth weight is seasonal and shout out a hypothesis as to why or why not.
 
+```{r}
+KB %>% 
+  group_by(date) %>% 
+  summarize(kg_median = median(kg),
+            kg_mean = mean(kg)) %>% 
+  pivot_longer(c(kg_median, kg_mean),
+               names_to = "variant",
+               values_to = "kg") %>% 
+  ggplot(mapping = aes(x = date,
+                       y = kg,
+                       color = variant)) +
+    geom_line()
+```
 
+General way to make a density
+```{r, eval = FALSE}
+KB %>% 
+  ggplot(aes(x = kg)) +
+  geom_density()
+```
 
+Question: how much does this distribution vary by mother or father age? Target graphical form: `ridgeplot()`
+
+```{r}
+KB_kg_ridge_data <- 
+  KB %>% 
+  filter(mo_age != 999,
+         kg > 0) %>% 
+  mutate(mo_age = mo_age - mo_age %% 5,
+         kg = round(kg, 1)) %>% 
+  group_by(mo_age, kg) %>% 
+  summarize(births = n(),
+            .groups = "drop") %>% 
+  group_by(mo_age) %>% 
+  mutate(dens = births / sum(births))
+  
+KB_kg_ridge_data %>% 
+  filter(mo_age < 60) %>% 
+  ggplot(aes(x = kg, 
+             y = as.character(mo_age),
+             height = dens)) +
+  geom_ridgeline(scale = 15, alpha = .5)
+```
 
 
 
