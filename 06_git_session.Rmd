@@ -1,0 +1,67 @@
+---
+title: "Intro and configuration of git / github for R"
+author: "Tim Riffe"
+date: "2022-08-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Summary
+
+In this short session, we aim to get attendees configured to *push* and *pull* between a local RStudio project and a github repository. We will cover initial setup. I will assume that you have installed `git` and have created a github account.
+
+# Configuration
+
+```{r}
+
+#install.packages("usethis")
+#install.packages("credentials")
+
+```
+
+
+## generate personal access token in GitHub (`PAT`)
+
+```{r, eval = FALSE}
+library(usethis)
+library(credentials)
+
+create_github_token() 
+```
+
+
+## store the `PAT` locally.
+```{r, eval = FALSE}
+set_github_pat()
+```
+
+# Setup
+
+## Clone a project from GitHub 
+
+Click `File | New Project | Version Control | Git ` and then paste the repo url (`.git`) into the url box, and click `create project`.
+
+## Turn an RStudio project into a git repository
+
+This is pretty straightforward, you'll be asked questions in the console. Select NOT to commit all files. Do this deliberately one file at a time later.
+```{r, eval = FALSE}
+usethis::use_git()
+```
+
+
+## Create a GitHub repository from an RStudio git-controlled project
+
+# General usage advice
+
+## What to commit
+
+## When to commit
+
+## When to go public
+
+# Not covered
+
+There will not be time today to cover topics such as branching, merging, pull requests, or managing conflicts. This is really just a set-up guide, that's all.
