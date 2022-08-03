@@ -1,0 +1,73 @@
+---
+title: "Session 6 notes"
+author: "Tim Riffe"
+date: "2022-08-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## package installation
+
+```{r, eval = FALSE}
+install.packages("janitor")
+install.packages("lubridate")
+install.packages("ggridges")
+install.packages("vroom")
+install.packages("countrycode")
+install.packages("remotes")
+remotes::install_github("PPgp/wpp2022")
+```
+
+```{r, message = FALSE}
+library(tidyverse)
+library(lubridate)
+library(ggridges)
+library(vroom)
+library(countrycode)
+library(wpp2022)
+```
+
+## Get metadata
+Read in the metadata on column positions and transform it into a column metadata format recognized by `read_fwf()`.
+```{r}
+metadata <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/Korea_births_fwf_metadata.csv", show_col_types = FALSE)
+
+specs <- fwf_widths(widths = metadata$width,
+                    col_names = metadata$colname)
+
+```
+
+## unzip the file
+
+`exdir` is where we should put the unzipped contents
+```{r}
+unzip("Data/Korea_births_fwf.zip",
+      exdir = "Data")
+```
+
+## read in all the data
+
+```{r}
+kb_files <-
+  file.path("Data",
+            "Korea_births_fwf",
+            dir("Data/Korea_births_fwf"))
+
+KB <- vroom_fwf()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
