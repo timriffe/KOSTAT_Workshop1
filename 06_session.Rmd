@@ -28,6 +28,7 @@ library(ggridges)
 library(vroom)
 library(countrycode)
 library(wpp2022)
+library(janitor)
 ```
 
 ## Get metadata
@@ -37,7 +38,7 @@ metadata <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop
 
 specs <- fwf_widths(widths = metadata$width,
                     col_names = metadata$colname)
-
+specs
 ```
 
 ## unzip the file
@@ -56,12 +57,69 @@ kb_files <-
             "Korea_births_fwf",
             dir("Data/Korea_births_fwf"))
 
-KB <- vroom_fwf()
+KB <- vroom_fwf(kb_files,
+                col_positions = specs,
+                col_types = "iiiiiiidddd")
+
+# used this to count out the column types:
+KB %>% colnames()
+# to check the object size in memory 
+KB %>% object.size() %>% print(units = "Mb")
 ```
 
+## clean the names
+```{r}
+KB <- 
+  KB %>% 
+  clean_names() %>% 
+  select(-year) %>% 
+  select(year = year_of_birth,
+         month = month_of_birth,
+         fa_age = father_detailed_age,
+         mo_age = mother_detailed_age,
+         sex,
+         p_weeks = no_of_weeks_of_pregnancy,
+         kg = birth_weight)
+```
 
+## create a helper column for dates
 
+```{r}
+ymd("2000 1 1")
+paste("2000" , 1, "01") %>% ymd()
 
+KB <-
+  KB %>% 
+  mutate(date = paste(year, month, 1) %>% ymd())
+KB
+```
+
+## What is the trend and seasonality of births
+
+```{r}
+KBmonths <-
+  KB %>% 
+  group_by(date) %>% 
+  summarize(births = n()) 
+KBmonths %>% 
+  ggplot(mapping = aes(x = date, y = births)) +
+  geom_line() +
+  geom_point(data = KBmonths %>% filter(month(date) == 1),
+             mapping = aes(x = date, y = births),
+             color = "red") +
+  geom_point(data = KBmonths %>% filter(month(date) == 12),
+             mapping = aes(x = date, y = births),
+             color = "blue")
+```
+
+## Exercise 1 (8 minutes)
+
+Make a time series graph of average and median birth weight.
+`mean()`, `median()`
+`pivot_longer()`
+*map `color` or `linetype` to the centrality measure.
+
+Tell me if birth weight is seasonal and shout out a hypothesis as to why or why not.
 
 
 
