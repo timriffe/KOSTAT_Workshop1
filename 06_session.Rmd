@@ -170,15 +170,21 @@ Is the above age pattern of the distribution of birth weight different or identi
 
 ```{r}
 KB_kg_ridge_data_sex <- 
+  # remove unk ages of mothers
   KB %>% 
   filter(mo_age != 999,
+         # remove mystery 0 weight at birth
          kg > 0) %>% 
+  # create intervals to aggregate within,
+  # recode, etc
   mutate(mo_age = mo_age - mo_age %% 5,
          kg = round(kg, 1),
          sex = if_else(sex == 1, "boy","girl")) %>% 
+  # perform tabulation of cases
   group_by(mo_age, kg, sex) %>% 
   summarize(births = n(),
             .groups = "drop") %>% 
+  # calculate densities
   group_by(mo_age, sex) %>% 
   mutate(dens = births / sum(births)) %>% 
   ungroup()
@@ -186,12 +192,34 @@ KB_kg_ridge_data_sex <-
 KB_kg_ridge_data_sex %>% 
   filter(mo_age < 60) %>% 
   ggplot(aes(x = kg, 
-             y = factor(mo_age),
+             y = factor(mo_age), # the baseline of the ridgeplot
              height = dens,
              fill = sex)) +
   geom_ridgeline(scale = 15, alpha = .5)
 ```
 
+## Process exposure data
+
+```{r}
+library(readxl)
+
+col_types <- c(rep("text",10),rep("numeric",102))
+Ef <- suppressWarnings(read_excel("Data/WPP2022_POP_F01_3_POPULATION_SINGLE_AGE_FEMALE.xlsx", 
+                skip = 16, 
+                n_max = 10000,
+                col_types = col_types)) %>% 
+  filter(`Location code` == 410) %>% 
+  pivot_longer(`0`:`100+`,
+               names_to = "age",
+               values_to = "expos") %>% 
+  select(year = Year,
+         age, 
+         expos,
+         sex = "")
+
+
+
+```
 
 
 
