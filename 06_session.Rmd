@@ -160,12 +160,37 @@ KB_kg_ridge_data <-
 KB_kg_ridge_data %>% 
   filter(mo_age < 60) %>% 
   ggplot(aes(x = kg, 
-             y = as.character(mo_age),
+             y = factor(mo_age),
              height = dens)) +
   geom_ridgeline(scale = 15, alpha = .5)
 ```
 
+## Question: 
+Is the above age pattern of the distribution of birth weight different or identical for boys and girls?
 
+```{r}
+KB_kg_ridge_data_sex <- 
+  KB %>% 
+  filter(mo_age != 999,
+         kg > 0) %>% 
+  mutate(mo_age = mo_age - mo_age %% 5,
+         kg = round(kg, 1),
+         sex = if_else(sex == 1, "boy","girl")) %>% 
+  group_by(mo_age, kg, sex) %>% 
+  summarize(births = n(),
+            .groups = "drop") %>% 
+  group_by(mo_age, sex) %>% 
+  mutate(dens = births / sum(births)) %>% 
+  ungroup()
+  
+KB_kg_ridge_data_sex %>% 
+  filter(mo_age < 60) %>% 
+  ggplot(aes(x = kg, 
+             y = factor(mo_age),
+             height = dens,
+             fill = sex)) +
+  geom_ridgeline(scale = 15, alpha = .5)
+```
 
 
 
