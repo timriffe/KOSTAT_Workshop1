@@ -33,6 +33,10 @@
    2. `05_session.Rmd`
 - `06` (Wednesday, 3 August 2022) "Processing and visualizing South Korean fertility microdata"
    1. `06_handout` (`.Rmd`, `.pdf`) 
+   2. `06_session.Rmd`
+   3. `06_solutions.Rmd`
+   4. `06_git_session.Rmd` (option git / github miniworkshop)
+   5. `06_data_prep` (`.Rmd`, `.pdf`)
 - `07` (Thursday, 4 August 2022) "Demographic standardization and decomposition"
    1. `07_handout` (`.Rmd`, `.pdf`) *in progress*
 - `08` (Thursday, 6 August 2022) "Advanced pipelines: Data chosen by participants"
