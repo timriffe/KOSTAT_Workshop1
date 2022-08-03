@@ -47,6 +47,7 @@ Click `File | New Project | Version Control | Git ` and then paste the repo url 
 ## Turn an RStudio project into a git repository
 
 This is pretty straightforward, you'll be asked questions in the console. Select NOT to commit all files. Do this deliberately one file at a time later.
+ * Best not to commit large or binary files. Keep it to simple and relatively small csv files of data. This is really for the sake of CODE.
 ```{r, eval = FALSE}
 usethis::use_git()
 ```
@@ -54,13 +55,29 @@ usethis::use_git()
 
 ## Create a GitHub repository from an RStudio git-controlled project
 
+If you have a local git repo without a GitHub remote, you can create one easily:
+```{r, eval = FALSE}
+usethis::use_github()
+```
+
 # General usage advice
+
+1. Commit whenever you make a significant change
+2. leave yourself a USEFUL note
+3. Be deliberate about what you commit
+4. Sync frequently so you can keep a handle on what's going on.
 
 ## What to commit
 
+Small text-like things. Meaning Code, Markdown, or not-large csv files. NOT scanned articles or photos.
+
 ## When to commit
 
+Whenever you're in doubt, you should commit. Whenever you're at a meaningful position, or after a meaningful change. And leave yourself a useful note when you do. And don't forget to *push* to GitHub now and then.
+
 ## When to go public
+
+I think it's low-risk to go public with unfinished work.
 
 # Not covered
 
