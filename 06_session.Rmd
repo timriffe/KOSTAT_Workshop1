@@ -205,6 +205,37 @@ KB %>%
   labs(title = "So, there's a U-shape to variance f birth weight by mother age")
 ```
 
+### a direct look at the birthweight distribution over months
+
+```{r}
+KB %>% 
+  mutate(sex = if_else(sex == 1, "boys", "girls"),
+         kg = round(kg,1)) %>% 
+  group_by(month, sex, kg) %>% 
+  summarize(births = n(),
+            .groups = "drop") %>% 
+  ggplot(mapping = aes(x = kg, 
+                       y = factor(month, levels = 1:12), 
+                       height = births, 
+                       fill = sex)) +
+  geom_ridgeline(scale = .00005, alpha = .4) +
+  scale_fill_manual(values = c(boys = "#5899d1",
+                               girls = "#db6bab")) +
+  xlim(2,4.1) +
+  coord_flip()
+```
+```{r, fig.height = 10, fig.width = 12}
+
+KB %>%
+  filter(between(p_weeks,28,37)) %>% 
+  group_by(date) %>% 
+  summarize(p_mean = mean(p_weeks),
+            births = n(),
+            .groups = "drop") %>% 
+  ggplot(mapping = aes(x = date, 
+                       y = births)) +
+  geom_line()
+```
 
 
 ## Question: 
