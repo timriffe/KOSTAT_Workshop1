@@ -65,3 +65,31 @@ get_Tx <- function(nLx){
 get_ex <- function(Tx, lx){
   Tx / lx
 }
+
+# we'll want this for day 7!
+my_lifetable <- function(Data, radix = 100000){
+  out <-
+    Data %>% 
+    mutate(
+      # convert death rates to probabilities
+      nqx = get_nqx(nMx = nMx,
+                    nAx = nAx,
+                    n = AgeInt),
+      # derive survival function
+      lx = get_lx(nqx = nqx,
+                  radix = radix),
+      # derive lifetable deaths distribution
+      ndx = get_ndx(nqx = nqx,
+                    lx = lx),
+      # lifetable exposure
+      nLx = get_nLx(lx = lx,
+                    ndx = ndx,
+                    nAx = nAx,
+                    n = AgeInt),
+      # total exposure above exact age x
+      Tx = get_Tx(nLx = nLx),
+      # conditional average remaining lifetime
+      ex = get_ex(Tx = Tx,
+                  lx = lx)) 
+  return(out)
+}
