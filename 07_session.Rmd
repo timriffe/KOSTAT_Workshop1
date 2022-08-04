@@ -143,14 +143,17 @@ LT %>%
   select(Country, Age, lx, Lx = nLx, Tx) %>% 
   pivot_wider(names_from = Country,
               values_from = c(lx, Lx, Tx)) %>% 
-  mutate(contribution = lx_u * (Lx_j/lx_j - Lx_u/lx_u) +
-           lead(Tx_j)*(lx_u/lx_j - lead(lx_u) / lead(lx_j))) %>% 
+  mutate(direct = lx_u * (Lx_j/lx_j - Lx_u/lx_u),
+         indirect = lead(Tx_j)*(lx_u/lx_j - lead(lx_u) / lead(lx_j)),
+         indirect = if_else(is.na(indirect),0,indirect),
+         contribution = direct + indirect) %>% 
   ggplot(mapping = aes(
     x = Age,
     y = contribution
   )) +
   geom_step() +
-  geom_hline(yintercept = 0)
+  geom_hline(yintercept = 0) +
+  labs(title = "exact Arriaga decomposition of life expectancy")
 ```
 
 # the generalized solution
