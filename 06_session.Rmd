@@ -283,9 +283,17 @@ Here's the completed exposure processing code. The output is now part of the rep
 ```{r, eval = FALSE}
 library(readxl)
 col_types <- c(rep("text",10),rep("numeric",102))
-Ef <- suppressWarnings(read_excel("Data/WPP2022_POP_F01_3_POPULATION_SINGLE_AGE_FEMALE.xlsx", 
+
+library(countrycode)
+
+# how to know we need location code 410 for Korea:
+countrycode("South Korea",
+            origin = "country.name.en",
+            destination = "un")
+
+Ef <- 
+  suppressWarnings(read_excel("Data/WPP2022_POP_F01_3_POPULATION_SINGLE_AGE_FEMALE.xlsx", 
                 skip = 16, 
-                n_max = 10000,
                 col_types = col_types)) %>% 
   filter(`Location code` == 410) %>% 
   pivot_longer(`0`:`100+`,
@@ -295,9 +303,10 @@ Ef <- suppressWarnings(read_excel("Data/WPP2022_POP_F01_3_POPULATION_SINGLE_AGE_
          age, 
          expos) %>% 
   mutate(sex = "f")
-Em <- suppressWarnings(read_excel("Data/WPP2022_POP_F01_2_POPULATION_SINGLE_AGE_MALE.xlsx", 
+
+Em <- suppressWarnings(
+  read_excel("Data/WPP2022_POP_F01_2_POPULATION_SINGLE_AGE_MALE.xlsx", 
                 skip = 16, 
-                n_max = 10000,
                 col_types = col_types)) %>% 
   filter(`Location code` == 410) %>% 
   pivot_longer(`0`:`100+`,
