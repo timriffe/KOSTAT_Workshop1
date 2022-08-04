@@ -128,6 +128,69 @@ M %>%
          Kit_diff = RE + SE)
 ```
 
+## Arriaga Decompositoon, by popular vote
+(the majority of which abstained)
+
+```{r}
+LT %>% 
+  filter(Age == 0) %>% 
+  select(Country, ex)
+```
+
+```{r}
+LT %>% 
+  mutate(Country = if_else(Country == "USA", "u", "j")) %>% 
+  select(Country, Age, lx, Lx = nLx, Tx) %>% 
+  pivot_wider(names_from = Country,
+              values_from = c(lx, Lx, Tx)) %>% 
+  mutate(direct = lx_u * ((Lx_j / lx_j) - (Lx_u / lx_u)),
+         indirect = lead(Tx_j) / lx_u * 
+           ((lx_u / lx_j) - lead(lx_u)) / lead(lx_j), 
+         contribution = direct + indirect) %>% 
+  ggplot(mapping = aes(
+    x = Age,
+    y = contribution
+  )) +
+  geom_step() +
+  geom_hline(yintercept = 0)
+```
+
+# the generalized solution
+```{r}
+
+library(DemoDecomp)
+
+my_ex <- function(mx){
+  tibble(nMx = mx, 
+         nAx = c(.1, rep(.5, 110)),
+         AgeInt = rep(1, 111)) %>% 
+    my_lifetable() %>% 
+    slice(1) %>% 
+    pull(ex)
+}
+
+Dat <-
+  LT %>% 
+  ungroup() %>% 
+  select(Country, Age, nMx) %>% 
+  pivot_wider(names_from = Country,
+              values_from = nMx)
+contribution <- 
+ horiuchi(my_ex, 
+          pars1 = Dat$Japan, 
+          pars2 = Dat$USA, 
+          N = 5)
+  tibble(Age = 0:110, contribution) %>% 
+    ggplot(mapping = aes(x = Age,
+               y = -contribution)) +
+    geom_step()
+
+  -sum(contribution)
+
+```
+
+For a fuller comparison of Arriaga vs generalized decomp, see here:
+[https://github.com/timriffe/FDWG_decomp_code](https://github.com/timriffe/FDWG_decomp_code)
 
 
 
