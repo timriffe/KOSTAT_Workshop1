@@ -143,10 +143,8 @@ LT %>%
   select(Country, Age, lx, Lx = nLx, Tx) %>% 
   pivot_wider(names_from = Country,
               values_from = c(lx, Lx, Tx)) %>% 
-  mutate(direct = lx_u * ((Lx_j / lx_j) - (Lx_u / lx_u)),
-         indirect = lead(Tx_j) / lx_u * 
-           ((lx_u / lx_j) - lead(lx_u)) / lead(lx_j), 
-         contribution = direct + indirect) %>% 
+  mutate(contribution = lx_u * (Lx_j/lx_j - Lx_u/lx_u) +
+           lead(Tx_j)*(lx_u/lx_j - lead(lx_u) / lead(lx_j))) %>% 
   ggplot(mapping = aes(
     x = Age,
     y = contribution
