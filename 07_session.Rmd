@@ -85,11 +85,48 @@ LT <-
   group_modify(~my_lifetable(Data = .x, radix = 1)) %>% 
   ungroup()
 
+LT %>% 
+  filter(Age == 0) %>% 
+  select(Country, ex) %>% 
+  mutate(LTSDR = 1 / ex * 1000)
+# Japan	83.72342	11.94409		
+# USA	78.94269	12.66742	
+LT %>% 
+  group_by(Country) %>% 
+  summarize(LTSDR = sum(nMx * nLx) / sum(nLx) * 1000)
 
+# Japan	11.94183			
+# USA	12.66672	
 ```
 
+## Indirect
 
+An indirect decomposition does the opposite: We average the rates and weight them with the respective population structures. Then the difference in ISDR is entirely due to structure. BUT ISDR + DSDR is not equal to the different in CDR.
 
+## Decomposition
+
+### Kitagawa decomposition
+
+Rate component is the difference in rates times the average structure.
+Structure component is the difference in structure times the average rates.
+AND these two components sum to the observed difference in crude rates.
+```{r}
+M %>% 
+  filter(Year == 2014,
+         Sex == "total") %>% 
+  mutate(Country = if_else(Country == "Japan", "j", "u")) %>% 
+  group_by(Country) %>% 
+  mutate(st = Exposure / sum(Exposure)) %>% 
+  select(-Exposure) %>% 
+  pivot_wider(names_from = Country,
+              values_from = c(M, st)) %>% 
+  summarize(CDRj = sum(st_j * M_j)* 1000,
+            CDRu = sum(st_u * M_u)* 1000,
+            RE = sum((M_j - M_u) * (st_j + st_u) / 2)* 1000,
+            SE = sum((st_j - st_u) * (M_j + M_u) / 2)* 1000) %>% 
+  mutate(CDR_diff = CDRj - CDRu,
+         Kit_diff = RE + SE)
+```
 
 
 
