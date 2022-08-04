@@ -1,0 +1,99 @@
+---
+title: "day 7 notes"
+author: "Tim Riffe"
+date: "2022-08-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Standardization
+
+Standardization is one way to make comparable summary indices of age-specific rates.
+
+
+## Read in toy data
+```{r, fig.height = 8, fig.width = 10}
+library(tidyverse)
+url <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/Decomp_inputs.csv"
+
+M <- read_csv(url, show_col_types = FALSE) 
+
+M %>% 
+  filter(Year == 2014,
+         Sex != "total") %>% 
+  ggplot(mapping = aes(x = Age, y = M, 
+                       color = Country)) +
+  geom_line() +
+  scale_y_log10() +
+  facet_wrap(~Sex) +
+  labs(title = "USA has higher rates in every age")
+```
+
+```{r}
+M
+M %>% 
+  filter(Year == 2014,
+         Sex == "total") %>% 
+  group_by(Country) %>% 
+  summarize(CDR = sum(M * Exposure) / sum(Exposure) * 1000)
+```
+# Direct standardization
+
+Calculate an age structure that's half way between the two populations.
+```{r}
+Ready_to_standardize <-
+M %>% 
+  filter(Year == 2014,
+         Sex == "total") %>% 
+  group_by(Country) %>% 
+  mutate(Structure = Exposure / sum(Exposure)) %>% 
+  group_by(Age) %>% 
+  mutate(Standard = mean(Structure)) 
+Ready_to_standardize %>% 
+  group_by(Country) %>% 
+  summarize(CDR = sum(M * Structure) * 1000,
+            DSDR = sum(M * Standard) * 1000)
+  # summarize(CDR_E = sum(M * Exposure) / sum(Exposure) * 1000,
+  #           CDR_S = sum(M * Structure) * 1000)
+```
+
+```{r}
+Ready_to_standardize %>% 
+  ggplot(mapping = aes(x = Age, y = Structure, color = Country)) +
+  geom_step() +
+  geom_step(mapping = aes(x = Age, y = Standard),
+            color = "black", size = 2)
+```
+
+## an aside, but which is worth our time
+
+One could also use $1/e(0)$ as the age-standardized death rate.
+
+```{r}
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/04_lifetable_functions.R")
+LT <-
+  M %>% 
+  filter(Year == 2014,
+         Sex == "total") %>% 
+  mutate(AgeInt = 1,
+         nAx = if_else(Age == 0, .1, .5)) %>% 
+  rename(nMx = M) %>% 
+  group_by(Country) %>% 
+  group_modify(~my_lifetable(Data = .x, radix = 1)) %>% 
+  ungroup()
+
+
+```
+
+
+
+
+
+
+
+
+
+
