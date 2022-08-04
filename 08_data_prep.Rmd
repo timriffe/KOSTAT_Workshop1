@@ -1,0 +1,44 @@
+---
+title: "GBD pre-processing"
+author: "Tim Riffe"
+date: "2022-08-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Read-filter-save function
+
+```{r}
+library(tidyverse)
+IN <- read_csv("Data/IHME-GBD_2019_DATA-a6292c91-1.zip")
+base_path <-"Data/IHME-GBD_2019_DATA-a6292c91-"
+for (i in 1:60){
+  this_path <- paste0(base_path,i,".zip")
+  path_out <- paste0("Data/GBD/","gbd-",i,".csv.gz")
+  read_csv(this_path,
+           show_col_types = FALSE) %>% 
+    filter(metric == "Percent") %>% 
+    select(location, sex, age, year, prev = val) %>% 
+    write_csv(path_out)
+}
+```
+
+## bind together w vroom
+
+```{r}
+gbd_folder <- "Data/GBD"
+gbd <- vroom::vroom(file.path(gbd_folder,dir(gbd_folder)),
+                    show_col_types = FALSE)
+gbd_ages <- read_csv("Data/gbd_ages.csv",
+                     show_col_types = FALSE)
+gbd %>% 
+  filter(age != "All ages") %>% 
+  rename(age_label = age) %>% 
+  left_join(gbd_ages, by = "age_label") %>% 
+  select(-age_label) %>% 
+  write_csv("Data/GBD/gbd_share.csv.gz")
+```
+
