@@ -1,0 +1,119 @@
+---
+title: "Session 8 notes"
+author: "Tim Riffe"
+date: "2022-08-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Summary
+
+```{r, message = FALSE}
+library(tidyverse)
+library(vroom)
+library(janitor)
+library(countrycode)
+```
+
+
+# Read in WPP 2022 abridged lifetables
+
+```{r}
+
+
+wpp <- read_csv("Data/wpplt.zip",
+                show_col_types = FALSE)
+wpp <-
+  wpp %>% 
+  mutate(location = countrycode(LocID,
+                                origin = "un",
+                                destination = "country.name.en",
+                                warn = FALSE)) %>% 
+  filter(!is.na(location)) %>% 
+  select(iso3 = ISO3_code,
+         sex = Sex,
+         year = Time,
+         age = AgeGrpStart,
+         mx, Lx, ex) %>% 
+  mutate(Lx = Lx / 100000)
+
+head(wpp)
+```
+
+
+# Read in GBD
+
+```{r}
+gbd <- read_csv("Data/gbd_share.csv.gz",
+                show_col_types = FALSE)
+gbd <-
+  gbd %>% 
+  mutate(iso3 = countrycode(location,
+                            origin = "country.name.en",
+                            destination = "iso3c")) %>% 
+  arrange(location, measure, sex, year, age)
+```
+
+## What measures do we have?
+
+```{r}
+gbd %>% pull(measure) %>% unique() %>% sort()
+```
+
+## Check sums
+ 
+Is Anemia equal to the sum of mild and severe anemia? Let's do a check and see how this works so that we can do more intelligent calculations later
+
+```{r}
+gbd %>% 
+  filter(iso3 == "AFG",
+         year == 2019,
+         sex == "Female",
+         measure %in% c("Anemia", "Mild anemia", "Moderate anemia", "Severe anemia")) %>% 
+  pivot_wider(names_from = measure, values_from = prev) %>% 
+  mutate(check_sum = `Mild anemia` + `Moderate anemia` + `Severe anemia`) %>% 
+  select(age, Anemia, check_sum)
+```
+
+Yes, the basic illness indicators are the sum of the severity breakdowns.
+
+## examine some subsets
+```{r, fig.width = 10, fig.height = 7}
+gbd %>% 
+  filter(iso3 %in% c("AUS","KOR","PER"),
+         measure %in% c("Severe anemia", "Severe vision loss")) %>% 
+  ggplot(mapping = aes(x = age,
+                       y = prev,
+                       color = sex,
+                       alpha = year, 
+                       group = interaction(year, sex))) +
+  geom_line() +
+  # new! gridded facetting, note prev measures are in rows
+  # and locations in columns
+  facet_grid(vars(measure), 
+             vars(location)) +
+  labs(y = "Anemia prevalence") +
+  theme_minimal()
+```
+
+
+## Test merge
+
+
+
+```{r}
+wpp_test <- wpp %>% 
+  filter(iso3 == "KOR")
+
+gbd_test <- gbd %>% 
+  filter(iso3 == "KOR")
+
+# success
+left_join(gbd_test,
+          wpp_test,
+          by = c("iso3","sex","year","age"))
+```
+

@@ -66,12 +66,13 @@ library(tidyverse)
 
 base_path <-"Data/GBD-downloads/IHME-GBD_2019_DATA-a6292c91-"
 for (i in 1:60){
+  # i = 1
   this_path <- paste0(base_path,i,".zip")
   path_out <- paste0("Data/GBD/","gbd-",i,".csv.gz")
   read_csv(this_path,
            show_col_types = FALSE) %>% 
-    filter(metric == "Percent") %>% 
-    select(location, sex, age, year, prev = val) %>% 
+    filter(metric == "Percent") %>%
+    select(location, measure = rei, sex, age, year, prev = val) %>% 
     write_csv(path_out)
 }
 ```
@@ -80,17 +81,18 @@ for (i in 1:60){
 
 This reads all of the g-zipped data files, merges them together (in one step w `vroom`), and recodes `age` using a join method (I made a look-up table).
 ```{r, eval = FALSE}
+
 gbd_folder <- "Data/GBD"
-gbd <- vroom::vroom(file.path(gbd_folder,dir(gbd_folder)),
-                    show_col_types = FALSE)
 gbd_ages <- read_csv("Data/gbd_ages.csv",
                      show_col_types = FALSE)
-gbd %>% 
+
+vroom::vroom(file.path(gbd_folder,dir(gbd_folder)),
+                  show_col_types = FALSE) %>% 
   filter(age != "All ages") %>% 
   rename(age_label = age) %>% 
   left_join(gbd_ages, by = "age_label") %>% 
-  select(-age_label) %>% 
-  write_csv("Data/GBD/gbd_share.csv.gz")
+  select(location, measure, sex, year, age, prev) %>%
+  write_csv("Data/gbd_share.csv.gz")
 ```
 
 We can work directly with this merged file to select what we want to produce healthy life expectancy estimates using different variables. We'll use UN lifetables for this.
