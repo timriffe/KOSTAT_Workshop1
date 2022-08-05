@@ -58,7 +58,7 @@ Today we will use tidy processing skills to age-standardize different demographi
 
 # Data
 
-We will compare mortality in Taiwan and Japan. I downloaded their mortality rates from the HMD and combined them into a single tidy dataset. I save you having to replicate that code and have posted the data as a `csv` on the github site. You can read it directly into `R`, below.
+We will compare mortality in USA and Japan. I downloaded their mortality rates from the HMD and combined them into a single tidy dataset. I save you having to replicate that code and have posted the data as a `csv` on the github site. You can read it directly into `R`, below.
 
 We'll be doing some decomposition exercises today, and for some methods we'll want the `DemoDecomp` package, which implements some generalized decomposition methods in a standard way. 
 ```{r, eval = FALSE}
@@ -92,7 +92,7 @@ Standardization is a commonly used procedure when comparing rates or probabiliti
 
 ## Problems with crude measures
 
-Let's start by comparing the crude mortality rates in Japan and Taiwan in 2014.
+Let's start by comparing the crude mortality rates in Japan and USA in 2014.
 
 
 ```{r message=F, warning=F}
@@ -105,7 +105,7 @@ M %>%
 ```
 
 
-Japan has a higher CDR than Taiwan. On the surface it may seem as if Japan had *higher mortality* than Taiwan. However, if we look at the age-specific death rates, we have a different story.
+Japan has a higher CDR than USA. On the surface it may seem as if Japan had *higher mortality* than USA. However, if we look at the age-specific death rates, we have a different story.
 
 ```{r, message = FALSE, warning = FALSE}
 # Age-specific death rates
@@ -115,15 +115,15 @@ M %>%
   ggplot(aes(x = Age, y = M, color = Country)) + 
   geom_line() +
   scale_y_log10() +
-  labs(title = "Age-specific death rates in Japan and Taiwan, 2014",
-       subtitle = "These appear higher in Taiwan?") +
+  labs(title = "Age-specific death rates in Japan and USA, 2014",
+       subtitle = "These appear higher in USA?") +
   theme_minimal()
 
 
 ```
 
 
-Here, we see that Japan has lower age-specific death rates than Taiwan at all ages, despite having a higher CDR. This occurs because 1) mortality has a strong age gradient: stronger than the international differences in this comparison, and 2) therefore the CDR is very sensitive to the population age structure, which is acts as weight for the CDR. 
+Here, we see that Japan has lower age-specific death rates than USA at all ages, despite having a higher CDR. This occurs because 1) mortality has a strong age gradient: stronger than the international differences in this comparison, and 2) therefore the CDR is very sensitive to the population age structure, which is acts as weight for the CDR. 
 
 ```{r, message = FALSE, warning = FALSE}
 breaks = seq(-0.01, 0.01, 0.0025)
@@ -144,13 +144,13 @@ M %>%
   scale_y_continuous(breaks = seq(-0.01, 0.01, 0.0025),
                    labels = paste0(as.character(
                        c(seq(.01, 0, -.0025), seq(0.0025, 0.01, 0.0025))*100), "%")) +
-  labs(title = "Population structure in Japan and Taiwan",
+  labs(title = "Population structure in Japan and USA",
        subtitle = "Japan has a higher fraction of population in older ages") +
   theme_minimal()
 
 ```
 
-The age pyramids indicate that Japan has an older age structure than Taiwan. In 2014, 26% of Japanese population was aged 65 years old or higher, compared with 12% in Taiwan. As death rates are much higher at older ages than at younger age, older population will tend to have a higher CDR than younger population. 
+The age pyramids indicate that Japan has an older age structure than USA. In 2014, 26% of Japanese population was aged 65 years old or higher, compared with 12% in USA. As death rates are much higher at older ages than at younger age, older population will tend to have a higher CDR than younger population. 
 
 ## Direct standardization
 
@@ -207,7 +207,7 @@ Str %>%
   scale_y_continuous(breaks = my_breaks,
                    labels = paste0(as.character(
                        c(seq(.01, 0, -.0025), seq(0.0025, 0.01, 0.0025))*100), "%")) +
-  labs(title = "Population structure in Japan and Taiwan",
+  labs(title = "Population structure in Japan and USA",
        subtitle = "The standard") +
   theme_minimal()
 ```
@@ -236,7 +236,7 @@ M %>%
             ASDR = 1000 * sum(M * Standard))
 ```
 
-After standardization, Japan has a lower CDR than Taiwan, the CDR being now consistent with what observed at the age-specific level.
+After standardization, Japan has a lower CDR than USA, the CDR being now consistent with what observed at the age-specific level.
 
 ### World standards
 
@@ -329,12 +329,12 @@ Kitagawa decomposition [@kitagawa1955components] aims at quantifying how much of
 
 The Kitagawa decomposition [@kitagawa1955components] was the first to decompose the difference between two rates by a composition effect and a rate effect, using multiple standardization. It brings together both *direct* and *indirect* standardization. 
 
-For example, when applied to the CDR (using `J` and `T` for Japan and Taiwan), the decomposition is written as:
+For example, when applied to the CDR (using `J` and `T` for Japan and USA), the decomposition is written as:
 
 $$
 CDR^J - CDR^T = \underbrace{\sum_x^{\infty} (m_x^J - m_x^T)\big( \frac{s_x^J + s_x^T}{2} \big)}_{RE:~rate~effect} + \underbrace{\sum_x^{\infty} (s_x^J - s_x^T)\big( \frac{m_x^J + m_x^T}{2} \big)}_{CE:~composition~effect}
 $$
-The left hand side of the equation (named RE) captures how much of the difference in the CDR between Japan and Taiwan is due to difference in age-specific death rates ($m_x$). This is the same process as finding the difference between the two crude rate after direct standardization, using the average population structure as standard.
+The left hand side of the equation (named RE) captures how much of the difference in the CDR between Japan and USA is due to difference in age-specific death rates ($m_x$). This is the same process as finding the difference between the two crude rate after direct standardization, using the average population structure as standard.
 
 The right hand side of the equation (named CE) captures how much of the difference in the CDR is due to age-structure ($s_x$) differences. This is the same process as finding the difference between the two crude rate after indirect standardization, using the average age-specific rate as standard.
 
@@ -354,17 +354,17 @@ M_Dec <-
 M_Dec %>% 
   mutate(
     # calculate standards
-         M_st = (M_Taiwan + M_Japan) / 2,
-         Sx_st = (Sx_Taiwan + Sx_Japan) / 2,
+         M_st = (M_USA + M_Japan) / 2,
+         Sx_st = (Sx_USA + Sx_Japan) / 2,
     # weight differences
-         RE = (M_Japan - M_Taiwan) * Sx_st,
-         CE = (Sx_Japan - Sx_Taiwan) * M_st) %>% 
+         RE = (M_Japan - M_USA) * Sx_st,
+         CE = (Sx_Japan - Sx_USA) * M_st) %>% 
     # summarize decomp results, compare with original CDR
   summarize(RE = sum(RE) * 1000,
             CE = sum(CE) * 1000,
             CDR_Japan = sum(M_Japan * Sx_Japan) * 1000,
-            CDR_Taiwan = sum(M_Taiwan * Sx_Taiwan) * 1000) %>% 
-  mutate(CDR_diff = CDR_Japan - CDR_Taiwan)
+            CDR_USA = sum(M_USA * Sx_USA) * 1000) %>% 
+  mutate(CDR_diff = CDR_Japan - CDR_USA)
 
 ```
 
@@ -405,7 +405,7 @@ LT <-
 ```
 
 
-The difference in life expectancy between Japan and Taiwan is greater than 4 years. The Arriaga method can help figure out which ages (or age-groups) contribute to this difference.
+The difference in life expectancy between Japan and USA is greater than 4 years. The Arriaga method can help figure out which ages (or age-groups) contribute to this difference.
 
 ```{r message=F, warning=F}
 #step 2: find the difference in life expectancy
@@ -414,12 +414,12 @@ LT %>%
   select(Country, ex)
 ```
 
-Let's select just the columns we'll need, and move them side by side, like before. Except, rather than typing `Japan` and `Taiwan` so many times.... let's just type `j` and `t`?
+Let's select just the columns we'll need, and move them side by side, like before. Except, rather than typing `Japan` and `USA` so many times.... let's just type `j` and `u`?
 
 ```{r}
 LT_arriaga <-
   LT %>% 
-  mutate(Country = if_else(Country == "Japan","j","t")) %>% 
+  mutate(Country = if_else(Country == "Japan","j","u")) %>% 
   select(Country, Age, lx, nLx, Tx) %>% 
   pivot_wider(names_from = Country, values_from = c(lx, nLx, Tx))
 ```
@@ -432,7 +432,7 @@ The method goes in two steps:
 The direct effect quantifies how much the difference in the number of years lived between age $x$ and $x+n$ contributes to the difference in life expectancy. It is the "*change in life years within a particular age group as a consequence of the mortality change in that age group*" [@arriaga1984measuring].
 
 $$
-_nD_x = \frac{l_x^T }{l_0^T} \big( \frac{_nL_x^J}{l_x^J} -\frac{_nL_x^T}{l_x^T} \big)
+_nD_x = \frac{l_x^U }{l_0^U} \big( \frac{_nL_x^J}{l_x^J} -\frac{_nL_x^U}{l_x^U} \big)
 $$
 
 2) Finding the indirect effect
@@ -440,7 +440,7 @@ $$
 The indirect effect (and interaction effect) is the "*number of person-years added to a given life expectancy because the mortality change, within a specific age group, will produce a change in the number of survivors at the end of the age interval*."[@arriaga1984measuring]
 
 $$
-_nI_x= \frac{T_{x+n}^J}{l_0^T} \big( \frac{l_x^T}{l_x^J} - \frac{l_{x+n}^T}{l_{x+n}^J} \big)
+_nI_x= \frac{T_{x+n}^J}{l_0^U} \big( \frac{l_x^U}{l_x^J} - \frac{l_{x+n}^U}{l_{x+n}^J} \big)
 $$
 
 One way to do it with the tidy approach:
@@ -448,10 +448,10 @@ One way to do it with the tidy approach:
 ```{r message=F, warning=F}
 LT_arriaga <-
   LT_arriaga %>% 
-  mutate(direct = lx_t * (nLx_j / lx_j - nLx_t / lx_t),
+  mutate(direct = lx_u * (nLx_j / lx_j - nLx_u / lx_u),
          indirect = lead(Tx_j) * 
-           (lx_t / lx_j - 
-              lead(lx_t) / lead(lx_j)),
+           (lx_u / lx_j - 
+              lead(lx_u) / lead(lx_j)),
          # impute 0 in the final NA
          indirect = ifelse(is.na(indirect),0,indirect))
 ```
@@ -459,7 +459,7 @@ LT_arriaga <-
 The direct and indirect contributions sum to the total differences. The Arriaga formula is then written as:
 
 $$
-_n\Delta_x = \frac{l_x^T }{l_0^T} \Big( \frac{_nL_x^J}{l_x^J} -\frac{_nL_x^T}{l_x^T} \Big) + \frac{T_{x+n}^J}{l_0^T} \Big( \frac{l_x^T}{l_x^J} - \frac{l_{x+n}^T}{l_{x+n}^J} \Big)
+_n\Delta_x = \frac{l_x^U }{l_0^U} \Big( \frac{_nL_x^J}{l_x^J} -\frac{_nL_x^U}{l_x^U} \Big) + \frac{T_{x+n}^J}{l_0^U} \Big( \frac{l_x^U}{l_x^J} - \frac{l_{x+n}^U}{l_{x+n}^J} \Big)
 $$
 
 
@@ -475,7 +475,7 @@ LT_arriaga  %>%
 # age pattern
 arriaga %>% 
   ggplot(aes(x= Age, y= total)) +
-  geom_line() + 
+  geom_col(width=1,col=gray(.2),fill=gray(.2)) + 
   labs(title = "Age-specific contributions of mortality differences\nto differences in life expectancy at birth",
        subtitle = "Arriaga method")
   
