@@ -11,10 +11,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Standardization
 
-Standardization is one way to make comparable summary indices of age-specific rates.
+Standardization is *one way* to make comparable summary indices of age-specific rates. By this we mean comparable in the sense that population structure does not perturb the index. By population structure, we mean in the simple sense of age-sex structure, although these ideas generalize to higher dimensions of structure. We will demonstrate how different population structure can impede the direct comparison of crude rates. Some of our indices are already comparable in this way, like life expectancy and TFR. But many common measures need standardization in order to be comparable. 
+Standardization just means that we use the same population structure as weights for all groups being compared.
 
 
 ## Read in toy data
+
+Here a basic case. We see that the USA has higher mortality rates in each age. Everyone can see this. The USA has unambiguously higher mortality. But how much? Can we summarize this in a single index? That is, something on the rate scale.
+
 ```{r, fig.height = 8, fig.width = 10}
 library(tidyverse)
 url <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/Decomp_inputs.csv"
@@ -32,6 +36,9 @@ M %>%
   labs(title = "USA has higher rates in every age")
 ```
 
+## Crude rates 
+
+Have a look at the crude death rates for these two countries. They make it look like mortality is higher in Japan!
 ```{r}
 M
 M %>% 
@@ -40,9 +47,11 @@ M %>%
   group_by(Country) %>% 
   summarize(CDR = sum(M * Exposure) / sum(Exposure) * 1000)
 ```
+Since you've seen the age-specific rates, you know that this must be due to differing population structure. Note that differences between ages can be far greater than differences between populations. The CDR of Japan has more weight in higher ages, which have higher rates, whereas the USA has more weight in younger ages. That explains the CDR relationship, at least partly.
+
 # Direct standardization
 
-Calculate an age structure that's half way between the two populations.
+For a direct standardization, calculate an age structure that's half-way between the two populations, then use it to standardize both of them. `DSDR` stands for direct-standardized death rate.
 ```{r}
 Ready_to_standardize <-
 M %>% 
@@ -52,6 +61,7 @@ M %>%
   mutate(Structure = Exposure / sum(Exposure)) %>% 
   group_by(Age) %>% 
   mutate(Standard = mean(Structure)) 
+
 Ready_to_standardize %>% 
   group_by(Country) %>% 
   summarize(CDR = sum(M * Structure) * 1000,
@@ -60,6 +70,7 @@ Ready_to_standardize %>%
   #           CDR_S = sum(M * Structure) * 1000)
 ```
 
+Here's a look at the age-structure (weights) for each version of CDR.
 ```{r}
 Ready_to_standardize %>% 
   ggplot(mapping = aes(x = Age, y = Structure, color = Country)) +
@@ -68,9 +79,11 @@ Ready_to_standardize %>%
             color = "black", size = 2)
 ```
 
-## an aside, but which is worth our time
+This is a good choice usually for comparing two populations. If you have *more* populations to compare, then use a more general standard perhaps. The WHO publishes one, and this is demonstrated in the handout.
 
-One could also use $1/e(0)$ as the age-standardized death rate.
+## An aside, but which is worth our time
+
+One could also use $1/e(0)$ as the age-standardized death rate. To demonstrate this, let's generate some lifetables using our function from day 4 (already paying dividends!).
 
 ```{r}
 source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/04_lifetable_functions.R")
@@ -79,6 +92,8 @@ LT <-
   filter(Year == 2014,
          Sex == "total") %>% 
   mutate(AgeInt = 1,
+         # this part is pragmatic, we could also make a(x)
+         # a function of m(x)
          nAx = if_else(Age == 0, .1, .5)) %>% 
   rename(nMx = M) %>% 
   group_by(Country) %>% 
@@ -88,6 +103,7 @@ LT <-
 LT %>% 
   filter(Age == 0) %>% 
   select(Country, ex) %>% 
+  # lifetable standardized death rate
   mutate(LTSDR = 1 / ex * 1000)
 # Japan	83.72342	11.94409		
 # USA	78.94269	12.66742	
@@ -99,17 +115,31 @@ LT %>%
 # USA	12.66672	
 ```
 
+That code demonstrates that $\frac{1}{e(0)}$ is just the same as 
+
+$$
+\frac{1}{e(0)} = \int_0^\omega m(x)\cdot \frac{l(x)}{\int_0^\omega l(a)\mathrm{d}a} \mathrm{d}x
+$$
+Where the right-hand side is clearly the stationary age-standardized death rate. Aside within and aside: In a stationary population, this is equal also to the crude death rate! And the crude birth rate! And the age-standardized birth rate!
+
 ## Indirect
 
-An indirect decomposition does the opposite: We average the rates and weight them with the respective population structures. Then the difference in ISDR is entirely due to structure. BUT ISDR + DSDR is not equal to the different in CDR.
+An indirect decomposition does the opposite: We average the rates and weight them with the respective population structures. Then the difference in ISDR is entirely due to structure. BUT ISDR + DSDR is not equal to the different in CDR! I give code for this in the handout. But in general the structure of the code would work just like the above, except you average the rates instead of the structure...
 
 ## Decomposition
 
+Decomposition refers to a family of methods that can be used to partition differences in summary indices into contributions from each parameter they depend on.
+
 ### Kitagawa decomposition
 
-Rate component is the difference in rates times the average structure.
-Structure component is the difference in structure times the average rates.
-AND these two components sum to the observed difference in crude rates.
+Here's a helpful mnemonic:
+* The rate component is the difference in rates times the average structure.
+* The structure component is the difference in structure times the average rates.
+
+* These two components sum to the observed difference in crude rates.
+
+I claim this is far easier to remember than the formula itself. It's easier to remember this and then derive the formula from it. You can see the formula in the handout if the code isn't clear enough! 
+
 ```{r}
 M %>% 
   filter(Year == 2014,
@@ -122,45 +152,76 @@ M %>%
               values_from = c(M, st)) %>% 
   summarize(CDRj = sum(st_j * M_j)* 1000,
             CDRu = sum(st_u * M_u)* 1000,
+            #    diff in rates   * avg structure
             RE = sum((M_j - M_u) * (st_j + st_u) / 2)* 1000,
+            #    diff in structure * avg rates
             SE = sum((st_j - st_u) * (M_j + M_u) / 2)* 1000) %>% 
   mutate(CDR_diff = CDRj - CDRu,
+         # check 
          Kit_diff = RE + SE)
 ```
 
 ## Arriaga Decompositoon, by popular vote
 (the majority of which abstained)
 
+This is the difference we'd like to explain in terms of contributions from each age. By contribution *from each age* we mean the contribution to this difference due to rate differences between populations in each age.
 ```{r}
 LT %>% 
   filter(Age == 0) %>% 
-  select(Country, ex)
+  select(Country, ex) %>% 
+  pivot_wider(names_from = Country, values_from = ex) %>% 
+  mutate(diff = Japan - USA)
 ```
 
+In session I had a parentheses mix-up that ruined my calculation, here fixed.
 ```{r}
-LT %>% 
+LT_dec <-
+  LT %>% 
   mutate(Country = if_else(Country == "USA", "u", "j")) %>% 
   select(Country, Age, lx, Lx = nLx, Tx) %>% 
   pivot_wider(names_from = Country,
               values_from = c(lx, Lx, Tx)) %>% 
+  # direct means differences due to year-lived differences 
+  # in the same age where a mortality difference is observed.
+  # These are small
   mutate(direct = lx_u * (Lx_j/lx_j - Lx_u/lx_u),
+  # indirect means year-lived differences in ages *above*
+  # the same age where the mortality difference is observed
          indirect = lead(Tx_j)*(lx_u/lx_j - lead(lx_u) / lead(lx_j)),
+  # indirect needs 0-padding due to use of lead()
          indirect = if_else(is.na(indirect),0,indirect),
-         contribution = direct + indirect) %>% 
+  # we don't look at these things separately, just add them together
+         contribution = direct + indirect) 
+```
+
+Check to see decomposition is additive in the desired way. Looks like this decomposition is *exact*
+
+```{r}
+LT_dec %>% 
+  summarize(Arriaga_diff = sum(contribution))
+```
+
+And what does the age pattern of these contributions look like?
+
+```{r}
+LT_dec %>% 
   ggplot(mapping = aes(
     x = Age,
     y = contribution
   )) +
-  geom_step() +
-  geom_hline(yintercept = 0) +
+  geom_col(fill = gray(.2),color=gray(.2), width=1) +
   labs(title = "exact Arriaga decomposition of life expectancy")
 ```
+From this we see about 4 months of LE difference is due to infant mortality differences, but the vast majority is due to working-age and retirement age mortality differences. In short: advances in older- age mortality can contribute greatly to further increases in LE.
+
+Note: here all contributions were positive, because rates in the USA are higher in each age. But contributions can be either negative or positive when making this sort of decomposition.
 
 # the generalized solution
 ```{r}
 
 library(DemoDecomp)
-
+# make a function that works with a *vector* Here
+# we recycle our lifetable function *again*
 my_ex <- function(mx){
   tibble(nMx = mx, 
          nAx = c(.1, rep(.5, 110)),
@@ -170,27 +231,32 @@ my_ex <- function(mx){
     pull(ex)
 }
 
-Dat <-
+H_Dec <-
   LT %>% 
   ungroup() %>% 
   select(Country, Age, nMx) %>% 
   pivot_wider(names_from = Country,
-              values_from = nMx)
-contribution <- 
- horiuchi(my_ex, 
-          pars1 = Dat$Japan, 
-          pars2 = Dat$USA, 
-          N = 5)
-  tibble(Age = 0:110, contribution) %>% 
-    ggplot(mapping = aes(x = Age,
-               y = -contribution)) +
-    geom_step()
+              values_from = nMx) %>% 
+  mutate(contribution = horiuchi(my_ex, 
+          pars1 = USA, 
+          pars2 = Japan, 
+          N = 5))
 
-  -sum(contribution)
+H_Dec %>% 
+    ggplot(mapping = aes(x = Age,
+               y = contribution)) +
+   geom_col(fill = gray(.2),color=gray(.2), width=1) +
+  labs(title = "Horiuchi pseudo-continuous decomposition of life expectancy")
+
+# check sum:
+# This is arbitrarily precise by increasing N. We already
+# are very precise with a small N of 5...
+H_Dec %>% 
+  summarize(H_check = sum(contribution))
 
 ```
 
-For a fuller comparison of Arriaga vs generalized decomp, see here:
+For a fuller comparison of Arriaga vs other generalized decomposition methods, see here:
 [https://github.com/timriffe/FDWG_decomp_code](https://github.com/timriffe/FDWG_decomp_code)
 
 
