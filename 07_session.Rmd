@@ -187,7 +187,7 @@ LT_dec <-
   mutate(direct = lx_u * (Lx_j/lx_j - Lx_u/lx_u),
   # indirect means year-lived differences in ages *above*
   # the same age where the mortality difference is observed
-         indirect = lead(Tx_j)*(lx_u/lx_j - lead(lx_u) / lead(lx_j)),
+         indirect = lead(Tx_j) * (lx_u/lx_j - lead(lx_u) / lead(lx_j)),
   # indirect needs 0-padding due to use of lead()
          indirect = if_else(is.na(indirect),0,indirect),
   # we don't look at these things separately, just add them together
@@ -237,10 +237,11 @@ H_Dec <-
   select(Country, Age, nMx) %>% 
   pivot_wider(names_from = Country,
               values_from = nMx) %>% 
-  mutate(contribution = horiuchi(my_ex, 
-          pars1 = USA, 
-          pars2 = Japan, 
-          N = 5))
+  mutate(contribution = 
+           horiuchi(my_ex, 
+                    pars1 = USA, 
+                    pars2 = Japan, 
+                    N = 5))
 
 H_Dec %>% 
     ggplot(mapping = aes(x = Age,

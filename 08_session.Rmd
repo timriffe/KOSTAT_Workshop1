@@ -22,8 +22,6 @@ library(countrycode)
 # Read in WPP 2022 abridged lifetables
 
 ```{r}
-
-
 wpp <- read_csv("Data/wpplt.zip",
                 show_col_types = FALSE)
 wpp <-
@@ -40,7 +38,6 @@ wpp <-
          mx, Lx, ex) %>% 
   mutate(Lx = Lx / 100000)
 
-head(wpp)
 ```
 
 
@@ -49,18 +46,21 @@ head(wpp)
 ```{r}
 gbd <- read_csv("Data/gbd_share.csv.gz",
                 show_col_types = FALSE)
+
 gbd <-
   gbd %>% 
   mutate(iso3 = countrycode(location,
                             origin = "country.name.en",
                             destination = "iso3c")) %>% 
   arrange(location, measure, sex, year, age)
+
+object.size(gbd) %>% print(units = "Mb")
 ```
 
 ## What measures do we have?
 
 ```{r}
-gbd %>% pull(measure) %>% unique() %>% sort()
+gbd %>% pull(measure) %>% unique()
 ```
 
 ## Check sums
@@ -116,4 +116,55 @@ left_join(gbd_test,
           wpp_test,
           by = c("iso3","sex","year","age"))
 ```
+
+## a little bit of lifetable rigor
+
+Note, the lifetables close out at 100+, but the prevalence closes out at 95+, so we should do a little bit of adjustment to the lifetables to make these match.
+```{r}
+wpp <-
+  wpp %>% 
+  mutate(age = ifelse(age > 95, 95, age)) %>% 
+  group_by(iso3, sex, year, age) %>% 
+  summarize(mx = mx[1],
+            Lx = sum(Lx),
+            ex = ex[1],
+            .groups = "drop")
+```
+
+
+```{r}
+
+# wpp <-
+#   wpp %>% 
+#   rename(ex = `ex[1]`)
+wpp_test <-
+  wpp %>% 
+  filter(year == 2000,
+         sex == "Female",
+         iso3 == "KOR")
+
+gbd_test <-
+  gbd %>% 
+  filter(year == 2000,
+         sex == "Female",
+         iso3 == "KOR",
+         measure == "Infertility")
+
+left_join(gbd_test, 
+          wpp_test, 
+          by = c("iso3", "sex", "year", "age"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
