@@ -148,12 +148,76 @@ gbd_test <-
   filter(year == 2000,
          sex == "Female",
          iso3 == "KOR",
-         measure == "Infertility")
-
+         measure == "Severe anemia")
+join_test <- 
 left_join(gbd_test, 
           wpp_test, 
           by = c("iso3", "sex", "year", "age"))
 ```
+
+## demonstrate Sullivan
+
+```{r}
+join_test %>% 
+  ggplot(mapping = aes(x = age,
+                       y = Lx / c(1,4,rep(5,19)))) +
+  geom_step() +
+  ylim(0,1) +
+  geom_step(mapping = aes(x = age, 
+                          y = prev),
+            color = "red") +
+  geom_step(mapping = aes(x = age,
+                          y = Lx / c(1,4,rep(5,19)) * prev),
+            color = "orange")
+```
+
+```{r}
+join_test %>% 
+  summarize(Anemia_LE = sum(Lx * prev),
+            Anemia_free_LE = ex[age == 0] - Anemia_LE,
+            LE = ex[age == 0])
+```
+
+## Hearing loss
+
+```{r}
+countrycode("Somalia", origin = "country.name.en", destination = "iso3c")
+
+codes <- c("ESP","USA","DEU","KOR","BGD","SOM")
+measures <- c("Hearing loss","Complete hearing loss","Mild hearing loss","Moderate hearing loss","Severe hearing loss")
+
+# all(measures %in% gbd$measure)
+
+hearing <-
+gbd %>% 
+  filter(year == 2019,
+         iso3 %in% codes,
+         measure %in% measures) %>% 
+  left_join(wpp, by = c("iso3","year","sex","age")) %>% 
+  group_by(iso3, sex, measure) %>% 
+  summarize(hearing_loss_LE = sum(prev * Lx),
+            better_hearing_LE = sum((1 - prev) * Lx),
+            LE = sum(Lx),
+            .groups = "drop")
+```
+
+## visualize
+
+```{r}
+
+
+hearing %>% 
+  ggplot(mapping = aes(x = hearing_loss_LE, 
+                       y = fct_reorder(iso3, hearing_loss_LE),
+                       color = sex)) +
+  facet_wrap(~measure, scales = "free_x") +
+  geom_point()
+
+
+```
+
+
+
 
 
 
