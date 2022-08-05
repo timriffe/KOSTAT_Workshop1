@@ -54,7 +54,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Summary
 
-Today we will try our hand at a spontaneously designed analytic exercise, making use of datasets chosen by participants in the first days. Most tools used will have already been covered in the workshop, this is an agility exercise as much as anything, meant to drive home key concepts from the workshop. However, since this is a fresh exercise, I will reveal some of the process, and trial and error that went into it: where did I get stuck, and how did I get unstuck? How did I choose to do things one way rather than another, and why do things in a particular order? This is important to convey because when you bring these tools to your own work, we sometimes get stuck, either because things don't work on the first try, or because we're unsure of process design aspects. Therefore, we will spend some time in this lesson charting out the steps in advance of actually writing them.
+Today we will try our hand at a spontaneously designed analytic exercise, making use of datasets chosen by participants in prior days. Most tools used will have already been covered in the workshop, this is an agility exercise as much as anything, meant to drive home key concepts from the workshop. However, since this is a fresh exercise, I will reveal the bulk of the process, and indeed do most of the deriving as we go. With the clock ticking since we only have 1.5 hours. How did I choose to do things one way rather than another, and why do things in a particular order? This is important to convey because when you bring these tools to your own work, we sometimes get stuck, either because things don't work on the first try, or because we're unsure of process design aspects. Therefore, we will spend some time in this lesson charting out the steps in advance of actually writing them.
+
+Please refer to the session code, after posting!
+
+
+
+
+
 
 
 
