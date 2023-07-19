@@ -4,7 +4,7 @@ title: |
   |
   | KOSTAT-UNFPA Summer Seminar on Population
   | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
-  | \vspace{0.3cm} \huge \textbf{Day 2: The tidy data approach}\vspace{0.6cm}
+  | \vspace{0.3cm} \huge \textbf{Day 2: Mortality and Fertility}\vspace{0.6cm}
   | 
 fontsize: 11pt
 geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
@@ -23,7 +23,7 @@ output:
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
     - \fancyhead[RE]{Workshop~1.~Demography in R}
-    - \fancyhead[LO]{{Day 2: The tidy data approach}}
+    - \fancyhead[LO]{{Day 2: Mortality and Fertility}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
 ---
@@ -35,375 +35,464 @@ knitr::opts_chunk$set(echo = TRUE)
 \noindent\makebox[\textwidth][c]{
   \begin{minipage}[t]{0.8\textwidth}
     \centering
-    \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
-   
+    \Large{Instructor: \\ Tim Riffe \texttt{tim.riffe@ehu.eus}\\}
     \vspace{.5cm}
-    \Large{Assistants: \\ Jinyeon Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistant: \\ Dr. Da eun Kwan: \texttt{dekwan20@kdis.ac.kr}}
   \end{minipage}
 }
 
 
 \vspace{0.8cm}
 \begin{center}
-\large{28 July 2022}
+\large{25 July 2023}
 \end{center}
 \vspace{0.8cm}
 
 
 \tableofcontents
 
-# Tidy data
+# Mortality
 
-## Definition
-Tidy data follows a standard structure where each column is a variable, each row is an observation, and each cell is a value. Anything else is messy. It's literally that straightforward. A more complete definition can be found here: [https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html](https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html) Demographic data is often delivered in a tidy format. When it is not, then it can be reshaped into a tidy format.
+Mortality sets a fundamental constraint on population well-being by defining a longevity envelope within which all life happens. Mortality levels vary over age by orders of magnitude, and can also vary between populations. Demography delivers tools to understand mortality levels in terms of metrics in different units, and to adjust these metrics to be able to make valid comparisons between populations. The lifetable is the basic analytic tool to allow for valid and comparable summary metrics at the population level.
 
-Tidyverse packages work well together because they share a standard approach to formatting and working with datasets. Tidy datasets processed using tidyverse tools allow for fast and understandable analyses that in many cases require no *programming*, whereas it often takes a certain amount of head-scratching (programming) to analyze not-tidy datasets. 
+## Lifetable transformations as functions
 
-Tidy datasets can also be visualized without further ado using a systematic *grammar* [@wilkinson2012grammar] implemented in the `ggplot2` package ( @wickham2016ggplot2, this loads automatically with `tidyverse`). Today we will do just basic examples, but this will be made more explicit as the workshop progresses.
+I describe the lifetable together with function-writing because lifetable transformations give simple practice in functionalizing mathematical formulas. When function-writing, it is desirable to work with test data handy. For this, go ahead and load the`KOR2014` file from yesterday like so:
 
-## Example (gapminder)
-
-The so-called `gapminder` dataset is an example of *tidy* data that allows to demonstrate some of the basic `tidyverse` concepts. Let's install this package and have a look. Remember to comment out the installation line of code using `#` after you install it once!
-
-```{r, eval = FALSE, message = FALSE}
-install.packages("gapminder")
-```
-
-```{r, message = FALSE, warning = FALSE}
-library(gapminder)
+```{r, message = FALSE, warning=FALSE}
 library(tidyverse)
-?gapminder
-#View(gapminder)
-# list the data structure:
-str(gapminder)
-```
-In this data, unique combinations of country and year are what define an observation. From the above call to `str()` we see the structure of the data, which indicates the column types and the number of rows (1704). We therefore have 1704 observations. `continent` is a property of `country` here, and is not a structural variable.
-
-We have three *variables* spread over the columns, life expectancy at birth `lifeExp`, population size `pop`, and GDP per capita `gdpPercap`. 
-
-## Basic dataset descriptives
-
-There is a function called `summary()` that guesses how we would like the data summarized:
-
-```{r}
-summary(gapminder)
+KOR2014 <- read_csv("Data/KOR2014.csv",
+                    show_col_types = FALSE)
 ```
 
-The result tells us that there are 12 observations for each country, that there are 624 observations in Africa, 300 in the Americas, etc, and it usefully gives the range and quartiles of each variable. For example life expectancy observations in the data range from 23.6 to 82.6. Wow!
+We will take what we need from this file as we go.
 
-One can also query specific columns: We can check the year range like so:
+## Death probabilities between age $x$ and $x+n$ $_nq_x$
+
+The first and key step is to transform a set of age-specific death rates into a set of age-specific probabilities of dying (${}_nq_x$). The relationship between ${}_nM_x$ and ${}_nq_x$ has been established based on analyses of actual cohorts (for mathematical proof, see @preston2000demography, p. 42-43). 
+
+$$
+{}_nq_x = \frac{n\cdot{}_nM_x}{1+(n-{}_nA_x)\cdot{}_nM_x}
+$$
+where $_nA_x$ is the average number of person-years lived in the interval by those dying in the interval and $n$ is the width of the age-interval.
+
+For single ages or when we're pragmatic, we define ${}_nA_x = n/2$ with the exceptions of the first and the last age group. Other approximations are also available, but these only matter when age groups are wider than a year. In our case, we're working with abridged lifetables, some of which represent high mortality settings, and the ${}_nA_x$ assumptions are consequential. In our case, I provide this value so that we don't need to work so hard at deriving it in class. You could find several popular ${}_nA_x$ approximations in the `DemoTools` package @DemoTools.
+
+Cutting to the chase, we can rather directly convert the ${}_nq_x$ formula to an `R` function: 
 
 ```{r}
-unique(gapminder$year)
-# or
-gapminder %>% pull(year) %>% unique()
-```
-This data is in 5-year intervals, and year values appear to be approximately centered within standard intervals. i.e. 1950-1954 gets the value 1952. We have about 50 years of history here. We give two equivalent ways of asking this question of the data. The second is easier to deparse visually, even if we've not yet introduced the operator `%>%` or the function `pull()`. It reads "take the gapminder data, then pull off the year column, then give the unique values". The symbol `%>%` reads as "then". The expression `unique(gapminder$year)` on the other hand is somehow inverted, meaning that it reads from the inside out. We start with the year column of gapminder, then look outward to see that we extract its unique values. Both are valid approaches. The one using pipes is the version we will more often attempt to use in this workshop. 
-
-### Mini exercise 
-
-List which countries are in the data, and write how many there are:
-```{r}
-# 
-```
-
-
-## pipes
-
-The pipe operator `%>% ` (`Ctrl + Shift + m`), more explicitly works by evaluating an object on the left and sending the result to the function on the right.
-
-For example, the below pipe separates step 1 (the drawing of 10 random deviates of the uniform distribution) from step 2 (calculation of their mean).
-```{r}
-runif(10) %>% mean()
-runif(1000000) %>% mean()
+calc_nqx <- function(nMx, nAx, n){
+  qx         <- (n * nMx) / (1 - (n - nAx) * nMx)
+  
+  # these are kludges, necessary to ensure nqx results as a probability
+  qx[qx > 1] <- 1
+  qx[qx < 0] <- 0
+  qx
+}
 ```
 
-One can chain together a sequence of operations like so:
-
+Here's how we can use this function in tidyverse syntax and plot the result:
 ```{r}
-runif(10) %>% 
-  sort() %>% 
-  cumsum()
-```
-This code reads in order "take ten random uniform draws, then sort them (in ascending order), then calculate their cumulative sum". Let's call this sort of code statement a *pipeline*, since it defines a multistep sequence of execution steps. We will be construction data analysis sequences using this trick for the entirety of the workshop. If it is not immediately clear what is happening here, do not worry, it will make sense as we progress through the material, and I will redundantly narrate each code chunk multiple times.
-
-### Mini Exercise for pipes 
-
-Take 100 random draws of the Poisson distribution, with `lambda` parameter equal to 100 (`rpois()`), and then calculate the 95% prediction interval using `quantile(x, probs = c(.025,.975))`. Note that the argument `x` is simply going to be the incoming data from `rpois()`, and you don't need to specify the argument `x` at all.
-```{r}
-# 
-```
-
-I introduce this now, so that we may use it naturally in what comes.
-
-## filtering is for rows
-
-Filtering in the `tidyverse` implies the potential deletion of rows based on some logical criteria. Observe:
-
-```{r}
-A <- tibble(a = 0:10, 
-            b = letters[1:11])
-A
-A %>% 
-  filter(a > 5)
-
-# rows where 5 divides evenly into `a`
-A %>% filter(a %% 5 == 0)
-
-# just a particular case
-A %>% 
-  filter(b == "c")
-
-# a vector of cases:
-A %>% 
-  filter(b %in% c("b", "f", "g"))
-```
-
-As you can see, logical evaluation is the key to making intelligent use of `filter()`. You can query columns in the data directly within the filter call. The key is to produce a value of either `TRUE` or `FALSE` for each row of the data. Where the logical expression evaluates to `TRUE` we keep the rows, and `FALSE`s are discarded. Some useful logical operators include 
-1. `==` test equality
-2. `>=` (`<=`) test inclusive greater than (less than)
-3. `%in%` test membership
-4. `any()` is any element in a vector `TRUE`
-5. `all()` are all elements of a vector `TRUE`
-6. `!` negation of any of the above
-7. `between()` tests if a value is in an interval
-8. `&` logical AND
-9. `|` logical OR
-
-More examples:
-```{r}
-A %>% 
-  # between() is by default inclusive in its bounds
-  filter(between(a, 3, 5) | b == "g")
-
-A %>% 
-  # multiple conditions
-  filter(a < 7,
-         a >= 2,
-         b %in% c("a","c","e","g","i","k"))
-```
-
-Note `filter()` accepts comma-separated arguments, interpreting the commas as `&`.
-
-### Mini Exercises for filters
-
-1. How many rows of `gapminder` have a life expectancy between 50 and 60, inclusive
-
-2. Which countries have ever had a life expectancy greater than 78?
-
-## selecting is for columns
-
-Sometime we don't need all the columns in the data. We can select particular ones by name or position, like so:
-
-```{r}
-gapminder %>% 
-  select(country, year, gdpPercap)
-
-gapminder %>% 
-  select(1,2,6)
-```
-
-You could also select columns based on various kinds of column name string matching, like so
-
-```{r}
-gapminder %>% 
-  select(contains("p"))
-
-# or
-gapminder %>% 
-  select(ends_with("p"))
-```
-Some other useful options are `starts_with()`, and so on. The functions `contains()`, `starts_with()` and `ends_with()` are selecting columns using logical expressions, just as we've done for filtering rows. Try typing `?starts_with` into the console, and pick the help file from the `tidyselect` package to see a listing of other helper functions for column selection.
-
-When you use `select()`, resulting column structure will follow the order that columns are given in the call, observe:
-```{r}
-gapminder %>% 
-  select(gdpPercap, country, year)
-```
-
-You can also rename columns at the same time, like so:
-```{r}
-gapminder %>% 
-  select(gdp_percap = gdpPercap, country, year)
-```
-
-## create columns with `mutate()`
-
-To create a column, potentially using other columns you already have, use `mutate()` like so:
-
-```{r}
-gapminder %>% 
-  mutate(GDP = pop * gdpPercap)
-```
-
-You can create several columns at once, by separating with commas, and columns can be sequentially dependent. Observe:
-
-```{r}
-gapminder_hypothetical <-
-  gapminder %>% 
-  mutate(GDP = pop * gdpPercap,
-         GDP100 = gdpPercap * 100,
-         stationary_births = pop / lifeExp,
-         GDP_alternative = stationary_births * GDP100,
-         GDP_ratio = GDP_alternative / GDP) 
-```
-
-Note that `GDP`, `GDP100`, `stationary_births`, and `GDP_alternative` are created, and each used later as well within the same `mutate()` call. Whenever it makes sense in your calculations, it's nice to include such operations in a single `mutate()` call rather than in a series of `mutate()` calls. It's cleaner that way. These calculations are meant to showcase `mutate()` usability, not 
-
-Aside: What are those strange measures? Some are purely hypothetical and likely not useful extrapolations of the data points given, making strange invocations of a stationary world. `GDP` is a direct calculation, not controversial. `GDP100` is calculated on the assumption that if a newborn were to accumulate on average `gdpPercap` of income per year over a hypothetical lifespan of 100 years, how much would the lifetime `gdpPercap` be? `stationary_births` makes use of the stationary relationship $b = N / e(0)$, meaning that the stationary crude birth rate $b$ is the (stationary) population size `N` divided by life expectancy. For us `N` is `pop`, but of course neither the population size/structure nor period life expectancy are actually stationary. So this quantity is not usable per se. We then create `GDP_alternative`, which scales `GDP100` to a hypothetical cohort size and says "what would be the GDP in this fake longevous stationary population?". Finally, we take the ratio. It seems lengthening life to a consistent 100 years would (under these unrealistic constraints) increase GDP.
-
-What does the result look like? (plot code discussed later in workshop)
-```{r}
-gapminder_hypothetical %>% 
-  ggplot(aes(x = year, 
-             y = GDP_ratio, 
-             group = country)) +
+# Example of what nqx looks like over age
+KOR2014 |> 
+  filter(sex == "total") |> 
+  mutate(nMx = deaths / exposure,
+         nAx = if_else(age == 0, .1, .5),
+         n = 1,
+         nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n)) |> 
+  ggplot(aes(x = age, y = nqx)) + 
   geom_line() +
   scale_y_log10() +
-  geom_hline(yintercept = 1, 
-             color = "red")
+  labs(title = "nqx Korea, 2014",
+       subtitle = "Data: HMD") +
+  theme_minimal()
 ```
+Often we're sure to *close out* the lifetable by making the *final* ${}_nq_x$ value equal to 1. You could optionally modify the function to impute 1 like so `nqx[length(nqx)] <- 1`.
 
-Remember that since `mutate()` just creates columns, it does not change the number of rows in the data.
+<!-- Actually in this data, we see the classic formula for $q(x)$ conversion sort of breaks down in the oldest ages, arriving at $q(x)$ values greater than 1. I find this annoying, and this compels me to implement a different approach to getting $q(x)$ for wide intervals: -->
 
-### Mini exercise
+<!-- Observe the following pathological case: -->
+<!-- ```{r} -->
+<!-- # annoying kluge here: -->
+<!-- calc_nqx(.21, 2, 5) -->
+<!-- # however if we were in single ages this nMx value would give no problems: -->
+<!-- calc_nqx(.21, 2/5, 1) -->
+<!-- # and this can be brought to a 5-year nqx under a constant probability assumption: -->
+<!-- 1 - (1 - calc_nqx(.21, 2/5, 1))^5 -->
+<!-- # quite a reasonable value -->
+<!-- ``` -->
+<!-- That is, if we assume a constant rate in the interval ($n$), we have an implied single-age $q_x$ of: -->
 
-1. Take 2 minutes to write down as many problems as you can think of in the above analysis, no coding required. 
+<!-- $$ {}_1q_x = \frac{{}_nM_x}{1 + (1 - \frac{{}_nA_x}{n}) \cdot{}_nM_x} $$ -->
+<!-- The compliment of the $n^{th}$ power of its compliment (cumulative survival in the interval) can then be got as: -->
 
-## Create aggregate measures using `summarize()`
+<!-- $$ {}_nq_x = 1 - (1 - {}_1q_x)^n$$ -->
 
-You can create aggregate measures using `summarize()`, implying a likely reduction in the number of rows in the data. For example, we can calculate the total GDP for the most recent year in the data as follows:
+<!-- Here is the alternative conversion approach as an `R` function: -->
+<!-- ```{r} -->
+<!-- calc_nqx_v2 <- function(nMx, nAx, n){ -->
+<!--   qx1              <- (nMx) / (1 - (1 - nAx / n) * nMx) -->
+<!--   # the complement of the cumulative survival product... -->
+<!--   nqx              <-  1 - (1 - qx1) ^ n -->
+<!--   # these are kludges, necessary to ensure nqx results as a probability -->
+<!--   nqx[nqx > 1]     <- 1 -->
+<!--   nqx[nqx < 0]     <- 0 -->
+<!--   # closeout qx! -->
+<!--   nqx[length(nqx)] <- 1 -->
+<!--   nqx -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- I suggest we use this second version for purely pragmatic reasons with these data, unless someone comes along and tells me what's going on with the standard formula, or an error is detected somewhere else. A possibility which I've not explored is that the GHO's delivered `nMx` and `nqx` values are not aligned so as to give an accurate `nAx`. It's possible, but it shouldn't be that way.  -->
+
+Note, this $q(x)$ formula needs to be committed to memory. This is something we either derive or look up as needed. For our needs we are satisfied with our values of $q(x)$, $m(x)$ and $a(x)$, and the remainder of the lifetable is now determined.
+
+## Survival probabilities between age $x$ and $x+n$, $_np_x$
+
+The survival probabilities between age $x$ and $x+n$ (${}_np_x$) is simply one minus ${}_nq_x$. It is interpreted as the chance of surviving from age $x$ to age $x+n$.
+
+$$
+{}_np_x = 1 - {}_nq_x
+$$
+Really there's no need to program a function for this column, as we can just use ${}_nq_x$ as the function argument and take its complement as needed.
+
+## Survival probabilities to age $x$, $l_x$
+
+This indicator indicates the chance of surviving from birth to age x ($l_x$) OR the number of survivors at age $x$ relative to the radix $r$ of the life table. The $l_0$ is interpreted as the initial size (radix) of the population, generally set to 1 or 100,000. Here's one of several ways to calculate it given what we have so far:
+$$
+l_{x+n} = r \prod_{y=0}^x {}_np_y
+$$
+where $r = {}_nl_0$ is the radix. To program this, our arguments should be ${}_nq_x$ (`nqx`) or ${}_np_x$ (`npx`) and `radix`. In this case, we can assign a default value for the radix when defining the function using `radix = 1`. Whenever the argument isn't specified by the user, 1 will be assumed.
 
 ```{r}
-gapminder %>% 
-  filter(year == max(year)) %>% 
-  summarize(GDP = sum(pop * gdpPercap))
+# nqx is a full vector over age.
+calc_lx <- function(nqx, radix = 1){
+  npx <- 1 - nqx
+  n   <- length(nqx)
+  lx  <- cumprod(npx)
+  # shift it back 1, as we start with 100%!
+  # also ensure outgoing vector is the same length.
+  lx  <- radix * c(1, lx[-n])
+  lx
+}
 ```
 
-### Mini Exercise for `summarize()`
-
-1. Calculate the average life expectancy over all countries in the most recent year.
-2. Calculate the population weighted average of life expectancy in the most recent year.
-
-The formula for a weighted average is:
-
-$$ \bar{x} = \frac{\sum x_i \cdot w_i}{\sum w_i}$$
-
-where $x$ is the thing being weighted and $w$ are the weights. We use this formula in many many places in demography!
+And here is an application of the new function to data, as per before:
 ```{r}
-#
+KOR2014 |> 
+  filter(sex == "total") |> 
+  mutate(nMx = deaths / exposure,
+         nAx = if_else(age == 0, .1, .5),
+         n = 1,
+         nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n),
+         lx = calc_lx(nqx = nqx)) |> 
+  ggplot(aes(x = age, y = lx)) + 
+  geom_line() +
+  ylim(0,1) +
+  labs(title = "lx Korea, 2014",
+       subtitle = "Data: HMD") +
+  theme_minimal()
 ```
 
-## Use `group_by()` to scale up!
 
-The value of `mutate()` and `summarize()` increases greatly if we learn to make intelligent use of these constructs for subgroups in the data. What if we want to pick out the highest life expectancy per year in the data? To get the highest life expectancy in the data we do:
+## Death distribution, $_nd_x$
 
+The life table deaths (${}_nd_x$) is the number of (synthetic) persons dying between age $x$ and $x+n$, relative to the radix, and represents the distribution of deaths over age. There are two ways of calculating ${}_nd_x$. When programming, this is the most pragmatic way of calculating it:
+
+$$
+{}_nd_x = {}_nq_x * l_x
+$$
+One could ask, do we really need this function? This is something we can remember, right?
 ```{r}
-gapminder %>% 
-  filter(lifeExp == max(lifeExp))
-```
-To do this for each year, use `group_by()` to impose independent groups in the data on the basis of variables, then do everything else just the same:
-
-```{r}
-gapminder %>% 
-  # apply independent groups
-  group_by(year) %>% 
-  # whatever we do here is independent within groups!
-  filter(lifeExp == max(lifeExp)) %>% 
-  # remove when done
-  ungroup() %>% 
-  # sort
-  arrange(year)
+calc_ndx <- function(nqx, lx){
+   nqx * lx
+}
 ```
 
-Note, we should remove groups with `ungroup()` when we're done using them, and we sort the data on year for visual inspection using `arrange()`. This reads as "first take `gapminder`, then `group_by()` year, then `filter()` out the highest life expectancy per group (year), then remove the groups and sort years". Notice how the functions can be read as verbs, and the the pipes allow them to be combined into a rote kind of sentence. Indeed, it can help to add notes using `#`: don't worry: it won't break the chain! As the dataset goes down the pipeline, by default it becomes the first argument to the next function to be executed. Each of these functions has a first argument called either `data` or `.data`, which doesn't need to be specified because the incoming data is passed to it. 
+## Person-years lived between age $x$ and $x+n$, $_nL_x$
 
-* Note: you can run this code by simply placing the cursor anywhere in the pipeline and pressing `Ctrl + Enter`. There is no need to select the whole statement before running, although this also works (you could in this case also click the green play arrow).
+The number of person-years between age $x$ and $x+n$ (${}_nL_x$) is calculated as:
 
-### Exercises for `group_by()`
+$$
+{}_nL_x = n(l_{x} - {}_nd_x) + {}_na_x\cdot{}_nd_x \\
+$$
+$$
+= n \cdot l_x - (n - {}_na_x) _nd_x
+$$
+**Note**
 
-1. Aggregate all variables by continent and year. For `lifeExp` and `gdpPercap`, use the population weighted averages, as we did above. Is this a job for `mutate()` or `summarize()`?
+${}_nm_x = {}_nd_x/{}_nL_x$
 
-2. Calculate year-on-year life expectancy changes for each country. Tip, use `lead()` or `lag()`, like so:
+and 
 
-```{r}
-# a series incrementing in steps of 1.
-a <- c(1,3,4,5,7,10)
-lead(a) - a
-# *or*
-a - lag(a)
-```
-Note, the first or last year will get `NA`s. You should ensure that years are sorted within countries using `arrange(country, year)`. Is this a job for `mutate()` or `summarize()`? I personally would use the `lead()` version of this approach.
-
-## reshape using `pivot_wider()` and `pivot_longer()`
-
-The `gapminder` data is already `tidy`, and most often we use long / wide reshaping operations to force non-tidy data into a tidy form. A wide version of `gapminder` might, for example, have years spread over columns rather than stacked. Sometimes government statistical offices distribute data in this way. Here `names_from` is the column whose values will determine the new column names, whereas `values_from` is where data will be drawn from.
+${}_nq_x = {}_nd_x/l_x$
 
 ```{r}
-gapminder_wide <-
-  gapminder %>% 
-  select(country, year, continent, pop) %>% 
-  pivot_wider(names_from = year,
-              values_from = pop)
+calc_nLx <- function(lx, ndx, nAx, n){
+  N        <- length(lx)
+  nLx      <- n[-N] * lx[-1] + nAx[-N] * ndx[-N]
+  # special treatment for open age
+  nLx[N]	 <- lx[N] * nAx[N] 
+  nLx
+}
+
+# and application with no plot:
+KOR2014 |> 
+  filter(sex == "total") |> 
+  mutate(nMx = deaths / exposure,
+         nAx = if_else(age == 0, .1, .5),
+         n = 1,
+         nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n),
+         lx = calc_lx(nqx = nqx),
+         ndx = lx * nqx,
+         nLx = calc_nLx(lx = lx, ndx = ndx, nAx = nAx, n = n))
 ```
-At times, we actually want our data to look like this for some ad hoc calculation convenience. Note, you can list more than one `values_from` column. We could spread each variable-year combinations by specifying them in a vector. In this case, newly created column names will be concatenated.
+
+## Person-years lived above age x $T_x$
+
+Calculating the number person-years lived above age x ($T_x$) is a key step to calculate life expectancy. It consists in finding the sum of $_nL_x$ from age x:
+
+$$
+T_x = \sum_{y=x}^{\infty} {}_nL_y
+$$
 
 ```{r}
-gapminder %>% 
-  pivot_wider(names_from = year,
-              values_from = c(lifeExp, gdpPercap, pop))
+calc_Tx <- function(nLx){
+  # to understand this, look at the nLx curve,
+  # then imagine integrating from the right 
+  # to the left. Then compare with the formula!
+  nLx |> 
+    rev() |> 
+    cumsum() |> 
+    rev()
+}
 ```
 
-To go in the other direction we use `pivot_longer()`. This is the more commonly used of the two in practice. Here we specify a column range, then give the names as strings for the columns that will collect the header names and the values. In this case, we give the columns by name, but since they're numbers, we put the names in back tics to ensure they will be interpreted as names rather than as positions!
+## Life expectancy $e_x$
+
+The last indicator in the life table is probably one of the most used in demographic analysis. The life expectancy is the average number of years lived by a (synthetic) cohort reaching age x. It consists in dividing the number of person-years lived above age x by the number of people alive at age x:  
+
+$$
+e_x = \frac{T_x}{l_x}
+$$
+Since `mutate()` let's you make columns in a sequentially dependent way, we can actually do this whole lifetable inside a single `mutate()` statement. However, each combination of `Year` and `Sex` is an independent lifetable, so we need to declare groups beforehand using `group_by()`:
 
 ```{r}
-gapminder_wide %>% 
-  pivot_longer(`1952`:`2007`,
-               names_to = "year",
-               values_to = "pop")
+calc_ex <- function(Tx, lx){
+  Tx / lx
+}
+
+KOR2014 |> 
+  filter(sex == "total") |> 
+  mutate(nMx = deaths / exposure,
+         nAx = if_else(age == 0, .1, .5),
+         n = 1,
+         nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n),
+         lx = calc_lx(nqx = nqx),
+         ndx = lx * nqx,
+         nLx = calc_nLx(lx = lx, ndx = ndx, nAx = nAx, n = n),
+         Tx = calc_Tx(nLx = nLx),
+         ex = calc_ex(Tx = Tx, lx = lx)) |> 
+  filter(age == 0) |> 
+  pull(ex)
 ```
-Specifying a column range like this is fine if you happen to know the column names and if they happen to be in a continuous range, as we have here. You could also use position like so (if you know them)
+
+## Calculating a lifetable for grouped data
+
+If your data has many subgroups, we can calculate a lifetable for each of them by declaring groups on the data object with `group_by()`:
+```{r}
+KOR2014 |> 
+  group_by(sex) |> 
+  mutate(nMx = deaths / exposure,
+         nAx = if_else(age == 0, .1, .5),
+         n = 1,
+         nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n),
+         lx = calc_lx(nqx = nqx),
+         ndx = lx * nqx,
+         nLx = calc_nLx(lx = lx, ndx = ndx, nAx = nAx, n = n),
+         Tx = calc_Tx(nLx = nLx),
+         ex = calc_ex(Tx = Tx, lx = lx)) |> 
+  filter(age == 0) |> 
+  select(sex, ex)
+```
+
+# A Lifetable function
+
+You probably noticed that a whole lifetable operation can fit in a single `mutate()` call! Note, you could calculate all lifetables for each subset by simply including a `group_by()`. Well, that may be so, but there's still value in creating a wrapper function that does the whole thing:
 
 ```{r}
-gapminder_wide %>% 
-  pivot_longer(3:14,
-              names_to = "year",
-              values_to = "pop")
+calc_LT <- function(nMx, nAx, n, radix){
+  N <- length(nMx)
+  nqx  <- calc_nqx(nMx, nAx, n)
+  lx   <- calc_lx(nqx = nqx, radix = 1)
+  ndx  <- calc_ndx(nqx = nqx, lx = lx)
+  nLx  <- calc_nLx(lx = lx, ndx = ndx, nAx = nAx, n = n)
+  Tx   <- calc_Tx(nLx = nLx)
+  ex   <- calc_ex(Tx = Tx, lx = lx)
+  Age  <- cumsum(c(0,n))[1:N]
+  
+  
+  tibble(Age = Age,
+         nMx = nMx,
+         nAx = nAx,
+         nqx = nqx,
+         lx = lx,
+         ndx = ndx,
+         nLx = nLx,
+         Tx = Tx,
+         ex = ex)
+}
 ```
 
-Or we could exploit the numeric nature of the column names and use one of the `tidyselect` functions we saw before.
+## reformulate function to use in a tidy pipeline
+
+To use easily in a tidy pipeline, we'll just want to be sure that the input consists in a whole group (or chunk) of data:
 ```{r}
-gapminder_wide %>% 
-  pivot_longer(num_range(prefix = "", range = 1952:2007),
-               names_to = "year",
-               values_to = "pop")
+# data.frame in, data.frame out!
+calc_LT_tidy <- function(data, radix){
+  # this is hacky, but works.
+  # just pick out the needed vectors from the group of data
+  calc_LT(nMx = data$nMx,
+          nAx = data$nAx,
+          n = data$n,
+          radix = radix)
+}
 ```
 
-Note that `pivot_longer()` also accepts multiple `names_to` destinations, if you happen to have concatenated names, as in the complex `pivot_wider()` example. Here we make and then undo the ugly case above with concatenated variable and year column names. This needs to be done in two steps: first we store the full column range (`3:ncol(.)`, where `ncol(.)` gives the number of columns of the incoming data), splitting names into two new columns for variables and years, and putting all variables together. At this stage the data is *too* long to be easily usable, and we still need to spread variables over the columns, so the final `pivot_wider()` statement does this for us.
+Now, this is something you can easily apply in bulk using `group_modify()`. You could design this in many different ways actually. 
 
 ```{r}
-gapminder %>% 
-  pivot_wider(names_from = year,
-              values_from = c(lifeExp, pop, gdpPercap)) %>% 
-  # two steps: 1) collect it all
-  pivot_longer(3:ncol(.),
-               values_to = "value",
-               names_to = c("variable","year"),
-               names_sep = "_") %>% 
-  # 2) spread variables back out
-  pivot_wider(names_from = variable,
-              values_from = value)
+KOR2014 |> 
+  mutate(nMx = deaths / exposure,
+         nAx = if_else(age == 0, .1, .5),
+         n = 1) |> 
+  group_by(sex) |> 
+  group_modify(~calc_LT_tidy(data = .x, radix = 1e5)) |> 
+  ungroup()
 ```
 
-### Mini exercises
+# Fertility
 
-1. Take the `gapminder` data, remove the `continent` column, then spread `country` over columns using `pivot_wider()`, keeping all three variables.
+In English, fertility refers to observed births, whereas fecundity refers to the capacity to give birth. The basic elements of fertility data include
 
-2. Undo the result of part 1 of this exercise to return to the original `gapminder` data.
+* Events: births
+* Exposure: every women alive in their reproductive age ( $\approx$ 15 to 50 years old)
+
+Births information most often comes from vital registration systems. This is the case for Korea. Countries without vital registration systems, or with incomplete vital registration rely on survey data to estimate fertility indicators.
+
+## Crude birth rate
+
+The crude birth rate (CBR) is a rough measure of the occurrence/exposure of fertility.
+
+$$
+CBR[0,T] = \frac{Number~of~births~in~the~population~between~times~T~and~T+t}{Number~of~person-years~lived~in~the~population~between~times~T~and~T+t}
+$$
+
+Does this look familiar? It's just like the crude death rate:
+```{r}
+# Person-years
+KOR2014 |> 
+  filter(sex == "total") |> 
+  summarize(exposure = sum(exposure),
+            births = sum(births, na.rm = TRUE)) |> 
+  mutate(CBR = births / exposure)
+```
+
+## General fertility rate
+
+The general fertility rate (GFR) is generally considered a better measure of fertility, as only women in their reproductive ages can give birth, and are thus at risk of experiencing the event.
+
+$$
+GFR[0,T] = \frac{Number~of~births~in~the~population~between~times~T~and~T+t}{Number~of~person-years~lived~by~women~aged~15~to~50~between~times~T~and~T+t}
+$$
+
+This solution looks tricky because births are associated with total sex in our data, but here we need to relate them to women. For this, we use `pivot_wider()` to get all combinations of sex and measure side-by-side, then we shift births to females in `mutate()`, then we pivot the data back to its original form, filter to the desired subset, and calculate the GFR:
+```{r}
+# Female population
+KOR2014_2 <-
+  KOR2014 |> 
+  select(-deaths) |> 
+  pivot_wider(names_from = sex, values_from = c(exposure,births)) |> 
+  mutate(births_female = births_total) |> 
+  pivot_longer(-c(year,age), names_to = c("measure","sex"), values_to= "value",names_sep="_") |> 
+  pivot_wider(names_from = "measure",values_from="value") |> 
+  filter(sex == "female")
+
+KOR2014_2 |> 
+  filter(between(age, 15,50)) |> 
+  summarize(exposure = sum(exposure),
+            births = sum(births)) |> 
+  mutate(GFR = births / exposure)
+
+```
+
+The GFR does not give unbiased information, however, as the age structure between ages 15 and 50 can vary wildly between populations, as can the shape and location of fertility rates within this range. Ideally, we would like a measure purged of the effects of observed population structure.
+
+## Age-specific fertility rates
+
+As with age-specific death rates, age-specific fertility rates ($F$) are less sensitive to the age structure of the population. This measure provides the risk of given birth from women age $x$ to $x+n$:
 
 
-# Looking ahead
+$$
+_nF_x[0,T]= \frac{Number~of~births~between~times~T~and~T+t~to~women~aged~x~to~x+n}{Number~of~person-years~lived~by~women~aged~x~to~x+n~between~times~T~and~T+t}
+$$
+```{r, warning = FALSE}
+KOR2014_2 |> 
+  mutate(asfr = births / exposure) |> 
+  ggplot(aes(x = age, y = asfr)) + 
+  geom_line() +
+  labs(title = "Age-specific fertility rates (Korea 2014)",
+       caption = "Data: derived from HMD exposures, HFD births") +
+  xlim(12,55) +
+  theme_minimal()
 
-Tomorrow we will do a longer worked example using these basic `tidyverse` operations and introducing some other recoding and dataset joining operations, on the example of fertility data.
+```
 
+There can still be unobserved heterogeneity hiding in this population: age is not the only structural determinant of fertility. For instance, fertility may be considered separately by parity, or for other subpopulations.
+
+## Total fertility rate
+
+The total fertility rate (TFR) is the average number of children a woman would have if she experienced the a particular set of age-specific fertility rates and survived until the end of her reproductive age. "*The TFR is the single most important indicator of fertility*" [@preston2001demography]. It is also the area under the ASFR curve.
+
+$$
+TFR[T,T+t]= n \sum_{x=a}^{B-n} {}_nF_x [T,T+t]
+$$ 
+where $a$ and $B$ are the minimum and maximum age at childbearing.
+
+```{r}
+
+# TFR
+KOR2014_2 |> 
+  mutate(asfr = births / exposure,
+         n = 1) |> # make this 5 if you have 5-year age groups!!
+  summarize(tfr = sum(asfr * n))
+
+
+```
+
+This the most commonly calculated and cited fertility metric, but it is not without criticism. For instance, (i) we should not discount the leverage mortality can have on population reproductivity, (ii) if fertility patterns are changing over time a period TFR may not give the best signal of fertility levels, and (iii) TFR is unfortunately sometimes presented as a target.
+
+## Mean age at childbearing
+The mean age at childbearing is not a rate, but is based on the age-specific fertility rates. The mean age at childbearing (MA) is the average age of mothers at childbearing, standardized for the age-structure of the female population at reproductive age [@HFD].
+
+$$
+MA[T,T+t] = \frac{\sum_{x=a}^{B-n} \bar{x} * {}_nF_x [T,T+t]}{ \sum_{x=a}^{B-n} {}_nF_x [T,T+t]}
+$$
+where $\bar{x}$ is the mid-age of interval $x:x+n$, i.e. $\bar{x} = x + n/ 2$.
+
+```{r}
+
+# MA
+KOR2014_2 |> 
+  mutate(asfr = births / exposure,
+         n = 1,
+         xbar = age + n / 2) |> 
+  summarize(MA = sum(xbar * asfr) / sum(asfr))
+
+```
+
+# Exercises
+In practical exercises, we will calculate trends for different populations based on different data.
+
+# References {-}
 

@@ -4,7 +4,7 @@ title: |
   |
   | KOSTAT-UNFPA Summer Seminar on Population
   | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
-  | \vspace{0.3cm} \huge \textbf{Day 3: Worked example of tidy processing}\vspace{0.6cm}
+  | \vspace{0.3cm} \huge \textbf{Day 3: Population Structure}\vspace{0.6cm}
   | 
 fontsize: 11pt
 geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
@@ -23,7 +23,7 @@ output:
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
     - \fancyhead[RE]{Workshop~1.~Demography in R}
-    - \fancyhead[LO]{{Day 3: Worked example of tidy processing}}
+    - \fancyhead[LO]{{Day 3: Population Structure}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
 ---
@@ -35,772 +35,303 @@ knitr::opts_chunk$set(echo = TRUE)
 \noindent\makebox[\textwidth][c]{
   \begin{minipage}[t]{0.8\textwidth}
     \centering
-    \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
-   
+    \Large{Instructor: \\ Tim Riffe \texttt{tim.riffe@ehu.eus}\\}
     \vspace{.5cm}
-    \Large{Assistants: \\ Jinyeon Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistant: \\ Dr. Da eun Kwan: \texttt{dekwan20@kdis.ac.kr}}
   \end{minipage}
 }
 
 
 \vspace{0.8cm}
 \begin{center}
-\large{29 July 2022}
+\large{26 July 2023}
 \end{center}
 \vspace{0.8cm}
 
 
 \tableofcontents
 
-# Tidy data
+# Population structure
 
+Population structure refers either to (i) population definitions (e.g. sex, location, status) that may define universe strata within a dataset with many such strata, or to (ii) risk categories within populations considered together, such as age, health, or separate risk strata being combined to represent a whole population (e.g. life expectancy controlling for educational composition). Often, we wish to control for the effects of within-population structure when comparing metrics. The lifetable is intended to do this, as are measures such as TFR, which we saw yesterday.
 
-## Definition
-Recall that tidy data follows a standard structure where each column is a variable, each row is an observation, and each cell is a value. Anything else is messy. Demographic data is often delivered in a tidy format. When it is not, then it can be reshaped into a tidy format.
+Some aspects of population structure are not observed, or are only observed in retrospect. For example, the frailty of an individual can only be approximated with proxy variables, such as questions on disability. Other important strata might be an individual's social position, which might confer advantages in life. This is most often approximated with observables such as employment categories, educational attainment, wealth, or income. Trying to define and identify such drivers is a key subfield of contemporary demography. How much do such unobservables really determine the demography of a population?
 
-## Example of not-tidy data
+## Observed structure
 
-The following layout (screenshot from Excel) is not tidy. This example data was manually extracted from here: [https://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=demo_fasec&lang=en](https://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=demo_fasec&lang=en), and the given format was concocted with EUROSTAT's online data widget.
+Demographic structure is often used to infer the economic or demographic potential of a population, such as the so-called demographic dividend. Often, this is approximated by the share of population in working ages, with the potential support ratio PSR:
 
-\begin{center}
-\includegraphics[]{demo_fasec_screenshot.png}
-\end{center}
+$$
+PSR = \frac{P(\mathrm{age~}65+)}{P(\mathrm{ages~} 15-64)}
+$$
+That is the ratio of the population size above age 65 to that in working ages, where the threshold ages may move up or down depending on what is common in different populations. This measure gives some information, but it says nothing of the value of work versus the actual costs of support, and ignores that some people of working age do not work, and many above age 65 require no support. These and other biases can push the indicator either up or down, and so when possible we prefer informative indicators, such as those based on more granular demographic data. For example, we may structure a population on health, or social capital.
 
-The main thing that makes it not-tidy are the years spread over columns. These should be stacked into to columns: `TIME` (per the original codes) and `Births`, which are the values in the cells. The fact that `AGE` is coded as an arithmetically unusable character string is something we'll want to recode, but it is orthogonal to the *tidiness* of the data. Finally, we will ensure that age-specific births sum up to the stated total births per year and country. 
+## Social structure
 
-To follow along, create a folder in your project called `Data`. Then, go to the `Data` folder of the course repository on github:
-[https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_fasec.xlsx](https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_fasec.xlsx) and click `Download`. Move it to the data folder you just made. You can also do the same for a second file that we'll use later today:
-[https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_pjan.xlsx](https://github.com/timriffe/KOSTAT_Workshop1/blob/master/Data/demo_pjan.xlsx)
+For the case of social capital, let's have a look at how social capital can vary over time using data from the Human Capital Data Explorer @wittgenstein2018 . This data extract was prepared in advance by Rustam Tursun-zade (`rustam.tursunzade at gmail.com`) using the`wcde` @wcde R package:
 
-# Tidy processing fertiltiy data
-Today's entire session will be working with this smallish births dataset.
-
-## Reshape, Rescale, Recode it 
-
-We'll use the `read_excel()` function from the `readxl` package to get the data in. First let's look at the help file using `?read_excel`. Visual inspection of the data shows us that we need to skip several rows, plus there's a note at the bottom of the sheet that we want to ignore. We specify an explicit cell range using the argument `range` and giving spreadsheet coordinates `range = "A10:H158"` (determined based on visual inspection of the file).
-
+Compare
 ```{r, message = FALSE, warning = FALSE}
 library(tidyverse)
-library(readxl)
-# ?read_excel
-Wide <- read_excel(
-           path = "Data/demo_fasec.xlsx",
-           range = "A10:H158")
-glimpse(Wide)
+# read the data. Note we have to skip first 8 rows with metainformation
+wcde <-  read_csv("Data/wcde_data.csv", 
+                  skip = 8,
+                  show_col_types = FALSE) |>
+  # transform names to lowercase
+  rename_with(tolower)
+
+# check which education categories are present in the data
+# looks like we have some excess duplicated info like Under 15 or Total
+# wcde |>
+#   count(education)
+# 
+# # check which countries are present in the data
+# wcde |>
+#   count(area)
+# let us prepare our data
+wcde <- wcde |>
+  # remove excess educational cathegories
+  filter(!education %in% c("Total", "Under 15"),
+         # remove info on all ages
+         age != "All") |>
+  # transfrom educational categories into 3 groups
+  mutate(
+    education = case_when(
+      education %in% c(
+        "No Education",
+        "Incomplete Primary",
+        "Primary",
+        "Lower Secondary"
+      ) ~ "Low",
+      education %in% c("Post Secondary", "Short Post Secondary",
+                       "Upper Secondary") ~ "Medium",
+      education %in% c("Bachelor", "Master and higher") ~ "High"
+    )
+  ) |>
+  # choose country and years
+  filter(area == "Republic of Korea",
+         year %in% seq(1980, 2050, 10)) |>
+  # note we have to relevel age cathegories for correct visual representation
+  mutate(age = fct_relevel(age, "5--9", after = 1)) |>
+  mutate(age = fct_relevel(age, "100+", after = Inf)) |>
+  mutate(population = ifelse(sex == "Male", -population, population))
 ```
 
-### `pivot_longer()` (`pivot_wider()`)
-These data are not tidy because `TIME` is spread over columns. Instead we should have a column called `TIME`, containing the years, and the cell values currently in the columns `2011` to `2016` should be in a column called births. The function `pivot_longer()` will do this for us. See `?pivot_longer` or the handout from the previous session.
+How has the human capital structure of Korea changed in the past, and how has it been projected into the future?
+```{r}
+  
+wcde |>
+  ggplot(aes(
+    x = age,
+    y = population,
+    fill = education,
+    color = education
+  )) +
+  geom_bar(stat = "identity",
+           width = 1,
+           alpha = 0.8) +
+  facet_wrap(~ year, ncol = 4) +
+  coord_flip() +
+  scale_color_brewer(palette = "Set1") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  scale_y_continuous(breaks = seq(-2000, 2000, 1000)) +
+  theme(
+    legend.position = "bottom",
+    axis.title = element_blank(),
+    legend.title = element_blank()
+  ) +
+  # add title and subtitle
+  ggtitle("Population structure by educational level, Korea",
+          subtitle = "Males are shown on the left and females on the right")
+```
+
+[checking to see if bars properly stacked]
+
+### Social structure and mortality
+
+Certainly behavioral outcomes vary by social structure. Unfortunately so does mortality. Let's look at mortality data by low and high educational attainment. These data come from @bramajo2023regional (many thanks to the authors for sharing the data!), and they may give a sense of how much mortality levels can vary along social strata. To calculate lifetable indicators, I've copied our lifetable functions from yesterday's lesson into an `R` script. We can load these into today's workspace, by `source()`ing the file:
 
 ```{r}
-Long <- pivot_longer(
-          data = Wide, 
-          cols = `2011`:`2016`,
-          names_to = "TIME",
-          values_to = "Births")
+source("lifetable_functions.R")
 
-glimpse(Long)
-```
-
-A nice thing about `pivot_longer` is you can specify column ranges using names (see how we put back-ticks on years? That's so that 2011 doesn't get interpreted at the 2011th column!). Integer ranges will also do, as would listing out the columns by name or position. There are other tricks for intelligently picking out columns, see `?tidyr_tidy_select`. From that help file, we see other things would have worked in our case, for example `where(is.double)`, which is handy.
-
-```{r, eval = FALSE}
-pivot_longer(
-          data = Wide, 
-          cols = where(is.double),
-          names_to = "TIME",
-          values_to = "Births")
-```
-
-### `select()` columns
-
-Note, some of these columns are clean and ready to use (`TIME` and `Births`), but `GEO/TIME` is not a useful column name, and the values in `AGE` might not be useful in practice. Instead, maybe we want `AGE` to be an integer value so that we can use it to sort, or use it in a numeric way in a plot axis. Maybe also we don't want to have a `Total` value for `AGE`, but instead we want to ensure that the age-specific births add up to the total? This will give us a chance to showcase some more tidyverse tools:
-
-Select, rearrange, and rename **columns** using `select()`. Notice that i) the left side of each `=` is the new column name, ii) the order you list the columns is the new order, iii) if you forget to list a column you lose it! iv) when in doubt, but back-ticks on the column name to ensure it won't be misinterpreted. `GEO/TIME` looks like math, so stick it in back-ticks...
-
-```{r}
-Long <- select(
-  .data = Long,
-  Country = `GEO/TIME`,
-  Age = AGE,
-  Year = TIME,
-  Births 
-)
-head(Long)
-```
-
-### pipes, `%>%`
-
-Let's re-express the above using *pipes*. Pipes allow us to string together data operations into a single sequentially evaluated execution step. Thus far we have read in the data, reshaped it, and re-specified columns. All together, this becomes:
-
-```{r}
-Long <- 
-  read_excel(
-    path = "Data/demo_fasec.xlsx",
-    range = "A10:H158") %>% 
-  pivot_longer(
-    cols = `2011`:`2016`,
-    names_to = "Year",
-    values_to = "Births") %>% 
-  select(
-     Country = `GEO/TIME`,
-     Year,
-     Age = AGE,
-     Births)
-```
-
-This reads as "first `read_excel()`, then `pivot_longer()`, then `select()` columns, renaming some of them". Of course we should always take the time to then annotate the code, for posterity:
-
-```{r}
-Long <- 
-  # first read in from Excel
-  read_excel(
-    path = "Data/demo_fasec.xlsx",
-    range = "A10:H158") %>% 
-  # stack years
-  pivot_longer(
-    cols = `2011`:`2016`,
-    names_to = "Year",
-    values_to = "Births") %>% 
-  # pick out the columns
-  select(
-     Country = `GEO/TIME`,
-     Year,
-     Age = AGE,
-     Births)
-```
-
-Note: you can run this code by simply placing the cursor anywhere in the pipeline and pressing `Ctrl + Enter`. There is no need to select the whole statement before running, although this also works (you could in this case also click the green play arrow).
-
-We will augment this pipeline step by step and then recompose it in its entirety at the end.
-
-### `filter()`, `mutate()`, `group_by()`
-
-So what age classes do we have? `unique()` picks out just the unique values present in a vector.
-```{r}
-# same thing using tidy:
-Long %>% 
-  pull(Age) %>% # pull() extracts column as vector
-  unique()
-```
-
-The `Age` column should be changed to consist in just integers. But this raises another issue: what to do with the `Total` and `Unknown` ages? My preference is usually to redistribute unknowns proportional to the distribution of any *knowns*:
-
-$$ \widehat{Y_x} = Y_x + Y_{unknown} * \frac{Y_x}{\sum Y_x}$$
-where the denominator excludes unknowns... This is just the same as rescaling the distributions of *known* ages to sum to the stated total
-
-$$ \widehat{Y_x} = Y * \frac{Y_x}{\sum Y_x}$$
-(where $x$ excludes unknowns)
-
-Once we do one or the other of these operations, we'll end up with just ages `15 years` through `49 years`, and can convert using string operators. We can throw out either `Total` or `Unknown` using `filter()` to select rows. Calculations to redistribute can be done using the function `mutate()`. The basic structure of said operation would be something similar to:
-
-```{r, eval = FALSE}
-# don't run this
-Long %>% 
-  # 1
-  mutate(TOT = Births[Age == "Total"]) %>% 
-  # 2
-  filter(! Age %in% c("Total", "Unknown")) %>% 
-  # 3
-  mutate(Births = Births / sum(Births) * TOT)
-```
-
-I'll first explain the basic logic, then why it won't *yet* work as expected. In step 1, we use `mutate()` to create a new column called `TOT`, which just repeats the respective value for each row of the data. 
-
-Now for the `filter()` statement.
-
-### Time out for logicals
-
-Each value of `TOT` is intended to be the value of `Births` where `Age` is equal to `"Total"`. Note `==` is a *logical* equals, meaning you're asking if values are equal. The result will be `TRUE`, `FALSE`, or `NA` if pertinent.
-
-Example:
-```{r}
-1:5 == 5
-```
-
-Other useful logical operators include `!=` (inequality), `<`, `>`, `<=`, `>=`. Further logical functions include: `is.na()`, `any()`, `all()`. Each of these operators and functions is vectorized, meaning they can evaluate long vectors of expressions element-wise.
-
-Here we want to use this logical vector to select values:
-
-```{r}
-abcde <- c("a","b","c","d","e")
-abcde[1:5 == 5]
-```
-Namely, we get back the values where the logical vector evaluates to `TRUE`. 
-
-Given a column `TOT`, we can remove age classes equal to `"Total"` or `"Unknown"` with `filter()`. `%in%` is a logical operator for set membership.
-
-```{r}
-c("a","d","k") %in% abcde
-```
-
-Finally, `mutate()` can be used to do the rescale operation using our basic arithmetic. 
-
-### `group_by()` (`ungroup()`)
-
-An issue that you may foresee at this point is that either of the above formulas is independent within each `Country` and `Year`. We can deal with this by declaring each combination of these two variables as an *independent* group using `group_by()`, and then removing groups when no longer needed using `ungroup()`. That's just good housekeeping, but it keeps the pipeline rigorous: You can assume group declarations will persist until explicitly removed. 
-
-```{r}
-Long2 <-
-  Long %>% 
-  # add group metadata
-  group_by(Country, Year) %>% 
-  # raise Total count to column for element-wise rescale
-  mutate(TOT = Births[Age == "Total"]) %>% 
-  # throw out Total and Unknown ages
-  filter(! Age %in% c("Total", "Unknown")) %>% 
-  # rescale proportions known to stated total
-  mutate(Births = Births / sum(Births) * TOT) %>% 
-  # groups no longer needed, let's remove them:
+edu_lt <- 
+  read_delim("Data/DeathsSpain.csv",
+                 delim = ";",
+               show_col_types = FALSE) |> 
+  filter(!is.na(ccaa)) |> 
+  pivot_longer(-(1:3), 
+               names_to = c("measure","edu"),
+               values_to ="value",
+               names_sep = "_") |>   
+  pivot_wider(names_from = "measure", values_from = "value") |> 
+  rename(sex = sexo,age=edad) |> 
+  group_by(sex,age,edu) |> 
+  summarize(deaths = sum(Deaths),
+            pop = sum(Pop), .groups = "drop") |> 
+  mutate(sex = if_else(sex == 1, "male","female"),
+         nMx = deaths / pop,
+         nAx = .5,
+         n = 1) |> 
+  group_by(sex,edu) |> 
+  group_modify(~calc_LT_tidy(data = .x, radix = 1e5)) |> 
   ungroup()
 ```
 
-Finally, we can clean up the `Age` column! Here I'll take the string substitution strategy, although other options would also work. `gsub()` looks for a pattern in the string `" years"` and replaces it. In this case, I replace with an empty string `""`, so `"15 years"` becomes `"15"`, still a character string. We can then modify it in the same `mutate()` call: comma-separated statements in `mutate()` are evaluated in sequence, and they can be sequentially dependent!
+Let's compare death distributions:
 
 ```{r}
-Long2 %>% 
-  mutate(Age = gsub(Age,
-                    pattern = " years", 
-                    replacement = ""),
-         Age = as.integer(Age))
+edu_lt |> 
+  ggplot(aes(x = age, 
+             y = ndx, 
+             color = edu, 
+             linetype = sex)) +
+  geom_line() +
+  theme_minimal()
+```
+Just eyeballing premature mortality, it seems that (in the long run) it's worse to be male than to have low education in this particular data.
+
+Note that the there is large heterogeneity in ages at death even within education-sex-specific strata. This is a key observation: We could imagine data with more and finer categorization of risk groups, and so stratify the lifetables even more, but there will be diminishing returns to the variance explained by these groups. Most mortality variation is *within* groups rather than *between* groups. This turns out to be the case even after accounting for plausible levels of unobserved heterogeneity. Age on the other hand, specifically the orders-of-magnitude change in mortality risk over age, explains a lot. It would be hard to find an element of social strata as powerful as age in explaining differences between groups. This is a recent argument of Hal Caswell (reference not yet available as of this writing). This is why we always deal explicitly with age structure when calculating anything in demography.
+
+In exercises, we will calculate within-between metrics of mortality inequality for different populations to back this up, and I will give an example of a future scenario of social differences in mortality that runs counter to this lesson.
+
+# Population aging
+
+We have established that age is an important determinant of demographic phenomena, but now I will argue that an age-centric view of health can miss key aspects of the demographic present and the future we foresee in countries such as South Korea. Measures such as TFR, classic support ratios, or other summary metrics, such as disability expectancy might miss important perspectives on aging and steer us into thinking that there is a tradeoff between quality and quantity of years lived. Notably, sustained improvements in mortality are probably driven by sustained improvements in health, right? So, maybe longer lives are not so bad in terms of disability or other forms of burden: maybe our standard health measures and assumptions are missing something?
+
+## Flexible threshold ages
+Many have argued in the literature for the use of different demographic perspectives when it comes to aging. For example, @sanderson2007new argues for the use of age thresholds that are rescaled to ages at which demographic thresholds are met rather than subjectively chosen ages. For example, a prospective aging indicator might define a support ratio based on the age at which remaining life expectancy drops to 10 or 15 years, or the age at which a given fraction of the population remains alive [see @alvarez2023mortality for further development of this idea]. Let's develop each of these ideas.
+
+This time we'll calculate for the entire HMD. This will take no extra effort, since we have our lifetable functions already written!
+```{r}
+hmd <- read_csv("Data/hmd.csv.gz", 
+                show_col_types = FALSE) |> 
+  filter(!is.na(mx)) |> 
+  mutate(n = 1) |> 
+  rename(population = country,
+         nMx = mx,
+         nAx = ax) |> 
+  group_by(population, sex, year) |> 
+  group_modify(~calc_LT_tidy(data = .x, radix = 1), .groups = "keep") |> 
+  filter(sum(is.nan(ex)) < 5) |> 
+  ungroup() |> 
+  mutate(ex = if_else(is.nan(ex),0,ex))
 ```
 
-A helper function from the `readr` package `parse_number()` can do this for us in a single step:
-
-```{r, results = "hide"}
-Long2 %>% 
-  mutate(Age = parse_number(Age))
-```
-
-
-Note, you can also use pipes inside function calls, like `mutate()`, so the above could become:
+Now let's write a function that tells us the threshold age for a given level of $l(x)$ or $e(x)$. Note, we'll want a continuous representation of these two functions. While $l(x)$ is guaranteed to be monotonically decreasing, $e(x)$ is not. However, $x + e(x)$ is guaranteed to monotonically decrease:
 
 ```{r}
-Long2 %>% 
-  mutate(Age = Age %>%  
-                gsub(
-                  pattern = " years", 
-                  replacement = "") %>% 
-               as.integer())
+(lx <- hmd |> 
+  filter(population == "Sweden", year == 2000, sex == "f") |> 
+  pull(lx))
+(ex <- hmd |> 
+  filter(population == "Sweden", year == 2000, sex == "f") |> 
+  pull(ex))
+
+calc_threshold_age <- function(y, x, threshold, closeout = 115, measure = "lx"){
+  x <- c(x,115)
+  y <- c(y,0)
+  if (measure == "ex"){
+    x <- x[-(1:10)]
+    y <- y[-(1:10)]
+  }
+  splinefun(x~y, 
+            ties = max, 
+            method = "monoH.FC")(threshold)
+}
+calc_threshold_age(y = lx, x = 0:110, threshold = .2, measure = "lx")
+calc_threshold_age(y = ex, x = 0:110, threshold = 15, measure = "ex")
 ```
 
-Depending on what you're doing, one or the other of these could be more *legible*. Human-legible code is more robust than illegible code, can we agree on this point?
-
-### Bringing it all together
-
-There are times when it may make sense to keep steps separate, in separate data objects, but our first example is a case of wanting to keep all steps contained in a single pipeline. That's because the intermediate pieces are redundant and add no value. Combined into a single pipeline, we'd end up with something like this:
+Here's an illustration of how the lx-based threshold age is determined. For each different survival curve drawn, we want to find at which age the curve passes the value of 0.2:
 
 ```{r}
-Births <- 
-  # first read in from Excel
-  read_excel(
-    path = "Data/demo_fasec.xlsx",
-    range = "A10:H158") %>% 
-  # stack years
-  pivot_longer(
-    cols = `2011`:`2016`,
-    names_to = "Year",
-    values_to = "Births") %>% 
-  # pick out the columns
-  select(
-     Country = `GEO/TIME`,
-     Year,
-     Age = AGE,
-     Births) %>% 
-  # add group metadata
-  group_by(Country, Year) %>% 
-  # raise Total count to column for element-wise rescale
-  mutate(TOT = Births[Age == "Total"]) %>% 
-  # throw out Total and Unknown ages
-  filter(! Age %in% c("Total", "Unknown")) %>% 
-  # rescale proportions known to stated total
-  mutate(Births = Births / sum(Births) * TOT) %>% 
-  # groups no longer needed, let's remove them:
-  ungroup() %>% 
-  # clean up Age
-  mutate(Age = Age %>%  
-                gsub(
-                  pattern = " years", 
-                  replacement = "") %>% 
-                as.integer(),
-         Year = as.integer(Year)) %>% 
-  # sort rows
-  arrange(Country, Year, Age) %>% 
-  # remove TOT column, no longer needed
-  select(-TOT)
-
-# have a look
-glimpse(Births)
+hmd |> 
+  filter(year == 2000) |>
+  ggplot(aes(x = age, y = lx, group = interaction(population,sex,year))) + 
+  geom_line(alpha = .2) +
+  geom_hline(yintercept = .2, color = "red") +
+  theme_minimal()
 ```
 
-This is a tidy pipeline. And tidy code, no matter who writes it, usually ends up looking something like this. To finish off the pipeline, I've sorted the rows. `arrange(Country, Year, Age)` sorts `Age` within `Year` within `Country`), and we delete the `TOT` column using subtraction inside `select()`. 
 
-You see all those annotations between many of the pipe steps? That's not *just* for you, the reader. It's good practice to do that. Possibly because someone else might like to interpret your code, so why not make it easier, but also you should comment your code out of respect for *future you*, because *future you* won't remember what you were thinking when you wrote it.
-
-## Group to 5-year ages with `summarize()`
-
-Aggregation typically implies a reduction in the number of rows in a data set. Let's see examples of grouping countries, grouping ages, and calculating marginal sums. Grouping ages or years often follows a similar logic. We will exploit the *modulo* operator, `%%`, which tells us the remainder after Euclidean division. Example:
+Now we can apply these in bulk. First let's compare how $e(0)$ compares to the two threshold ages:
 
 ```{r}
-a <- 1:10
-a %% 2
-a %% 5
-```
-That is the divisor (2 or 5) is subtracted away an integer number of times until what remains is smaller than the divisor. This is useful for redefining `Age`, see:
-
-```{r}
-Age <- 0:20
-Age - Age %% 5
-```
-
-That is, subtracting `Age` modulo 5 from a vector of single ages tells you the lower bound of the five year age group that each single age lays within. We can then use this new age vector to group data, and finally we aggregate `Births` using `summarize()`.
-
-```{r}
-Births %>% 
-  mutate(Age = Age - Age %% 5) %>% 
-  group_by(Country, Year, Age) %>% 
-  summarize(Births = sum(Births),
-            .groups = "drop")
-```
-
-`Births = sum(Births)` might look strange. The left side is a single outgoing row, whereas the right side is a vector with five values. Our dataset of 840 rows is in this way reduced to $840 / 5 = 168$ rows. This works out cleanly in our case because the age groups were cleanly divisible. Note the argument `.groups = "drop"` at the end of `summarize()`, this is just the same as adding `%>% ungroup()` at the end of the pipeline.
-
-### Marginal sums
-
-The result of a summary statement could be just a single row, in this case a probably not-useful result.
-
-```{r}
-Births %>% 
-  summarize(Births = sum(Births))
-```
-
-To get totals by `Country` and `Year`, once again we apply groups:
-
-```{r}
-Births %>% 
-  group_by(Country, Year) %>% 
-  summarize(Births = sum(Births),
-            .groups = "drop")
-```
-
-Likewise, we could group countries using `case_when()`. First we use `case_when()` then I'll explain how it works.
-
-```{r}
-Births %>% 
-  mutate(Country_Group = case_when(Country == "Czechia" ~ "A",
-                                   Country == "Spain" ~ "A",
-                                   Country == "Belgium" ~ "B",
-                                   Country == "Croatia" ~ "B")) %>% 
-  group_by(Country_Group, Year) %>% 
-  summarize(Births = sum(Births),
-            .groups = "drop")
-```
-
-### `case_when()`
-
-This helper function is a generalization of `ifelse()` or `if_else()`, as may be familiar from other programs such as Excel. `case_when()` is premised on you being able to delimit all cases given in your data exhaustively. Each case is comma separated and defined in formula notation, where `~` separates a left and a right side. On the left of `~` you define the case with a **logical** statement and on the right side you specify what to assign for that case. By the end of the `case_when()` statement all cases must be handled. Further, cases are handled in the order specified, so where pertinent it makes sense to list cases ordered from specific to general. If there is a most general case meaning something like *everything else*, then you can end `case_when()` with `TRUE ~ 1` (or whatever value you want).
-
-For example, just to demonstrate the concepts, say I have an algorithm where you start with an integer. If the integer is:
- 1. divisible by 6 then divide by 2 and add 1
- 2. divisible by 3 then multiply by 2
- 3. odd add 1
- 4. even add 2
- 
-This is a silly algorithm, I admit. Note only the first condition produces an *odd* result. Note, all integers are handled by conditions 1-4. Note that conditions 3 and 4 handle more cases than conditions 1 and 2. Note also that condition 1 is more specific than 2, because all numbers divisible by 6 are also divisible by 3, but not vice versa. Using `case_when()` and exercising our new modulo skills, an example would be:
-
-```{r}
-a <- 1:17
-case_when(a %% 6 == 0 ~ a / 2 + 1,
-          a %% 3 == 0 ~ a * 2,
-          a %% 2 == 1 ~ a + 1,
-          a %% 2 == 0 ~ a + 2)
-```
-
-If we write the same cases but changing the order of the first two conditions, we see that condition (1) from the initial algorithm is never activated, because divisibility by 3 handles the case earlier.
-```{r}
-case_when(a %% 3 == 0 ~ a * 2,
-          a %% 6 == 0 ~ a / 2 + 1,
-          a %% 2 == 1 ~ a + 1,
-          a %% 2 == 0 ~ a + 2)
-```
-
-### Weighted means
-
-Our main use of `summarize()` today will be for evaluating weighted means. More specifically, we'll calculate the mean age at childbearing.
-
-In general a weighted mean is defined as
-
-$$ \bar{x} = \frac{\sum x_i \cdot w_i}{\sum w_i}$$
-For the mean age at childbearing, $x$ is age (exact age at mid-interval we prefer), and $w$ should be either birth counts or age-specific fertility. Since we don't have exposures (yet) to calculate fertility rates, we'll just use raw births by age as the weights.
-
-```{r}
-MAB <-
-  Births %>% 
-  mutate(Age = Age + .5) %>% 
-  group_by(Country, Year) %>% 
-  summarize(MAB = sum(Births * Age) / sum(Births),
+t_ages <- 
+  hmd |> 
+  group_by(population,sex,year) |> 
+  summarize(e0 = ex[1],
+            lx_age = calc_threshold_age(x = age, y = lx, .2, "lx"),
+            ex_age = calc_threshold_age(x = age, y = ex, 15, "ex"),
             .groups = "drop") 
-glimpse(MAB)
 ```
 
-While we're here, how about a plot teaser, even though we don't get serious about `ggplot2` until next week:
+Here's how our results compare to life expectancy (red) at birth, and the age at which $e(x)$ crosses the threshold of 15 average remaining years of life (blue). Really, we're meant to compare with the horizontal line at age 65:
 ```{r}
-MAB %>% 
-  ggplot(aes(x = Year, 
-             y = MAB, 
-             group = Country, 
-             color = Country)) +
-  geom_line()
+t_ages |> 
+  ggplot(aes(x = year, y = e0)) + 
+  geom_point(color = "#eb4b3f", alpha = .2) +
+  geom_point(aes(x = year, y = ex_age), color = "#3c90de", alpha = .2) +
+  facet_wrap(~sex) +
+  theme_minimal() +
+  geom_hline(yintercept = 65) +
+  labs(y = "ex-based threshold age")
 ```
 
-Allow me to pose a question: All of these lines are increasing. These mean ages are based on observed births in each mother age group, which are a product of fertility rates and population size in each age group. How much of this trend do you suppose is due to changes in age-specific fertility rates versus changes in underlying population structure? To answer this question, we will need to obtain, harmonize, and merge population data to the birth counts data we've been working with. Let's get to it!
-
-# Process population data
-
-Often we get data from different sources that needs to be merged (or joined) into a single merged dataset in order to carry out an analysis. In this case, I've pulled January 1st female population counts data from EUROSTAT, and to make things interesting it's formatted differently and has its own challenges. Our objective is to prepare this data to join it to the births data from above. This will allow us to repeat some concepts.
-
-\begin{center}
-\includegraphics[]{Population_screenshot.png}
-\end{center}
-
-
-## Read in population data
-
-Source: 
-[https://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=demo_pjan&lang=en](https://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=demo_pjan&lang=en)
-
+And here's the same comparison for the age at which only 20\% of the synthetic cohort remains alive:
 ```{r}
-Pop <- read_excel("Data/demo_pjan.xlsx",
-           range = "A10:CZ510",
-           na = ":")
-dim(Pop)
+t_ages |> 
+  ggplot(aes(x = year, y = e0)) + 
+  geom_point(color = "#eb4b3f", alpha = .2) +
+  geom_point(aes(x = year, y = lx_age), color = "#3c90de", alpha = .2) +
+  facet_wrap(~sex) +
+  theme_minimal() +
+  geom_hline(yintercept = 65) +
+  labs(y = "lx-based threshold age")
 ```
-When we read this in, some rows are entirely `NA` values for population. It will be easier to `filter()` these out a after the population values are stacked in a single column.
 
-## Reformat for joining
+From this, the lesson is that while the common definition of age is fixed, the experience of age can change, in this case in response to background mortality. Notably, any dependency ratio statistic will vary greatly depending on which threshold age is chosen, and if said age is a dynamic response to mortality itself, both trends and levels can turn out far more optimistic. In exercises, we will try to calculate trends in different old age indicators.
 
-To be able to join, we must be able to exactly match on each of our structural criteria: `Country` names, `Year` and `Age` categories.
+## Different measures imply different burdens
 
-### Reshape to tidy
+Rustam Tursun-zade has kindly prepared a data extract consisting in prevalence data for a very-lethal (Stomach cancer) and a not-lethal (Seborrhoeic dermatitis) condition, each for Kenya and South Korea, each by sex and for a time series from 1990-2019. We will use these data to calculate health expectancy and related trends.
 
 ```{r}
-# check first and last age classes
-# colnames(Pop)
-Pop <- 
-  Pop %>% 
-  pivot_longer(`Less than 1 year`:`Unknown`,
-               names_to = "AGE",
-               values_to = "Population") %>% 
-  rename(Country = `GEO/AGE`) %>% 
-  # is.na() gives TRUE if a value is NA, FALSE otherwise,
-  # ! negates this, so we keep all rows that are not NA
-  filter(!is.na(Population))
-
-glimpse(Pop)
+sull <- read_csv("Data/prev_mx.csv",
+         show_col_types = FALSE) |> 
+  arrange(location, sex, year, cause, age) |> 
+  rename(nMx = mx) |> 
+  mutate(nAx = if_else(age == 0, .1, .5),
+         n = 1) |> 
+  group_by(location, year, sex, cause) |> 
+  mutate(nqx = calc_nqx(nMx,nAx,n),
+         lx = calc_lx(nqx,radix = 1),
+         ndx = nqx * lx,
+         nLx = calc_nLx(lx,ndx,nAx,n))
 ```
 
-### Recode Age classes
+Sullivan's @sullivan1971single method of calculating health expectancy takes prevalence and a lifetable as its basic inputs. 
 
-What age classes to we have?
-```{r}
-Pop %>% 
-  pull(AGE) %>% 
-  unique()
-```
-
-Now what would be the easiest way to code this to integer? I'd say: we have special cases for ages 0, 1, the open age group (100) and unknown ages. Every other age follows an exact pattern. Therefore, I propose we treat this with `case_when()` handling all special cases first, then doing some sort of string operation to handle all other cases that follow the pattern `"n years"`. This latter operation could either be a string operation that extracts digits, or a string substitution that deletes `" years"`.
-
-Check:
+$$
+HLE(x) = \sum_{i=x}^\omega {}_nL_i/l_x \cdot {}_n\pi_i 
+$$
+Where $\pi$ is prevalence, ranging from 0-1, and $L(x)$ comes from the lifetable.
+In R, it looks like so for this data (note we are calculating for age 0 with a radix of 1). We can plot the fraction of life expectancy taken up by the given condition:
 
 ```{r}
-a <- c("10 years","11 years")
-# standard
-a %>% gsub(pattern = " years", replacement = "") %>% as.integer()
-# terse regular expression
-a %>% gsub(pattern = "([0-9]+).*$", replacement = "\\1") %>% as.integer()
-# or a handy helper function from the readr package:
-parse_number(a)
+sull |> 
+  group_by(location, sex, cause, year) |> 
+  summarize(DLE = sum(nLx * prev),
+            HLE = sum(nLx * (1 - prev)),
+            .groups= "drop") |>
+  mutate(DLE_frac = DLE / (DLE + HLE)) |> 
+  ggplot(aes(x=year,y=DLE_frac, color = cause, linetype = sex)) +
+  geom_line() +
+  facet_wrap(~location) +
+  theme_minimal()
 ```
 
-Any of these checks would work to handle "everything else" at the end of our `case_when()`
-
-```{r, warning = FALSE}
-Pop <- # overwrite the same object here
-  Pop %>% 
-  mutate(Age = case_when(
-    AGE == "Less than 1 year" ~ 0,
-    AGE == "Open-ended age class" ~ 100,
-    AGE == "Unknown" ~ NA_real_,
-    TRUE ~ parse_number(AGE)
-  ),
-  Year = as.integer(TIME)) %>% 
-  select(-TIME, -AGE)
-```
-
-### Redistribute unknown ages
-
-Here, rather than rescaling to the stated total as we did for `Births`, we take the other formula that applies the same principle, but framed in terms of redistributing counts with unknown age:
-
-$$\hat{P_x} = P_x + \frac{P_x}{\sum P_x} * P_{Unkown}$$
-
-where the denominator excludes $P_{Unkown}$. Once again, this operation is done inside `mutate()`. Note, we're using `is.na()` three different times as a logical selector! Here, `if_else()` is used rather than `case_when()` because there is only one condition and it is faster to type out.
-
-```{r}
-Pop <-
-  Pop %>% 
-  # declare groups
-  group_by(Country, Year) %>% 
-  # 1. move Unknown age up to column
-  # 2. replace NAs w 0s in the new UNK column
-  mutate(UNK = Population[is.na(Age)],
-         UNK = if_else(is.na(UNK), 0, UNK)) %>%  
-  # remove rows with Unknown age
-  filter(!is.na(Age)) %>% 
-  # do the redistribution
-  mutate(Population = Population + Population / sum(Population) * UNK) %>% 
-  # remove groups
-  ungroup() %>% 
-  # remove column no longer needed
-  select(-UNK) 
-```
-
-## Calculate exposures
-
-Probably we'd rather join exposures to `Births` than January 1st population counts. One final calculation will allow us to introduce a join operation. The approximation we'd like to do is:
-
-$$ Exposure_x = \frac{P^{Jan 1}_x + P^{Dec 31}_x}{2} $$
-In other words, just take the simple average of the population at the start and end of the year. We can approximate the end-of-year population using the following year's January 1st population. Our goal is to do this arithmetic like so `mutate(Exposure = (P1 + P2) / 2)`, so the trick is to create a second `Population` column, consisting in the same `Population` column we already have, but back-dated one year. 
-
-We will do this in two ways, first using joins. To do this we create a copy of `Pop`, then deduct `Year` by one in that copy, then merge it back to the original `Pop` that we started with. In the process we'll also rename both versions of `Population` to `P1` and `P2` so that we don't get confused. The year-range for `P2` will lose the most recent year, and it will also have one extra year on the lower end, due to the shift. When we **join** the objects together we want to do so only where we have overlapping combinations of `Year` (and `Age` and `Country` need to match too, but these will match exactly in our case).
-
-### `join`ing datasets
-
-There are different kinds of joining. Joins have a *left* and *right* side data object. Here are the basic ones, with some example data to make concepts clear:
-
-```{r}
-x <- tibble(A = c("a", "b", "c"),
-            B = c("t", "u", "v"),
-            C = 1:3)
-y <- tibble(A = c("a","b","d"),
-            B = c("t","u","w"),
-            D = 3:1)
-x
-y
-```
-
-1. `left_join()` the left object is primary and the right object is secondary. (left side row count unchanged, but right side could grow or shrink)
-```{r}
-left_join(x,y)
-```
-
-2. `right_join()` the right object is primary and the left object is secondary. (right side row count unchanged, but left side could grow or shrink)
-```{r}
-right_join(x,y)
-```
-
-3. `inner_join()` only keep combinations present in both the left and right. (row count can stay same or shrink)
-```{r}
-inner_join(x,y)
-```
-
-4. `full_join()` keep all combinations (row count can stay same or grow)
-```{r}
-full_join(x,y)
-```
-
-You see in each of these examples that we're politely told in the console which variables were used to determine structural combinations? In these examples, it made good default choices, but in general, we should specify which columns to consider, using the `by` argument:
-
-```{r, eval = FALSE}
-left_join(x, y, by = c("A", "B"))
-right_join(x, y, by = c("A", "B"))
-inner_join(x, y, by = c("A", "B"))
-full_join(x, y, by = c("A", "B"))
-```
-
-In our case, we want `inner_join(by = c("Country", "Year", "Age))`, make sense?
-
-
-There are other kinds of joining too! Check out this Rstudio cheat sheet for data reshaping possibilities with `dplyr`: 
-[https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf](https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf) Here we're interested in the section called `Combine Tables` on page 2. These cheat sheets are pure gold when you're trying to think through something like this. Now, back to our beloved pipeline!
-
-
-```{r}
-Exp <- Pop %>% 
-  # jan 1 of this year = dec 31 of last year
-  mutate(Year = Year - 1) %>% 
-  # back-dated, this becomes P2 of the previous year
-  rename(P2 = Population) %>% 
-  # Join together where Year overlaps
-  inner_join(Pop, by = c("Country", "Year", "Age")) %>% 
-  rename(P1 = Population) %>% 
-  # Exposure calc averaging within-age
-  mutate(Exposure = (P1 + P2) / 2) %>% 
-  # sort
-  arrange(Country, Year, Age)
-```
-
-### Alternative way to compute exposure
-
-We could also reframe the calculation of exposure as a moving average. Here the functions `lead()` and `lag()` are often helpful:
-
-```{r}
-a <- 1:10
-lead(a)
-lag(a)
-# mimics our objective calculation:
-(a + lead(a)) / 2
-```
-The trick is to sort the data as needed (time series within `Country` and `Age`), then declare discrete groups on `Age` and `Country`. The result is identical, and this approach is more parsimonius than the join approach demonstrated above.
-```{r}
-Pop %>% 
-  arrange(Country, Age, Year) %>% 
-  group_by(Country, Age) %>% 
-  mutate(Exposure = (Population + lead(Population)) / 2) %>% 
-  ungroup() %>% 
-  filter(!is.na(Exposure)) %>% 
-  arrange(Country, Year, Age)
-```
-
-
-## Bring it all together
-
-The above steps accentuate how designing a processing pipeline happens in stages, and sometimes needs to be mapped out in advance. It's inherently iterative, and often involves trial and error, especially when we are learning. When doing this sort of work, we always check the results as we go to ensure things are processing as expected. When complete, we can clean up everything into a parsimonious pipeline. This allows you (and others) to think through all the steps in a glance: because tidyverse verbs string together into sentences! We therefore now paste all the above `Pop` processing code into a minimal pipeline, duly annotated:
-
-```{r}
-Pop <- read_excel("Data/demo_pjan.xlsx",
-           # cell range from visual inspection
-           range = "A10:CZ510",
-           # NA character also from visual inspection
-           na = ":") %>% 
-  # stack ages
-  pivot_longer(`Less than 1 year`:`Unknown`,
-               names_to = "Age",
-               values_to = "Population") %>% 
-  filter(!is.na(Population)) %>% 
-  rename(Country = `GEO/AGE`) %>% 
-  # recode age
-  mutate(Age = case_when(
-    Age == "Less than 1 year" ~ 0,
-    Age == "Open-ended age class" ~ 100,
-    Age == "Unknown" ~ NA_real_,
-    TRUE ~ parse_number(Age)
-  ),
-  Year = as.integer(TIME)) %>% 
-  select(-TIME) %>% 
-  # Begin redistribution of pop with unknown age
-  group_by(Country, Year) %>% 
-  mutate(UNK = Population[is.na(Age)],
-         # Not each Country / Year has an Unknown age category
-         UNK = ifelse(is.na(UNK), 0, UNK)) %>%  
-  filter(!is.na(Age)) %>% 
-  # The redistribution (only affects some subsets)
-  mutate(Population = Population + Population / sum(Population, na.rm = TRUE) * UNK) %>% 
-  select(-UNK) %>% 
-  ungroup() %>% 
-  # set up moving avg version of exposure calcs
-  arrange(Country, Age, Year) %>% 
-  # time-series within age and country
-  group_by(Country, Age) %>% 
-  mutate(Exposure = (Population + lead(Population)) / 2) %>% 
-  ungroup() %>% 
-  filter(!is.na(Exposure)) %>% 
-  arrange(Country, Year, Age)
-```
-
-See how this pipeline is in a single piece? This is because we avoided the self-join of the exposure calculation by using the `lead()` trick.
-
-# Work with merged data
-
-## Join `Pop` and `Births`
-Note `Pop` has more `Year` (2012-2019), `Age` (0-100), and `Country` (41) values than does `Births`. However, `Births` has one year that `Pop` does not (2011). If we did `left_join(Pop, Births)` that would be clearly too much. If we did `left_join(Births, Pop)` then we'd be closer, but still have an extra year (2011) with no exposure available. Either of these (and by extension a `full_join()`) would still work, but would require extra `filter()` operations in order to get the data down to just the valid combinations of `Country`, `Year`, and `Age`. Hence, we use `inner_join()` again to create our new object, `Dat`.
-
-```{r}
-Dat <-
-  Births %>% 
-  inner_join(Pop, by = c("Country", "Year","Age")) 
-```
-
-## Calculate rates
-
-Rate calculation is a straightforward `mutate()` statement. There is no need to apply groups, as age-specific fertility is done row-wise.
-```{r}
-Dat <-
-  Dat %>% 
-  mutate(ASFR = Births / Exposure)
-```
-
-Now a brief detour to examine the fertility curves and do a quick sanity check that TFR is as expected. An explanation of the `ggplot` code: everything inside `aes()` is a *mapping* of our data to coordinate or aesthetic properties. Since `ggplot`s are composed of additive layers, we can keep adding layers using `+`. `geom_line()` is the geometric form that that mapping is translated to. Other geometric mappings are also possible. We'll breeze through several other low-key `ggplot` examples before more explicitly explaining things later in the workshop.
-
-```{r}
-Dat %>% 
-  ggplot(aes(x = Age, 
-             y = ASFR, 
-             group = interaction(Country, Year),
-             color = Country,
-             alpha = Year)) +
-  geom_line()
-```
-
-I can't visually integrate those curves, can you? So let's just do a quick check of TFR:
-
-```{r}
-Dat %>% 
-  group_by(Country, Year) %>% 
-  summarize(TFR = sum(ASFR), 
-            .groups = "drop") %>% 
-  pivot_wider(names_from = Country, values_from = TFR)
-```
-
-Full disclosure: When setting up this exercise I at first downloaded Total population by `Country`, `Year`, and `Age`, and I literally didn't realize it until checking the TFRs. They were too small, so I re-downloaded denominators to be sure and that was the problem! Lesson: always do these side checks! If your script is cluttered with checks of this kind, then put them aside in a supplementary script.
-
-## Recalculate mean age at birth using rates
-
-Now we can calculate the MAB using fertility rates rather than birth counts, which ought to reduce the effects of population structure.
-
-```{r}
-Dat %>% 
-  # age midpoint
-  mutate(Age = Age + .5) %>% 
-  # independent groups
-  group_by(Country, Year) %>% 
-  # weighted mean for MAB
-  summarize(MAB_rates = sum(ASFR * Age) / sum(ASFR),
-            .groups = "drop") %>% 
-  # join to previous estimate. We do full
-  # because year range different, but we can plot everything
-  full_join(MAB, by = c("Country","Year")) %>% 
-  # stack so we can plot together easier, mapping MAB types to `linetype` 
-  pivot_longer(c(MAB_rates,MAB), 
-               names_to = "type", 
-               values_to = "MAB") %>% 
-  # remove NAs from asfr-weighted MAB (no 2011 info)
-  filter(!is.na(MAB)) %>% 
-  ggplot(aes(x = Year, 
-             y = MAB, 
-             linetype = type, 
-             color = Country, 
-             group = interaction(Country,type))) +
-  geom_line()
-```
-
-From this we see that trends are mostly the same, but not levels, and sometimes slopes are different. One could easily imagine a situation in which `ASFR`-weighted MAB gives a different trend than `Birth`-weighted MAB. One senses Czechia is close this case. Certainly levels can be quite different, and any discrepancy is due to departures from non-uniformity in population structure, which is an odd but precise way of putting it. In this case, if birth-weighted MAB is higher than ASFR-weighted MAB, it means that the population structure has more weight in higher ages.
-
-# Excercises
-
-I will offer exercise solutions in a separate file, and walk through these in the following day's lecture in case there is no time in the current session.
-
-1. plot time trends of TFR by country.
-
-2. Use the time-series trick `lead()` and/or `lag()` to calculate a variable `rt` as:
-
-$$ r(t) = \frac{MAB(t+1) - MAB(t - 1)}{2} $$
-
-Here $r(t)$ (in R call the new variable `rt`) approximates the average rate of change in the mean age at childbearing. We can use it to calculate an adjusted form of TFR, `TFR_adj` like so:
-
-$$ TFR_{adj}(t) = \frac{TFR(t)}{1 - r(t)}$$
-
-The basic idea is that if fertility is undergoing postponement, then the TFR of today is an underestimate (@bongaarts1998quantum). Without over-thinking the theory, can you calculate a variable called `TFR_adj`, and compare it's (short) time trends with those of TFR in a plot?
-
-3. Choose either rate-weighted MAB or birth-weighted MAB, but redo the calculations in terms of 5-year age groups. Assume that the average age within the interval is simply the midpoint (`Age + 2.5`). Does this change MAB very much?
+In short, for consequential conditions, longer lives make little difference, whereas for non-lethal conditions (imagine conditions like minor vision impairment, minor hearing loss, mild disability, back pain) longer lives probably imply higher burden, all else equal. 
 
 # References

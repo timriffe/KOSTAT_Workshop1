@@ -4,7 +4,7 @@ title: |
   |
   | KOSTAT-UNFPA Summer Seminar on Population
   | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
-  | \vspace{0.3cm} \huge \textbf{Day 1:  Introduction to Rstudio, R, and RMarkdown}\vspace{0.6cm}
+  | \vspace{0.3cm} \huge \textbf{Day 1: Basic Demographic Data and Concepts}\vspace{0.6cm}
   | 
 fontsize: 11pt
 geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
@@ -23,7 +23,7 @@ output:
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
     - \fancyhead[RE]{Workshop~1.~Demography in R}
-    - \fancyhead[LO]{{Day 1: Introduction to Rstudio, R, and RMarkdown}}
+    - \fancyhead[LO]{{Day 1: Basic Demographic Data and Concepts}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
 ---
@@ -35,17 +35,16 @@ knitr::opts_chunk$set(echo = TRUE)
 \noindent\makebox[\textwidth][c]{
   \begin{minipage}[t]{0.8\textwidth}
     \centering
-    \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
-   
+    \Large{Instructor: \\ Tim Riffe \texttt{tim.riffe@ehu.eus}\\}
     \vspace{.5cm}
-    \Large{Assistants: \\ Jinyeon Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistant: \\ Dr. Da eun Kwan: \texttt{dekwan20@kdis.ac.kr}}
   \end{minipage}
 }
 
 
 \vspace{0.8cm}
 \begin{center}
-\large{27 July 2022}
+\large{24 July 2023}
 \end{center}
 \vspace{0.8cm}
 
@@ -54,45 +53,51 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # About the instructor
 
-Hi, I'm Tim Riffe, a US-American demographer living in Spain and working at the University of the Basque Country, thanks to a program that brought me here called Ikerbasque. I defended my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley (USA) then working as a research scientist with the Max Planck Institute for Demographic Research (Germany). I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. Around four years ago I began adopting the tidyverse approach in my work and teaching.
-
-Rustam Tursun-Zade is an aspiring PhD student, with lots of experience in cancer epidemiology and demography. He is currently unaffiliated. He also did the European Doctoral School of Demography (2019-2020), and he's an advanced *tidyverse* wizard, and he's able to assist also if there are character or locale issues that arise when using `R` in different language settings. 
-
-Jinyeon Jo is a PhD student in Biostatistics in Graduate School of Public Health Science in Seoul National University. She majored in Statistics, Economics and Communication Science in her undergraduate studies, and has a Master in Statistics. In her PhD studies, she focuses on Genome-Wide Association Studies and Polygenic Risk Score prediction modelling. If you have any problems in using R related to this workshop, feel free to ask her. 
+Hi, I'm Tim Riffe, a US-American demographer living in Spain and working at the University of the Basque Country since 2021, thanks to a program that brought me here called Ikerbasque. I defended my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley (2012-2015, USA) then working as a research scientist with the Max Planck Institute for Demographic Research (2015-2021, Germany). I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. 
 
 # About this workshop
 
-In this workshop we have several direct and indirect objectives. The **direct objectives** are to teach you what you need to comfortably work with data in `R`, including how to:
+In this workshop we have several direct and indirect objectives. The **direct objectives** are to teach you to think like a demographer, including main concepts such as:
 
-* read in new data
-* reformat data
-* reshape data
-* merge data together
-* summarize 
-* calculate within groups 
-* create your own functions
-* flexible visualization using `ggplot2`
+* stocks versus flows
+* age, period, and cohort time perspectives
+* mortality and fertility measures [trends, inequalities]
+* population structure [heterogeneity, aging]
+* population growth [balancing equation, Leslie matrix, stability]
+* projection [Lee Carter Model]
+
+
 
 The **indirect objectives** are to teach you:
 
 * Flexible reporting with `R markdown`
 * Reproducible analyses
 * Confidence with data
-* a bit of `git` version control maybe.
-* demographic thinking via examples, including:
+* programming concepts such as:
+  * read in new data
+  * reformat data
+  * reshape data
+  * merge data together
+  * summarize 
+  * calculate within groups 
+  * create your own functions
+  * flexible visualization using `ggplot2`
+* demographic examples, including:
   * life tables
   * standardization
   * decomposition
   * Lexis surfaces
-  * others
 
-Each day of the workshop will have a prepared handout, this being the first one. The handout sets out the lesson plan for the day, including code examples. When convenient, I will follow this verbatim, however, most code will generally be derived in a live session. When appropriate, I'll also share improvised / derived code with you spontaneously via a Google Doc. The hope is that you will be able to follow along with me. Code will be presented in small units, or *chunks*, and commented live both verbally and in writing, as we progress. This will indirectly introduce you to markdown. In case on any day we do not arrive at the end of a lesson plan, the day's handout is also a reproducible tutorial that you can follow on your own. The markdown document created progressively through the day will be tidied up and posted to the course repository each day after class. I highly recommend going through the handouts and the session code after each session to solidify the material of the day.
+
+Each day of the workshop will have a lecture component and a practical component. The lecture component will consist in slides and marker board presentation, whereas the practical component will be based on live coding. The objective of the lecture component will be to introduce basic demographic concepts and teach you the basic perspectives needed in order to think like a demographer. The practical component will introduce basic coding tools and give you a contemporary coding strategy capable of handling most situations.
+
+I will provide a handout to accompany both components, this being the first one. The handout sets out the lesson plan for the day, including code examples. When convenient, I will follow these code examples verbatim, however, most code will generally be derived in a live session. When appropriate, I'll also share improvised / derived code with you spontaneously via a Google Doc. The hope is that you will be able to follow along with me. Code will be presented in small units, or *chunks*, and commented live both verbally and in writing, as we progress. This will indirectly introduce you to markdown. In case on any day we do not arrive at the end of a lesson plan, the day's handout is also a reproducible tutorial that you can follow on your own. The markdown document created progressively through the day will be tidied up and posted to the course repository each day after class. I highly recommend going through the handouts and the session code after each session to solidify the material of the day.
 
 ## Course materials
 
-All material is available in a public `github` repository, here: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1)
+All material is available in a public `GitHub` repository, here: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1)
 
-The handout for each day is available in its R markdown format and as a built pdf document, following the naming convention `01_handout.Rmd` (pretty document called `01_handout.pdf`), etc. The session materials are also given in `.Rmd` and pdf formats, with the naming convention `01_session.Rmd` (`01_session.pdf`). These will be available after class each day, or by the following morning at the latest. Exercises may be given in the handout for each day, and solutions either provided or derived the following day in a markdown document called e.g. `01_solutions.Rmd` (`01_solutions.pdf`). The `README` file will be updated daily as well as new items are added.
+The handout for each day is available in its R markdown format and as a built pdf document, following the naming convention `01_handout.Rmd` (pretty document called `01_handout.pdf`), etc. The session materials are also given in `.Rmd` and pdf formats, with the naming convention `01_session.Rmd` (`01_session.pdf`). These will be available after class each day, or by the following morning at the latest. Exercises may be given in the handout for each day, and solutions either provided or derived the following day in a markdown document called e.g. `01_solutions.Rmd` (`01_solutions.pdf`). The `README` file will be updated daily as well as new items are added. 
 
 Our Google Doc pastebin is here: [https://tinyurl.com/6ec2zfyy](https://tinyurl.com/6ec2zfyy) . This link gives edit permissions, so you could also use it to paste code that isn't working, or to pose questions. We'll try to not let this get cluttered up.
 
@@ -100,6 +105,307 @@ Our Google Doc pastebin is here: [https://tinyurl.com/6ec2zfyy](https://tinyurl.
 
 If you do not manage to ask a question during the session (either verbally, or in the chat), you have some other options: paste the question in the Google Doc. Post an `issue` on the repository [https://github.com/timriffe/KOSTAT_Workshop1/issues](https://github.com/timriffe/KOSTAT_Workshop1/issues)- in that case I encourage you to make the problem [reproducible](https://stackoverflow.com/help/minimal-reproducible-example) so that it's more direct for us to troubleshoot. Alternatively, you can ask us informally by email (both the instructor and an assistant). Please please please ask questions or ask me to slow down or stop or "*scroll up to show the code again*" if necessary. If you have a question then very likely someone else has the same question, so please ask and don't worry about interrupting me. 
 
+# Theoretical
+
+This section will introduce broad concepts within demography. We have not yet learned a thing about R at this point. I do however include some R-code that you will only come to understand later in this workshop. The practical component of this lecture will begin to introduce our R computing environment. Please do not feel like you need to understand the R chunks displayed in this section at this time.
+
+## What is demography?
+
+According to the Max Planck Institute for Demographic Research:
+"*Demography is the science of populations. Demographers seek to understand population dynamics by investigating three main demographic processes: birth, migration, and aging (including death)*." [\url{https://www.demogr.mpg.de/en/about_us_6113/what_is_demography_6674/}]
+
+According to the Oxford Dictionary demography is "*The study of statistics such as births, deaths, income, or the incidence of disease, which illustrate the changing structure of human populations*."
+
+One more...
+"*Demography is the study of the size, territorial distribution, and composition of population, changes therein, and the components of such changes*." [@Hauser1959Population]
+
+In summary, demographers use quantitative approaches to study population dynamics and changes by investigating their
+
+* Size
+* Growth
+* Composition/structure (age, socioeconomic status, etc. )
+* Processes: Fertility, Mortality and Migration
+
+And many more things because really the field is a cognate of many other sciences.
+
+
+## What is a population?
+
+Broadly defined, demographers refer to a population as "*the collection of persons alive at a specific point in time who meet certain criteria*" [@preston2001demography].
+
+Often we just deal with populations defined by administrative boundaries, but this is not necessarily the case.
+
+## Three dimensions of changes
+
+Generally, demographers study demographic events (birth, death and migration) on three interrelated aspects of temporal structure: age, period, and cohort.
+
+### Age and period 
+
+In censuses, civil registries, and most surveys, data and events will generally be recorded by year and age of occurrence. For example, in 2014, 1202 infants died before age 1 in Spain [@HMD]. 
+### Cohort
+
+A cohort is defined as "*the aggregate of all units that experience a particular demographic event during a specific time interval*" [@preston2001demography]. For example, the 1950 Spanish birth cohort consist of all individuals born in 1950 in Spain.
+
+
+### Lexis diagram
+
+The Lexis diagram is a two-dimensional figure used to represent demographic events across year, age, and cohort. On the diagram, age is one dimension and calendar year is the other. Cohorts advance through life along a 45-degree line. 
+
+```{r error=F, message=F, warning=F}
+library("LexisPlotR")
+library(ggplot2)
+mylexis <- lexis_grid(year_start = 2010, year_end = 2015, 
+                    age_start = 0, age_end = 5)+
+  labs(title = "Lexis diagram 1: empty diagram")
+mylexis
+
+```
+
+On a Lexis diagram, each individual is represented as a *life-line*, advancing through time and age as a parallel line to the cohort line.
+
+```{r error=F, message=F, warning=F}
+mylexis<-lexis_grid(year_start = 2010, year_end = 2015, 
+                    age_start = 0, age_end = 5)+
+  labs(title = "Lexis diagram 2: example with life-line")
+lexis_lifeline(lg = mylexis, 
+               birth = "2010-05-01", 
+               exit="2013-03-23", 
+               lineends = TRUE)
+
+```
+
+
+# Data
+
+We will use the Spanish females data from the HMD [@HMD] and HFD [@HFD] for the year 2014 (and 2015 population counts). Please read in the raw data using these lines:
+
+```{r, include = FALSE, eval = FALSE}
+library(HMDHFDplus)
+library(tidyverse)
+
+D <- readHMDweb("KOR", "Deaths_1x1", 
+                    username = Sys.getenv("us"), password = Sys.getenv("pw")) 
+D |> write_csv("Data/DeathsKORHMD.csv")
+E <- readHMDweb("KOR", "Exposures_1x1", 
+                    username = Sys.getenv("us"), password = Sys.getenv("pw")) 
+E |> write_csv("Data/ExposuresKORHMD.csv")
+```
+
+
+```{r error=F, message=F, warning=F}
+# read in, harmonize, filter, and merge data sources
+library(tidyverse)
+library(readr)
+
+# Birth counts in 2014
+B2014 <- read_csv("Data/BirthsKORHFD.csv",
+                  show_col_types = FALSE) |> 
+  mutate(sex = "Total") %>% 
+  select(year = Year, age = Age, sex, births = Total) |> 
+  mutate(age = parse_number(age)) |> 
+  filter(year == 2014)
+
+# Death counts in 2014
+D2014 <- read_csv("Data/DeathsKORHMD.csv",
+                  show_col_types = FALSE)  |>  
+  select(-OpenInterval) |> 
+  pivot_longer(Female:Total, 
+               names_to = "sex", 
+               values_to = "deaths") |> 
+  select(year = Year, age = Age, sex, deaths) |> 
+  filter(year == 2014)
+  
+# HMD exposure estimates for 2014
+E2014 <- read_csv("Data/ExposuresKORHMD.csv",
+                  show_col_types = FALSE)  |>  
+         pivot_longer(Female:Total, 
+                      names_to = "sex", 
+                      values_to = "exposure") |>  
+        select(year = Year, age = Age, sex, exposure) |> 
+  filter(year == 2014)
+
+# merged 2014 data
+KOR2014 <-
+  E2014 |> 
+  left_join(D2014, by = c("year", "age", "sex")) |> 
+  left_join(B2014, by = c("year", "age", "sex")) |> 
+  arrange(sex, age) |> 
+  mutate(sex = tolower(sex),
+         births = if_else(is.na(births),0,births))
+
+write_csv(KOR2014, "Data/KOR2014.csv")
+```
+
+
+# Population pyramid
+
+Population pyramid or age pyramid is the most common tool to visualize the age structure of a population by sex. Each age is represented by a horizontal bar and male age distribution is plotted on the left and female age distribution on the right. Young ages are found at the bottom and older ages at the top.
+
+```{r}
+#Plot the pyramid with ggplot2 (loaded w tidyverse)
+KOR2014 |> 
+  select(sex, age, population = exposure) |> 
+  filter(sex != "total") |> 
+  mutate(population = ifelse(sex == "male", -population, population)) |> 
+  ggplot( aes(x = age, y = population, fill = sex, color = sex)) +
+  geom_bar(stat = "identity",width=1) +
+  scale_y_continuous(breaks = seq(-500000, 500000, 250000),
+                     labels = paste0(as.character(c(seq(500, 0, -250), 
+                                                    seq(250, 500, 250))), "k")) +
+  coord_flip() +
+  scale_color_brewer(palette = "Set1") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_bw()
+```
+
+A population pyramid is an artifact of the demographic history of a population. Its profile is driven by past changes in fertility, mortality, and migration.
+
+
+# Demographic rates vs probability
+
+## Probability
+
+A probability can only be directly observed for a cohort. It refers to the chance that an event will occur [@preston2001demography] and is calculated as: 
+
+$$
+Probability = \frac{Number~of~Occurences}{Number~of~preceeding~Events~or~trials}
+$$
+For example, the probability of dying at a specific age - e.g. age 5 - is the number of deaths occurring at age 5 (between the exact age 5 and exact age 6) in a cohort, divided by the number of people who reached the exact age of 5 in the same cohort. In the Lexis diagram below, the numbers in red are the events (deaths) and the numbers in black are the number of people alive at an exact age or date. Using this example, the death probability at age 1 from the birth cohort 1900 is:
+
+```{r}
+deaths      <- 20 + 15
+preAlive    <- 150
+probability <- deaths / preAlive
+probability
+
+```
+
+```{r error=F, message=F, warning=F, echo=F}
+library(lubridate)
+# devtools::install_github("ottlngr/LexisPlotR")
+library(LexisPlotR)
+lexis_grid(year_start = 1900, year_end = 1903, 
+           age_start = 0, age_end = 3) +
+  labs(title = "Lexis diagram 3: example with numbers")+
+  annotate(geom="text",x=ymd("1901-01-01"), y=1.5,label="200",fontface="bold", angle=90)+
+  annotate(geom="text",x=ymd("1902-01-01"), y=2.5,label="150",fontface="bold", angle=90)+
+  annotate(geom="text",x=ymd("1901-07-01"), y=2,label="175",fontface="bold")+
+  annotate(geom="text",x=ymd("1901-04-01"), y=1.7,label="25",fontface="bold", color="red")+
+  annotate(geom="text",x=ymd("1901-10-01"), y=2.2,label="25",fontface="bold", color="red")+
+  
+  annotate(geom="text",x=ymd("1901-01-01"), y=0.5,label="170",fontface="bold", angle=90)+
+  annotate(geom="text",x=ymd("1902-01-01"), y=1.5,label="130",fontface="bold", angle=90)+
+  annotate(geom="text",x=ymd("1901-07-01"), y=1,label="150",fontface="bold")+
+  annotate(geom="text",x=ymd("1902-07-01"), y=2,label="115",fontface="bold")+
+  annotate(geom="text",x=ymd("1901-04-01"), y=0.7,label="20",fontface="bold", color="red")+
+  annotate(geom="text",x=ymd("1902-04-01"), y=1.7,label="15",fontface="bold", color="red")+
+  annotate(geom="text",x=ymd("1901-10-01"), y=1.2,label="20",fontface="bold", color="red")
+
+```
+
+Probabilities are can not fall outside the range $(0,1)$ (inclusive).
+
+## Rate
+Rather than the chance that an event occurs, as the probability, we here look at the rate (or speed) at which events occur. Rates can be both applied to period and cohort analysis. However, as most demographic information is periodic, period rates are more often used in practice. Other period-perspective demographic quantities, such as period life expectancy, or conditional probabilities, are then derived as needed from rates. We will discuss the implications of period-perspective measures in tomorrow's lesson.
+
+In demography, rates are normally known as occurrence-exposure rates (events related to exposure to risk). Often, exposure rates referred to person-year lived [@preston2001demography]. Rates differ from probabilities in the denominator:
+
+
+$$
+Rate = \frac{Number~of~Occurences}{Number~of~person-years~lived}
+$$
+
+With rates, the number of occurrences is scaled to the population size **per unit time**. Rates tell us the intensity of occurrence for a phenomenon.
+
+### Person-years
+
+The person-years concept refers to the number year a person lived - i.e. is *exposed* to the event - in a specific interval. For example, if a person lives 1 year in an interval 0 to 1 year, then this person contributed one person-year. If another person lived 5 days in the same interval, this person contributed (about) 5/365ths of a person-year in the same time interval. 
+
+In the Lexis diagram 2, the life-line illustrates the case of a person who contributed 0.89 (326/365) person-year of exposure to the risk of dying at age 2 for the birth cohort 2010. The same person contributed 2.89 person-years of exposure in the full 2010 birth cohort.
+
+When person-years are used, the rate is an *annualized* rate.
+
+The person-years are however rarely observed or counted [@preston2001demography]. Thus, person-years ($PY$) are often calculated by assuming that the persons ($P$) who experienced an event ($E$) in a given interval ($t:t+n$), experienced it at the mid-point of the interval:
+
+
+$$
+_nPY_t  = \frac{P_t + P_{t+n}}{2}
+$$
+For example, the death rate at age 1 for the birth cohort 1900 on the Lexis diagram 3 is:
+
+```{r}
+deaths <- 20+15
+Pyear  <- (150+115)/2
+rate   <- deaths/Pyear
+rate
+
+```
+
+The period death rate at age 1 in 1901 is:
+
+```{r}
+deaths <- 25+20
+Pyear  <- (200+130)/2
+rate   <- deaths/Pyear
+rate
+
+```
+
+Sometimes statistical offices release midyear population estimates, derived either directly from population registers or on the basis of demographic accounting. There are also plenty of other approximations out there.
+
+
+# Death rates (all-cause)
+
+* Events (occurrences): deaths
+* Exposure: All person-years lived in the time interval
+
+## Crude death rate
+
+The crude death rate (CDR) is a measure of the risk of death for a whole population: 
+
+$$
+CDR[t,n] = \frac{Number~of~deaths~in~the~population~between~times~t~and~t+n}{Number~of~person-years~lived~in~the~population~between~times~t~and~t+n}
+$$
+
+```{r}
+
+# Person-years
+  KOR2014 |> 
+  filter(sex == "total") |> 
+  summarize(exposure = sum(exposure),
+            deaths = sum(deaths)) |>  
+  mutate(CDR = deaths / exposure)
+
+```
+
+## Age-specific death rates
+
+Age-specific death rates ($M$) measure the risk of death by age $x$ (or between age $x$ and $x+n$) in the population: 
+
+$$
+_nM_x[0,T]= \frac{Number~of~deaths~in~the~age~range~x~to~x+n~between~times~T~and~T+t}{Number~of~person-years~lived~in~the~age~range~x~to~x+n~between~times~T~and~T+t}
+$$
+
+This measure controls for the effect of population age-structure, i.e. some populations have older age-structure than others resulting in higher CDR even if the $_nM_x$ are smaller at most ages. The age interval width $n$ and calendar interval $t$ are up to you and the data.
+
+```{r}
+
+# Person-years by age
+ 
+
+KOR2014 |> 
+  filter(sex == "total") |> 
+  mutate(M = deaths / exposure) |> 
+  ggplot(aes(x = age, y = M)) + 
+  geom_line() + 
+  scale_y_log10() + 
+  labs(title = "Age-specific mortality rates for Korea (total population, 2014)",
+       y = "log mortality") +
+  theme_minimal()
+
+```
+
+# Practical
 # Tour of Rstudio
 
 I presume by now you have `RStudio` installed. If not, go here [https://www.rstudio.com/products/rstudio/download/preview/ ](https://www.rstudio.com/products/rstudio/download/preview/ ) and install the free desktop version. 
@@ -189,7 +495,7 @@ Your template document will also have a header looking something like this:
 ---
 title: "01_notes"
 author: "Your name"
-date: "7/26/2021"
+date: "7/24/2023"
 output: pdf_document
 ---
 
@@ -262,8 +568,6 @@ library(colorspace)
 library(DemoDecomp)
 ```
 
-
-
 ## Help files
 
 Often when trying to use a function, you'll not be sure about all of the options it might have. To get a glimpse of the documentation provided for `library()`, type `?library` in the console. This will open up the help file in the `Help` panel of `RStudio`. Most functions in `R` have help files, and often but not always these are useful. They just take some getting used to. The main sections to pay attention to are:
@@ -321,7 +625,7 @@ exp(c(2, 5, 7))
 log(c(2, 5, 7))
 ```
 
-You can also have fancy expressions, making intelligent use of parentheses, just like in standard mathematics, standard [*order of operations*](https://en.wikipedia.org/wiki/Order_of_operations) applies.
+You can also have more involved expressions, making intelligent use of parentheses, just like in standard mathematics, standard [*order of operations*](https://en.wikipedia.org/wiki/Order_of_operations) applies. When coding, it improves legibility to use parentheses to group operations rather than relying on a reader to sort of order of operations.
 
 ```{r}
 (5 * .07) / (1 + (5 - 2.1) * .07)
@@ -430,46 +734,12 @@ The main rules for `data.frame`s are that the columns are all the same length, a
 
 ### Functions
 
-Functions are little programs we write that takes a defined input and converts it to an output. They are also objects with names. Functions from packages are objects that aren't necessarily shown in your environment viewer, whereas functions *you* write are visible there. You can see the code that a function applies by typing a function name into the console (without the parentheses). The `DemoDecomp` package has a function called `horiuchi()`. Type `horiuchi` in the console to see the function body:
-
-```{r}
-horiuchi
-```
-
-Briefly, this is an implementation of a popular demographic decomposition method. For now, just convince yourself that rather than needing to type out all this code each time you want to use this decomposition method (hypothetically), it's far easier and faster to use the `horiuchi()` function and not need to remember it or re-derive it.
-
-**Wednesday** we will spend an entire session learning to write our own functions.
-
-# Teaser
-
-This set of basic introductions suffices for this course. Know that the world of basic (or `Base`) `R` is extensive, and that the kind of code we'll be writing (`tidyverse` code) has been built on top of it with the aim of simplifying our interface with data. This feat has removed much of the need to *program* in order to do complex tasks in `R`. 
-
-To motivate you, imagine the following multistage task:
-
-## Data (imagine)
-
-You are given a data set containing a daily time series of COVID-19 cases, hospital admissions, urgent care admissions, and deaths by age, sex, and Spanish provinces. Population denominators are delivered in a different data set using different age groups for Spanish autonomous communities (these are aggregates of provinces). A third data source tells you which province is in which autonomous community. A fourth data set gives location code equivalencies for provinces and autonomous communities, because *of course* the different data sources use different location coding systems.
-
-## Objective (imagine)
-
-Calculate *weekly* time series of **age-sex-standardized rates** of cases, hospitalizations, urgent care admissions, and deaths for each autonomous community and visualize these in *ridgeplots* that look something like this (except with labels in your language of course):
-
-\begin{centering}
-\includegraphics[]{def.png}
-\end{centering}
-
-By the end of this workshop, you will be able to handle all of the data loading, data joining, tabulation and calculation and `ggplot2` operations needed to complete a task of this complexity. Further the code to do so will be *parsimonious* and it will be *legible*, and you will be empowered to undertake data analysis tasks of greater complexity. 
+Functions are little programs we write that takes a defined input and converts it to an output. They are also objects with names. Functions from packages are objects that aren't necessarily shown in your environment viewer, whereas functions *you* write are visible there. You can see the code that a function applies by typing a function name into the console (without the parentheses). 
 
 # Excercises 
 
 1. Look at some of the files offered by the World Population Prospects, here: [https://population.un.org/wpp/Download/Standard/Population/](https://population.un.org/wpp/Download/Standard/Population/). There is no need to register to use these data, and we will be using some of it in future sessions. Download a file or two and have a look at what's inside.
 
 2. Register to be a user of the Human Mortality Database (HMD), here: [https://www.mortality.org/Account/Auth](https://www.mortality.org/Account/Auth). If you're already a user then no worries. We will use this at least once.
-
-3. Look at this gallery of `ggplot2` extensions: [https://exts.ggplot2.tidyverse.org/gallery/](https://exts.ggplot2.tidyverse.org/gallery/) Know that these will be things you'll be able to extend *toward* doing if you follow along over the course of this week. In this workshops, we will cover the basics to get started with `ggplot2`
-
-4. Vote for a data set we should work with when we do advanced data processing, here: [https://forms.gle/6N1FEb6czHXU2k5GA](https://forms.gle/6N1FEb6czHXU2k5GA)
-
-5. Look at this free book by Kieran Healey and bookmark it for future reference: [https://socviz.co/](https://socviz.co/). This is a great way to self-learn. That book would be a great way to supplement this course in the following weeks.
 
 
