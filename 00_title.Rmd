@@ -23,7 +23,7 @@ output:
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
     - \fancyhead[RE]{Workshop~1.~Demography in R}
-    - \fancyhead[LO]{{Day 1: Introduction to Rstudio, R, and RMarkdown}}
+    - \fancyhead[LO]{{Workshop contents}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
 ---
@@ -35,31 +35,27 @@ knitr::opts_chunk$set(echo = TRUE)
 \noindent\makebox[\textwidth][c]{
   \begin{minipage}[t]{0.8\textwidth}
     \centering
-    \Large{Instructor: Tim Riffe \\ \texttt{tim.riffe@ehu.eus}}
-   
+    \Large{Instructor: \\ Tim Riffe \texttt{tim.riffe@ehu.eus}\\}
     \vspace{.5cm}
-    \Large{Assistants: \\ Jinyeon Jo: \texttt{jyjo43043@gmail.com} \\ Rustam Tursun-Zade: \texttt{rustam.tursunzade@gmail.com}}
+    \Large{Assistant: \\ Dr. Da eun Kwan: \texttt{dekwan20@kdis.ac.kr}}
   \end{minipage}
 }
 
 
 \vspace{0.8cm}
 \begin{center}
-\large{27 July - 5 August, 2022}
+\large{24 - 28 July, 2023}
 \end{center}
 \vspace{0.8cm}
 
-This workshop was held daily from 27 July until 5 August, 2022 in hybrid format in Daejeon, South Korea and Zoom, with the following daily themes:
+This workshop was held daily from 22 July until until 28 July 2023 in hybrid format in Daejeon, South Korea and Zoom, with the following daily themes:
 
-1. Introduction to Rstudio, R, and RMarkdown
-2. The tidy data approach
-3. Worked example of tidy processing
-4. Writing functions: The Life Table
-5. Visualizing data using ggplot2
-6. Processing and visualizing South Korean fertility microdata
-7. Demographic standardization and decomposition
-8. Advanced processing and visualization
+1. Basic Demographic Data and Concepts 
+2. Mortality and Fertility
+3. Population Structure
+4. Population Growth 
+5. Projection
 
-This document contains each of the eight daily handouts that were prepared ahead of lectures, and which serve as guiding and complementary resources to the lectures. Each lecture was delivered via live coding RMarkdown (`session.Rmd`) documents that roughly reflect the handout material. These may contain further content, but where concepts by be less thoroughly explained. These and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
-
+This document contains each of the five daily handouts that were prepared ahead of lectures, and which serve as guiding and complementary resources to the lectures. Each theoretical lecture was followed by a live coding practical session in RMarkdown (`session.Rmd`), attempting to implement the theoretical concepts delivered. These may contain further content, but where concepts by be less thoroughly explained. These and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
+If this workshop repeats in 2024, then the current contents will be held in a snapshot *release* called `v2023` under the same web address.
 

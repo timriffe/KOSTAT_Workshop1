@@ -54,7 +54,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 # Summary
-This script is in part inherited from Marie-Pier Bergeron Boucher. Her original version of this session forecasts both mortality and fertility using a Lee-Carter model, and then performs a population projection like we did on Thursday but using time-varying forecasted Leslie matrices. That's of course super awesome, but there's no way we can fit it into this session. Instead we will just do a mortality forecast using the basic Lee-Carter method. Parts of this will be in base `R`, using Marie-Pier's code, unaltered. Others have been reformulated using the tidy approach. You may see some neat tricks for toggling back and forth between tidy objects and matrices.
+This script is in part inherited from Marie-Pier Bergeron Boucher. Her original version of this material forecasts both mortality and fertility using a Lee-Carter model, and then performs a population projection like we did on Thursday but using time-varying forecasted Leslie matrices. That's of coursean excellent exercise, but there's no way we can fit it into this session. Instead we will just do a mortality forecast using the basic Lee-Carter method. Parts of this will be in base `R`, using Marie-Pier's code, unaltered (as of this writing). Others have been reformulated using the tidy approach. You may see some neat tricks for toggling back and forth between tidy objects and matrices.
 
 # Demographic forecasting
 

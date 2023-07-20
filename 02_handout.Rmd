@@ -69,7 +69,7 @@ We will take what we need from this file as we go.
 
 ## Death probabilities between age $x$ and $x+n$ $_nq_x$
 
-The first and key step is to transform a set of age-specific death rates into a set of age-specific probabilities of dying (${}_nq_x$). The relationship between ${}_nM_x$ and ${}_nq_x$ has been established based on analyses of actual cohorts (for mathematical proof, see @preston2000demography, p. 42-43). 
+The first and key step is to transform a set of age-specific death rates into a set of age-specific probabilities of dying (${}_nq_x$). The relationship between ${}_nM_x$ and ${}_nq_x$ has been established based on analyses of actual cohorts (for mathematical proof, see @preston2001demography, p. 42-43). 
 
 $$
 {}_nq_x = \frac{n\cdot{}_nM_x}{1+(n-{}_nA_x)\cdot{}_nM_x}
