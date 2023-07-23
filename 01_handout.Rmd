@@ -108,6 +108,11 @@ If you do not manage to ask a question during the session (either verbally, or i
 # Theoretical
 
 This section will introduce broad concepts within demography. We have not yet learned a thing about R at this point. I do however include some R-code that you will only come to understand later in this workshop. The practical component of this lecture will begin to introduce our R computing environment. Please do not feel like you need to understand the R chunks displayed in this section at this time.
+## What is a population?
+
+Broadly defined, demographers refer to a population as "*the collection of persons alive at a specific point in time who meet certain criteria*" [@preston2001demography].
+
+Often we just deal with populations defined by administrative boundaries, but this is not necessarily the case.
 
 ## What is demography?
 
@@ -127,13 +132,6 @@ In summary, demographers use quantitative approaches to study population dynamic
 * Processes: Fertility, Mortality and Migration
 
 And many more things because really the field is a cognate of many other sciences.
-
-
-## What is a population?
-
-Broadly defined, demographers refer to a population as "*the collection of persons alive at a specific point in time who meet certain criteria*" [@preston2001demography].
-
-Often we just deal with populations defined by administrative boundaries, but this is not necessarily the case.
 
 ## Three dimensions of changes
 
@@ -159,6 +157,11 @@ mylexis <- lexis_grid(year_start = 2010, year_end = 2015,
   labs(title = "Lexis diagram 1: empty diagram")
 mylexis
 
+```
+
+```{r, include = FALSE,eval=FALSE}
+mylexis <- mylexis + labs(title = "")
+ggsave(mylexis,filename="lexis.svg")
 ```
 
 On a Lexis diagram, each individual is represented as a *life-line*, advancing through time and age as a parallel line to the cohort line.
@@ -299,7 +302,8 @@ lexis_grid(year_start = 1900, year_end = 1903,
   annotate(geom="text",x=ymd("1902-07-01"), y=2,label="115",fontface="bold")+
   annotate(geom="text",x=ymd("1901-04-01"), y=0.7,label="20",fontface="bold", color="red")+
   annotate(geom="text",x=ymd("1902-04-01"), y=1.7,label="15",fontface="bold", color="red")+
-  annotate(geom="text",x=ymd("1901-10-01"), y=1.2,label="20",fontface="bold", color="red")
+  annotate(geom="text",x=ymd("1901-10-01"), y=1.2,label="20",fontface="bold", color="red") +
+  theme(axis.text = element_text(size = 12))
 
 ```
 
@@ -329,7 +333,7 @@ The person-years are however rarely observed or counted [@preston2001demography]
 
 
 $$
-_nPY_t  = \frac{P_t + P_{t+n}}{2}
+_nPY_t  = n\cdot\frac{P_t + P_{t+n}}{2}
 $$
 For example, the death rate at age 1 for the birth cohort 1900 on the Lexis diagram 3 is:
 
@@ -401,7 +405,9 @@ KOR2014 |>
   scale_y_log10() + 
   labs(title = "Age-specific mortality rates for Korea (total population, 2014)",
        y = "log mortality") +
-  theme_minimal()
+  theme_minimal() +
+  geom_hline(yintercept = 0.005273066, color = "red") +
+  annotate("text", x = 90, y = 0.01, label = "CDR",color="red",size=8)
 
 ```
 
