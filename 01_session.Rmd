@@ -95,11 +95,112 @@ If you have a table-like object, then you can use `write.table()` and use the `s
 write.table(a, file = "a.csv", sep = ";")
 ```
 
+## grabbing material from github:
+
+One way to get my script during class is to tell me to push it to GitHub. Then navigate to the file you want to see, click `raw` then select, copy, and paste.
+
 ## installing packages
 
+Execute this line just once. We don't need to re-install every time we build this markdown file. That would just waste time.
+
+`install.packages()` looks for the package you name in the CRAN repositories.
+
+```{r, eval = FALSE}
+install.packages("tidyverse")
+```
+
+To load a package, use `library()`
+
+```{r, message = FALSE}
+library(tidyverse)
+```
+
 ```{r}
+KOR <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/KOR2014.csv", show_col_types = FALSE)
+
+head(KOR)
+
+KOR |> 
+  pull(sex) |> 
+  unique()
+```
+
+I wanted to check whether we just had data for females, or whether we had a full sex breakdown of the population. It turns out we males, females, and total.
+
+You can make this pipe: `|>` using `Ctrl Shift m` 
+You pipe might look like this: `%>%`
+The pipe reads as "and then do this"
+
+`pull()` selects (extracts) a column, which should be named.
+`unique()` lists the unique values of a vector.
+
+This whole expression reads as a single sentence. "Take KOR then pull off the sex column and then list its unique values."
+
+## `filter()` and `select()`
+
+`filter()` is for rows. 
+`==` is a logical equals, as opposed to an assignment equals. That means we're asking.
+
+```{r}
+2 == 2/1
+my_first_object > .5
 
 ```
+```{r}
+b = 2
+# same as:
+b <- 2
+```
+
+`select()` is for columns. Negative selections throw out (delete) a column.
+```{r}
+KOR |> 
+  select(-year)
+```
+
+```{r}
+KOR |> 
+  filter(sex == "female",
+         between(age, 12,55)) |> 
+  select(age, exposure, deaths)
+```
+
+## Let's look at this data
+
+To create a plot using ggplot (gg stands for grammar of graphics). It's grammatical because there's a systematic way to map variables to aesthetics (coordinates, but also things like size, width, shape, color, etc).
+
+`ggplot()` starts the plot. You should include an aesthetic mapping inside it, using `mapping = aes()`. Other aesthetic attributes are set rather than mapped. 
+
+Then you need to declare a `geom`etric rendering. 
+```{r}
+KOR |> 
+  filter(sex != "total") |> 
+  ggplot(mapping = aes(x = age, y = deaths, color = sex)) +
+  geom_point(size = 3) +
+  theme_minimal()
+```
+
+## objective: plot mortality rates
+
+In order to create a new column for mortality rates, we use `mutate()`. `mutate()` is for creating or modifying columns. Then we pipe into `ggplot()` and make the plot as before, except now we have the rates `mx` in the y coordinates, and we use a line geometry instead of point geometry, and we log the y axis in order to see the pattern.
+
+What we see here is quite consistent with the death count patterns that we saw before. But still some of the difference will be due to population structure differences.
+```{r}
+KOR |> 
+  filter(sex != "total") |> 
+  mutate(mx = deaths / exposure) |> 
+  ggplot(mapping = aes(x = age, y = mx, color = sex)) +
+  geom_line() +
+  scale_y_log10() +
+  theme_minimal()
+```
+
+
+
+
+
+
+
 
 
 
