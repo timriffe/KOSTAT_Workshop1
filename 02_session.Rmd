@@ -258,6 +258,8 @@ fert |>
 
 ## Mean age at childbearing
 
+`summarize()` is for aggregation. We can create various new columns in succession using comma separated statements. In this case, we can use this data to calculate TFR (sum of ASFR), and the mean age at childbearing. For this we compared MAB using births as weights and using rates as weights. I think it's better to use rates as weights when making comparisons or trends. We add 1/2 to age to weight using the midpoints, since births are scattered over the year.
+
 ```{r}
 fert |> 
   mutate(fx = births / exposure,
@@ -270,14 +272,19 @@ fert |>
 
 ## Exercise, calculate NRR
 
+The NRR, or net reproductive ratio, tries to approximate the average number of daughters per woman for a cohort of women subject to mortality. Don't take it too seriously. It's also denoted using $R(0)$ sometimes. This is the same statistic commonly reported in conservation biology or viral epidemiology. The number .4886 is a Berkeley demography tradition. So the story, Ken Wachter always uses this number as a stand-in for 1/SRB due to a once-upon-a-time calculation for a population long forgotten. You can of course use a different approximation of the proportion of births that are female.
+
 $$
 NRR = \sum_{12}^{55} L_x^{female} \cdot f_x \cdot .4886
 $$
 
- 0.583
+ 0.583 came from Dol Narayan, spot on if we us .4886.
+ 
+ To calculate this we need to first set up the data. We start with the lifetables we already
 
 ```{r}
 LT |> 
+  ungroup() |> 
   filter(sex == "female") |> 
   select(-births) |> 
   left_join(B, by = "age") |> 
