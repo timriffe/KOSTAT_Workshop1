@@ -212,10 +212,81 @@ source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifet
 
 If you run that line of code, it gives you all the functions I just wrote. 
 
+## make the lifetable for all subsets
+
+```{r}
+LT <- 
+KOR |> 
+  group_by(sex) |> 
+  mutate(mx = deaths / exposure,
+         ax = c(.14,rep(.5,109),1.4),
+         n = rep(1,111),
+         qx = calc_qx(mx,ax,n),
+         lx = calc_lx(qx),
+         dx = calc_dx(lx,qx),
+         Lx = calc_Lx(lx,dx,ax,n),
+         Tx = calc_Tx(Lx),
+         ex = calc_ex(Tx,lx)) 
+LT |> 
+  ggplot(mapping = aes(x = age,
+                       y = ex,
+                       color = sex)) +
+  geom_line() +
+  geom_abline(intercept = 80, slope = -1)
+```
+
+## Fertility
+
+```{r}
+B <-
+  KOR |> 
+  filter(births > 0) |> 
+  select(age, births)
+
+fert <-
+  KOR |> 
+  filter(sex == "female") |> 
+  select(age, exposure) |> 
+  right_join(B, by = "age")
+
+fert |> 
+  mutate(fx = births / exposure) |> 
+  ggplot(mapping = aes(x = age,
+                       y = fx)) +
+  geom_line()
+```
+
+## Mean age at childbearing
+
+```{r}
+fert |> 
+  mutate(fx = births / exposure,
+         age2 = age + .5) |> 
+  summarize(TFR = sum(fx),
+            MAB_fx = sum(fx * age2) / sum(fx),
+            MAB_B = sum(births * age2) / sum(births))
+```
 
 
+## Exercise, calculate NRR
 
+$$
+NRR = \sum_{12}^{55} L_x^{female} \cdot f_x \cdot .4886
+$$
 
+ 0.583
+
+```{r}
+LT |> 
+  filter(sex == "female") |> 
+  select(-births) |> 
+  left_join(B, by = "age") |> 
+  mutate(births = if_else(is.na(births), 0, births),
+         fx = births / exposure) |> 
+  select(age, Lx, fx) |> 
+  summarize(NRR = 1 / (1 + 223356/212079) * sum(Lx * fx))
+  
+```
 
 
 
