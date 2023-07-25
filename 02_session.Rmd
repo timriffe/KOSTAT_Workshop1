@@ -20,7 +20,8 @@ To make an R snippet use `Ctrl Alt i`, commit to muscle memory
 library(tidyverse)
 KOR <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/KOR2014.csv")
 options(scipen = 999)
-KOR |> # Ctrl Shift m
+
+KOR |> # Ctrl Shift m makes either |> or %>% (both are pipes)
   mutate(mx = deaths / exposure) |> 
   filter(sex != "total") |> 
   ggplot(mapping = aes(x = age, y = mx, color = sex)) +
@@ -31,6 +32,131 @@ KOR |> # Ctrl Shift m
   theme(axis.text = element_text(size = 16),
         axis.title = element_text(size = 16))
 ```
+
+## the lifetable functions
+
+Recall the first step of calculating a period lifetable is to convert rates to probabilities. Here's the trick we use:
+
+$$
+{}_nq_x = \frac{n \cdot {}_nM_x}{1 + (n - {}_nA_x) \cdot {}_nM_x} \\
+q_x = f(m_x,a_x,n_x)
+
+$$
+
+
+$q_x$ is the notation for a conditional death probability.
+$a_x$ is the average time spend in the age interval of those that don't survive until the end of the age interval. Usually we just say that this is half of the interval width.
+```{r}
+mx <-
+  KOR |> 
+  mutate(mx = deaths / exposure) |> 
+  filter(sex == "total") |> 
+  pull(mx)
+
+ax    <- rep(.5, 111)
+ax[1] <- .1
+n     <- rep(1,111)
+qx    <- (n * mx) / (1 + (n - ax) * mx)
+```
+
+
+## functions
+
+The anatomy of a function
+
+`name`, which we assign the metafunction `function()` to, where we list the arguments (parameters) of our function inside its parentheses. The function body starts and stops with `{}`. What you do with the arguments inside of the `{}` is your own business. The only thing that gets out of the function is what you put inside `return()`, at the end of the function body.
+
+
+```{r}
+calc_qx <- function(mx, ax, n){ # function body starts here
+  qx    <- (n * mx) / (1 + (n - ax) * mx)
+  return(qx)
+} # ends here
+
+calc_qx(mx, ax, n)
+```
+
+## survival curve
+
+$$
+\ell_x = \prod _{i=0}^{x-1} (1 - q_i)
+$$
+
+The core piece of the function is the operation of `cumsum(1-qx)`.
+We stick a 1 on the front to get a clean start to the cohort. 
+Then we make sure the vector is the same length as what we started with (`qx`)
+Then we optionally rescale the whole `lx` vector to an arbitrary radix size. The most common choice is 100000, but mathematical demographers prefer the value of 1 when doing work.
+
+```{r}
+calc_lx <- function(qx, radix = 1){
+
+  lx <- cumprod(1 - qx)
+  lx <- c(1, lx)
+  lx <- lx[1:111]
+  lx <- radix * lx
+  return(lx)
+}
+lx <- calc_lx(qx, radix = 100000)
+
+```
+
+## derive the death distribution from lx
+
+$$ d_x = \ell_{x+1} - \ell_x$$
+$$ d_x = \ell_x \cdot q_x$$
+This is the preferred way to code the death distribution calculation because all the elements are already the right length and aligned. We ensure that the resulting `dx` adds up to the `radix` value by setting the final value of `qx` to 1. If we didn't do that, it would mean that not everyone dies. It's sort of a detail, but we do it for rigor.
+
+```{r}
+calc_dx <- function(lx,qx){
+  qx[111] <- 1
+  
+  dx <- lx * qx
+  return(dx)
+}
+
+calc_dx(lx,qx) |> sum()
+```
+
+```{r}
+calc_dx2 <- function(lx){
+  lx <- c(lx,0)
+  dx <- -diff(lx)
+  return(dx)
+}
+```
+
+## First estimate of $e(0)$
+
+Exercise: implement an estimate of $e_0$ given $d_x$, using it to weight together ages.
+
+```{r}
+age <- 0:110
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
