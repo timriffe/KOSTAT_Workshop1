@@ -1,0 +1,36 @@
+---
+title: "Session 2 notes"
+author: "Tim Riffe"
+date: "2023-07-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is just text, we can write as we like here.
+Sometime you'll see me put code-like things in side of `back ticks`. That is just for text formatting, it isn't actually code.
+
+To make an R snippet use `Ctrl Alt i`, commit to muscle memory
+
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+KOR <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/KOR2014.csv")
+options(scipen = 999)
+KOR |> # Ctrl Shift m
+  mutate(mx = deaths / exposure) |> 
+  filter(sex != "total") |> 
+  ggplot(mapping = aes(x = age, y = mx, color = sex)) +
+  geom_line(linewidth = 3) +
+  geom_hline(yintercept = 0.00289,color = "#8a36ba") +
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 16),
+        axis.title = element_text(size = 16))
+```
+
+
+
