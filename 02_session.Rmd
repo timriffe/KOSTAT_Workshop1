@@ -73,7 +73,7 @@ calc_qx <- function(mx, ax, n){ # function body starts here
   return(qx)
 } # ends here
 
-calc_qx(mx, ax, n)
+# calc_qx(mx, ax, n)
 ```
 
 ## survival curve
@@ -123,6 +123,7 @@ calc_dx2 <- function(lx){
   dx <- -diff(lx)
   return(dx)
 }
+dx <- calc_dx(lx,qx)
 ```
 
 ## First estimate of $e(0)$
@@ -155,7 +156,7 @@ calc_Lx <- function(qx,ax,n, radix = 1){
   Lx <- lx * n - (n - ax) * dx
   return(Lx)
 }
-
+# from Neha:
 calc_Lx <- function(lx,dx,ax,n){
   Lx <- lx * n - (n - ax) * dx
   return(Lx)
@@ -200,7 +201,16 @@ KOR |>
 ```
 
 
+## loading in self-written functions
 
+I copied all of our functions into an R script (a file ending in `.R`) called `lifetable_utils.R`. We can load these into our R session straight from the web like so:
+
+This little piece of code is in the Google Doc.
+```{r}
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_utils.R")
+```
+
+If you run that line of code, it gives you all the functions I just wrote. 
 
 
 
