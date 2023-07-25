@@ -280,7 +280,7 @@ $$
 
  0.583 came from Dol Narayan, spot on if we us .4886.
  
- To calculate this we need to first set up the data. We start with the lifetables we already
+ To calculate this we need to first set up the data. We start with the lifetables we already made. To do that I modified the earlier code chunk where we made the lifetables. Rather than visualizing them (and then losing that info) I saves them to an object `LT`, that way we can use them later (here). Then I filter down to females and join `B` to this, then plug in 0s for the NAs (no fert data outside of ages 12-55), then we calculate the measure in `summarize()` since this is a form of aggregation. In the end we got the empirical proportion female of births from the HMD births file.
 
 ```{r}
 LT |> 
