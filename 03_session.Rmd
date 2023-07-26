@@ -191,7 +191,7 @@ ex_threshold <- function(age, ex, threshold = 15){
   age_star <- splinefun(x = age, y = ex)(threshold)
   return(age_star)
 }
-ex_threshold(age, ex, threshold = 20)
+ex_threshold(age = 0:110, ex, threshold = 20)
 
 plot(0:110, ex, type = 'l')
 abline(a = 15, b = 0)
@@ -201,7 +201,30 @@ Exercise (~15 min):
 
 Calculate all lifetables using the HMD data (remember to group by country, sex, year). You can use the same `mutate()` call that we did earlier for that single chunk. Then, using those same groups, pipe to a `summarize()` call, where you apply the new threshold estimator function to the data. The resulting output will have 4 columns and 9352 rows.
 
+```{r}
+thresholds <-
+hmd |> 
+  select(-mx2) |> 
+  group_by(country, sex, year) |> 
+  mutate(qx = calc_qx(mx, ax, n),
+         lx = calc_lx(qx),
+         dx = calc_dx(lx, qx),
+         Lx = calc_Lx(lx, dx, ax, n),
+         Tx = calc_Tx(Lx),
+         ex = calc_ex(Tx,lx)) |> 
+  summarize(t15 = ex_threshold(age, ex, threshold = 15),
+            t10 = ex_threshold(age, ex, threshold = 10),
+            .groups = "drop")
 
+```
+
+Density plot of the threshold ages:
+
+```{r}
+thresholds |> 
+  ggplot(aes(x = t15, color = sex)) +
+  geom_density()
+```
 
 
 
