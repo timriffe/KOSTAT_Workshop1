@@ -220,7 +220,6 @@ thresholds <-
   summarize(t15 = ex_threshold(age, ex, threshold = 15),
             t10 = ex_threshold(age, ex, threshold = 10),
             .groups = "drop")
-
 ```
 
 Density plot of the threshold ages:
@@ -229,6 +228,54 @@ Density plot of the threshold ages:
 thresholds |> 
   ggplot(aes(x = t15, color = sex)) +
   geom_density()
+```
+
+## Apply these thresholds to population data
+
+```{r}
+pop <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/pop1dt.csv.gz")
+```
+
+Step 1, reshape the data to stack the sex-specific counts
+
+```{r}
+# install.packages("countrycode")
+library(countrycode)
+pop_clean <-
+  pop |> 
+  pivot_longer(c(popM, popF, pop), 
+               names_to = "sex", 
+               values_to = "pop") |> 
+  filter(sex != "pop") |> 
+  mutate(sex = if_else(sex == "popM", "m","f"),
+         iso3 = countrycode(sourcevar = country_code,
+                            origin = "un",
+                            destination = "iso3c",
+                            warn = FALSE),
+         iso3 = if_else(name == "China, Taiwan Province of China","TWN", iso3)) |> 
+  filter(!is.na(iso3)) 
+
+# hmd_countries <- thresholds$country |> unique()
+# countryname(hmd_countries, destination = 'iso3c')
+# 
+# 
+# tibble(hmd_name = hmd_countries,
+#        iso3 = countryname(hmd_countries, 
+#                           destination = 'iso3c',
+#                           warn = FALSE)) |> 
+#   write_csv("hmd_codes.csv")
+# 
+# pop_clean |> pull(iso3) |> unique() |> sort()
+```
+
+```{r}
+hmd_codes <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/hmd_codes.csv", show_col_types = FALSE)
+```
+
+```{r}
+thresholds |> 
+  rename(hmd_name = country) |> 
+  left_join(hmd_codes, by = "hmd_name")
 ```
 
 
