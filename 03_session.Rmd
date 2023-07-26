@@ -202,8 +202,13 @@ Exercise (~15 min):
 Calculate all lifetables using the HMD data (remember to group by country, sex, year). You can use the same `mutate()` call that we did earlier for that single chunk. Then, using those same groups, pipe to a `summarize()` call, where you apply the new threshold estimator function to the data. The resulting output will have 4 columns and 9352 rows.
 
 ```{r}
-thresholds <-
+
 hmd |> 
+  filter(country == "Belgium", year == 1914)
+
+thresholds <-
+  hmd |> 
+  filter(!is.na(mx)) |> 
   select(-mx2) |> 
   group_by(country, sex, year) |> 
   mutate(qx = calc_qx(mx, ax, n),
@@ -211,7 +216,7 @@ hmd |>
          dx = calc_dx(lx, qx),
          Lx = calc_Lx(lx, dx, ax, n),
          Tx = calc_Tx(Lx),
-         ex = calc_ex(Tx,lx)) |> 
+         ex = calc_ex(Tx, lx)) |> 
   summarize(t15 = ex_threshold(age, ex, threshold = 15),
             t10 = ex_threshold(age, ex, threshold = 10),
             .groups = "drop")
