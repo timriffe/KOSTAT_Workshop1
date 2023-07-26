@@ -42,8 +42,7 @@ chunk$mx
 mx <- chunk[["mx"]]
 ```
 
-## Recycling functions 
-
+## Recycling functions and demonstrating frailty composition
 
 First, let's pretend there are two subpopulations, one with high and one with low mortality.
 Let's calculate lifetables for them, and see how their relative weights change over age. In the end, the low-mortality subpopulation dominates.
@@ -59,6 +58,7 @@ frailty <-
   group_by(frailty) |> 
   mutate(
      n = 1,
+     # HT Ruchira for pointing out that ax was missing here
      ax = c(.1,rep(.5,110)),
      qx = calc_qx(mx,ax,n),
      lx = calc_lx(qx)) |> 
@@ -87,6 +87,57 @@ frailty |>
 
 This demonstrates the power of risk strata to (i) change the composition of the population over age, and (ii) affect the aggregate outcome. It begs the question: how much of a trend is due to the actual conditions of the phenomenon of interest, and how much is due to compositional change?
 
+Note: at first I forgot to include `ax` in the calculations. Note, `calc_qx()` requires `ax`, and I assigned it. The code didn't break because coincidentally I had a vector called `ax` in active memory. Since `mutate()` didn't find `ax` among the columns in the data, it used the `ax` it found in the environment. However, if we were to re-run this code in a fresh session (or simply build the document) we would provoke an error. Thanks Ruchira for bringing this to my attention.
+
+## Explore this HMD dataset
+
+How many distinct subsets are there in the data? A subset is defined by unique combinations of country, sex, and year. `distinct()` can be used to remove redundant rows.
+```{r}
+hmd |> 
+  select(country, sex, year) |> 
+  distinct() |> 
+  nrow()
+```
+
+## Visualize all of the mortality rates
+
+Exercise: plot all the mortality patterns in a single plot.
+Note, to tell ggplot how to split / group the lines, use the `groups` mapping. Since we have 3 different key variables (`country`,`sex`, and `year`), you'll need to list all three for `groups`. To do so jointly, try `interaction(country, sex, year)`. Try setting `alpha` to something like .01 or .02. Don't forget to log the y axis (don't log the data itself).
+
+```{r}
+
+a <- 0:100
+a - a %% 5
+
+p <-
+hmd |> 
+  mutate(century = year - year %% 100) |> 
+  ggplot(mapping = aes(x = age, 
+                       y = mx, 
+                       group = interaction(country, year))) +
+  geom_line(alpha = .01) +
+  scale_y_log10() +
+  facet_grid(rows = vars(century),cols = vars(sex)) +
+  theme_minimal()
+
+ggsave("hmdmx.pdf", plot = p, height = 30, width = 8, units = "cm")
+```
+
+Note: we use modulo `%%` (remainder) to create century groupings for the panel plot. The panel is specified using `facet_grid()` because we ended up wanting side-by-side plots for sex and ordered vertically by century. You might think of using this panel technique for other sorts of contrasts. If there are few lines, then there's no need to separate panels. In this case, I was just trying to parse the data down to reduce overlap between lines.
+
+```{r}
+
+hmd |> 
+  filter(year >= 1990) |> 
+  mutate(mx2 = if_else(mx == 0, NA_real_, mx)) |> 
+  ggplot(aes(x = age, y = mx2, group = interaction(year,country))) +
+  geom_line(alpha = .02, color = gray(.5)) +
+  scale_y_log10() +
+  facet_wrap(~sex) +
+  theme_minimal()
+
+hmd |> pull(country) |> unique()
+```
 
 
 
