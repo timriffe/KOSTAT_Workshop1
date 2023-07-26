@@ -232,11 +232,19 @@ thresholds |>
 
 ## Apply these thresholds to population data
 
+The task now is to calculate different versions of the old-age dependency ratio. For this, we need information on the age-sex structure of the population. All by itself, that's enough to calculate the classic old-age dependency ratio:
+
+$$
+ODR = \frac{\sum_{65}^\omega P_x}{\sum _{15}^{64}P_x}
+$$
+ Or at least it's something close to this. The exact age cut points might be different in different countries, it usually depends on how retirement and pensions are handled. Anyway, we'll calculate it like the above. But the real exercise is to also calculate it using our newly calculated Sanderson-Scherbov threshold ages (the age where $e(x)$ crosses 15). This implies that we need to merge the threshold results with the population data. In our case the population data come from the UN with UN codes, whereas the HMD data have just idiosyncratic in-house country names.
+
+1. read in the WPP data
 ```{r}
-pop <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/pop1dt.csv.gz")
+pop <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/pop1dt.csv.gz", show_col_types = FALSE)
 ```
 
-Step 1, reshape the data to stack the sex-specific counts
+2. reshape the data to stack the sex-specific counts, filter to males and females, then recode to iso3 and keep only valid iso3 codes.
 
 ```{r}
 # install.packages("countrycode")
@@ -268,18 +276,65 @@ pop_clean <-
 # pop_clean |> pull(iso3) |> unique() |> sort()
 ```
 
+We then automatically translated the HMD names to iso3 to the extent possible, but there were some false positives, so we took care of that in a spreadsheet. Doing that sort of task can create value because handling odd cases wastes time so you should only need to do it once.
+
 ```{r}
 hmd_codes <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/hmd_codes.csv", show_col_types = FALSE)
 ```
 
 ```{r}
-thresholds |> 
+thresholds <-
+  thresholds |> 
   rename(hmd_name = country) |> 
-  left_join(hmd_codes, by = "hmd_name")
+  left_join(hmd_codes, by = "hmd_name") |> 
+  filter(!is.na(iso3))
 ```
 
+```{r}
 
+t15 <- 63.456
 
+# p <-
+# pop_clean |> 
+#   filter(iso3 == "USA",
+#          year == 1990,
+#          sex == "m") |> 
+#   pull(pop)
+# 
+# age <- 0:100
+calc_POADR <- function(p, age, threshold){
+  threshold <- threshold[1]
+  lower_top <- floor(threshold)
+  frac      <- threshold - lower_top
+  p_split   <- p[age == lower_top]
+  denom     <- sum(p[age < lower_top & age >= 15]) + p_split * frac
+  numerator <- sum(p[age > t15]) + p_split * (1 - frac)
+  
+  POADR <- numerator / denom
+  return(POADR)
+}
+# calc_POADR(p, 0:100, 75.432)
+```
+
+```{r}
+calc_OADR <- function(p, age){
+  num   <- sum(p[age >= 65]) 
+  denom <- sum(p[age >= 15 & age < 65])
+  OADR  <- num / denom
+  return(OADR)
+}
+```
+
+```{r}
+thresholds |> 
+  left_join(pop_clean,by = c("iso3","year","sex"),
+            multiple = "all") |> 
+  group_by(iso3, year, sex) |> 
+  summarize(OADR = calc_OADR(p = pop, age = age),
+            POADR = calc_POADR(p = pop, age = age, threshold = t15)) |> 
+  ggplot(aes(x = OADR, y = POADR, color = sex)) +
+  geom_point(alpha = .3)
+```
 
 
 
