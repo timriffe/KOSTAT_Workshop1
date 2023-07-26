@@ -238,3 +238,10 @@ avgmx |>
   geom_line() 
 
 hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz")
+
+library(wpp2022)
+data("pop1dt")
+pop1dt |> write_csv("Data/pop1dt.csv")
+library(utils)
+
+test <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/pop1dt.csv.gz")
