@@ -59,6 +59,7 @@ frailty <-
   group_by(frailty) |> 
   mutate(
      n = 1,
+     ax = c(.1,rep(.5,110)),
      qx = calc_qx(mx,ax,n),
      lx = calc_lx(qx)) |> 
   ungroup() |> 
