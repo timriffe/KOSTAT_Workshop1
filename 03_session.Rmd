@@ -125,19 +125,77 @@ ggsave("hmdmx.pdf", plot = p, height = 30, width = 8, units = "cm")
 
 Note: we use modulo `%%` (remainder) to create century groupings for the panel plot. The panel is specified using `facet_grid()` because we ended up wanting side-by-side plots for sex and ordered vertically by century. You might think of using this panel technique for other sorts of contrasts. If there are few lines, then there's no need to separate panels. In this case, I was just trying to parse the data down to reduce overlap between lines.
 
-```{r}
 
-hmd |> 
+Exercise: plot a single country-year on top of this background pattern.
+```{r}
+hmd <-
+  hmd |> 
   filter(year >= 1990) |> 
-  mutate(mx2 = if_else(mx == 0, NA_real_, mx)) |> 
+  mutate(mx2 = if_else(mx == 0, NA_real_, mx)) 
+
+highlight <-  
+  hmd |> 
+  filter(country == "Bulgaria", 
+         year == 2021)
+hmd |> 
   ggplot(aes(x = age, y = mx2, group = interaction(year,country))) +
   geom_line(alpha = .02, color = gray(.5)) +
   scale_y_log10() +
   facet_wrap(~sex) +
-  theme_minimal()
+  theme_minimal() +
+  geom_line(data = highlight, 
+            color = "red")
 
 hmd |> pull(country) |> unique()
 ```
+
+## Sanderson Scherbov prospective age threshold
+
+```{r}
+ex <-
+  hmd |> 
+  filter(country == "France",
+         year == 2003,
+         sex == "m") |> 
+  mutate(n = 1,
+         qx = calc_qx(mx,ax,n),
+         lx = calc_lx(qx),
+         dx = calc_dx(lx,qx),
+         Lx = calc_Lx(lx,dx,ax,n),
+         Tx = calc_Tx(Lx),
+         ex = calc_ex(Tx,lx)) |> 
+  pull(ex)
+```
+
+Now we need to do an interpolation of some kind. The goal will be to predict the age where `ex` hits exactly 15.
+
+Here's how we can get a cheap linear interpolation using base `R`. `approx()` fits and spline and fits a requested prediction, giving back both `x` and `y` coordinates in a list structure. But I find `approxfun()` more convenient because the output is easier to handle mostly. They give identical results.
+```{r}
+approx(x= 0:110, y = ex, xout = 15)$y
+approxfun(x=0:110, y = ex)(15)
+```
+
+ We could also do a spline interpolation
+ 
+```{r}
+splinefun(x = 0:110, y = ex)(15)
+```
+ 
+
+# Exercise: make a function that returns a threshold age
+
+Note: we want the value of 15 to be a parameter. You can call the argument `threshold` if you want. If by default you want it to be 15, then set `threshold = 15` when defining the function. It doesn't matter which method you use, linear or spline.
+
+```{r}
+
+```
+
+
+
+
+
+
+
 
 
 
