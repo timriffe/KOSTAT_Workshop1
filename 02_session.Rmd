@@ -283,6 +283,8 @@ $$
  To calculate this we need to first set up the data. We start with the lifetables we already made. To do that I modified the earlier code chunk where we made the lifetables. Rather than visualizing them (and then losing that info) I saves them to an object `LT`, that way we can use them later (here). Then I filter down to females and join `B` to this, then plug in 0s for the NAs (no fert data outside of ages 12-55), then we calculate the measure in `summarize()` since this is a form of aggregation. In the end we got the empirical proportion female of births from the HMD births file.
 
 ```{r}
+
+PFB <- 1 / (1 + 223356/212079)
 LT |> 
   ungroup() |> 
   filter(sex == "female") |> 
@@ -291,7 +293,7 @@ LT |>
   mutate(births = if_else(is.na(births), 0, births),
          fx = births / exposure) |> 
   select(age, Lx, fx) |> 
-  summarize(NRR = 1 / (1 + 223356/212079) * sum(Lx * fx))
+  summarize(NRR = PFB * sum(Lx * fx))
   
 ```
 
