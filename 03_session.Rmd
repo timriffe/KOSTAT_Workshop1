@@ -1,0 +1,91 @@
+---
+title: "Session 3 notes"
+author: "Tim Riffe"
+date: "2023-07-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Review
+
+```{r, message = FALSE}
+library(tidyverse)
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_utils.R")
+```
+
+
+```{r}
+hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz",
+                show_col_types = FALSE)
+```
+
+## Question: why `pull()`?
+
+`pull()` was used to extract a column from a dataset. You could also use `[["mx]]`, `$mx`. You'll see these other two idioms in older R code. There are actually more ways than this, and I don't recommend them. The reason why we wanted a vector was for testing functions we were writing, as a piece of toy data.
+```{r}
+hmd |> str()
+
+hmd |> 
+  filter(sex == "f",
+         country == "Australia",
+         year == 2020) |> 
+  pull(mx)
+chunk <- 
+  hmd |> 
+  filter(sex == "f",
+         country == "Australia",
+         year == 2020)
+chunk$mx
+mx <- chunk[["mx"]]
+```
+
+## Recycling functions 
+
+
+First, let's pretend there are two subpopulations, one with high and one with low mortality.
+Let's calculate lifetables for them, and see how their relative weights change over age. In the end, the low-mortality subpopulation dominates.
+```{r}
+
+mx1 <- mx
+mx2 <- mx1 * 4
+
+frailty <- 
+  tibble(age = 0:110, low = mx1, high = mx2) |> 
+  pivot_longer(c(low, high), names_to = "frailty", values_to = "mx") |> 
+  # each subset has 111 rows
+  group_by(frailty) |> 
+  mutate(
+     n = 1,
+     qx = calc_qx(mx,ax,n),
+     lx = calc_lx(qx)) |> 
+  ungroup() |> 
+  # each subset has 2 rows
+  group_by(age) |> 
+  mutate(w = lx / sum(lx))
+```
+
+Now we want to be able to plot the population average on top of it. For this, we take the earlier result and aggregate it using the `group_by() |> summarise()` idiom.
+```{r}
+avg <-
+  frailty |> 
+  group_by(age) |> 
+  summarize(mx = sum(mx * w))
+```
+
+Now we can compose the plot with two layers. In the first, we map color to the frailty subsets. We do that mapping directly inside the `geom_line()` for that layer, because the color mapping should only apply to that layer. Then we can add another line on top for the population average
+```{r}
+frailty |> 
+  ggplot(aes(x = age, y = mx)) +
+  geom_line(mapping = aes(color = frailty)) +
+  geom_line(data = avg, color = "black", linewidth = 2) +
+  scale_y_log10() 
+```
+
+This demonstrates the power of risk strata to (i) change the composition of the population over age, and (ii) affect the aggregate outcome. It begs the question: how much of a trend is due to the actual conditions of the phenomenon of interest, and how much is due to compositional change?
+
+
+
+
