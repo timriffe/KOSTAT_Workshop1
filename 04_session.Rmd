@@ -1,0 +1,111 @@
+---
+title: "Session 4 notes"
+author: "Tim Riffe"
+date: "2023-07-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# simple growth
+
+# Geometric
+$$ N(t) = N(0)\cdot(1+r)^t $$
+
+This sort of growth could be used for intercensal population estimates in the case where no vital registration data were available between the censuses (meaning no cohort component estimates are available). In this case, connect the cohorts. This might require fiddling with the census estimates in advance to (i) adjust them, or (ii) align them so that ages cleanly correspond with birth cohorts. Then it doesn't matter if the census is not on a clean Jan 1, July 1 or Dec 31 reference date, because you can interpolate as you like to the reference dates that you need.
+```{r}
+N0   <- 1000
+r    <- .05
+time <- 100
+Nt   <- N0 * (1 + r)^0:100
+```
+
+# Exponential
+$$ N(t) = N(0)\cdot e^{rt} $$
+```{r}
+N0 * exp(r*time)
+```
+
+# stationary age structure
+
+```{r}
+library(tidyverse)
+
+hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz",
+                show_col_types = FALSE)
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_utils.R")
+```
+
+Let's pick out a subset and make a pyramid for it?
+
+```{r}
+SRB <- 1.05
+PF  <- 1 / (1 + 1.05)
+stationary <-
+  hmd |> 
+  filter(country == "Spain", year == 1970) |> 
+  group_by(sex) |> 
+  mutate(n = 1,
+         qx = calc_qx(mx, ax, n),
+         lx = calc_lx(qx),
+         dx = calc_dx(lx, qx),
+         Lx = calc_Lx(lx, dx, ax, n)) |> 
+  ungroup() |> 
+  select(sex, age, Lx) |> 
+  mutate(Cx = if_else(sex == "f", Lx * PF, Lx * (1 - PF)),
+         Cx = 100 * Cx / sum(Cx))
+stationary |> 
+  mutate(Cx = if_else(sex == "m", -Cx, Cx)) |> 
+  ggplot(mapping = aes(x = age, y = Cx, fill = sex)) +
+  geom_col(width = 1) +
+  coord_flip() +
+  theme_minimal() +
+  scale_y_continuous(labels = c(".6",".4",".2","",".2",".4",".6"), breaks = seq(-.6,.6,by=.2)) +
+  scale_x_continuous(breaks = seq(0,100,by=25))+
+  scale_fill_manual(values = c(m = "#abd98f", f = "#d9af8f")) +
+  guides(fill = "none") +
+  geom_hline(yintercept  = seq(-.6,.6,by=.2), col = "white", linewidth = .5) +
+  geom_vline(xintercept = seq(25,75,by=25), col = "white", linewidth = .5)
+```
+
+# stable age structure
+
+$$ C(x,r) = \frac{\ell(x)\cdot e^{-rx}}{\int_{x=a}^\omega\ell(a)\cdot e^{-ra} \mathrm{d}a}$$
+
+```{r}
+r <- .005
+stationary |> 
+  mutate(Cx = Cx * exp(-r * (age + .5)),
+         Cx = 100 * Cx / sum(Cx),
+         Cx = if_else(sex == "m", -Cx, Cx)) |> 
+  ggplot(mapping = aes(x = age, y = Cx, fill = sex)) +
+  geom_col(width = 1) +
+  coord_flip() +
+  theme_minimal() +
+  scale_y_continuous(labels = c(".6",".4",".2","",".2",".4",".6"), breaks = seq(-.6,.6,by=.2)) +
+  scale_x_continuous(breaks = seq(0,100,by=25))+
+  scale_fill_manual(values = c(m = "#abd98f", f = "#d9af8f")) +
+  guides(fill = "none") +
+  geom_hline(yintercept  = seq(-.6,.6,by=.2), col = "white", linewidth = .5) +
+  geom_vline(xintercept = seq(25,75,by=25), col = "white", linewidth = .5)
+```
+
+```{r}
+r_table <- tibble(r = seq(-.03,.03,by=.01))
+
+stationary |> 
+  mutate(Cx = Cx * exp(-r * (age + .5)),
+         Cx = 100 * Cx / sum(Cx)) |> 
+  cross_join(r_table)
+```
+
+
+# demonstrate period - cohort mismatch in stable populations
+
+
+
+
+
+
