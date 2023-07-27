@@ -38,7 +38,7 @@ chunk <-
   filter(sex == "f",
          country == "Australia",
          year == 2020)
-chunk$mx
+
 mx <- chunk[["mx"]]
 ```
 
@@ -178,6 +178,10 @@ approxfun(x=0:110, y = ex)(15)
  We could also do a spline interpolation
  
 ```{r}
+
+my_spline <- splinefun(x = 0:110, y = ex)
+my_spline(15)
+# same expression:
 splinefun(x = 0:110, y = ex)(15)
 ```
  
@@ -208,8 +212,8 @@ Calculate all lifetables using the HMD data (remember to group by country, sex, 
 
 thresholds <-
   hmd |> 
+  # gets rid of Belgium WWI rows of NAs
   filter(!is.na(mx)) |> 
-  select(-mx2) |> 
   group_by(country, sex, year) |> 
   mutate(n= 1,
          qx = calc_qx(mx, ax, n),
@@ -243,6 +247,7 @@ $$
 1. read in the WPP data
 ```{r}
 pop <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/pop1dt.csv.gz", show_col_types = FALSE)
+
 ```
 
 2. reshape the data to stack the sex-specific counts, filter to males and females, then recode to iso3 and keep only valid iso3 codes.
@@ -288,7 +293,7 @@ Here we add the iso3 code to the HMD-based results (the ad hoc calculated thresh
 thresholds <-
   thresholds |> 
   rename(hmd_name = country) |> 
-  left_join(hmd_codes, by = "hmd_name") 
+  left_join(hmd_codes, by = "hmd_name") |> 
   filter(!is.na(iso3))
 ```
 
@@ -303,13 +308,24 @@ We then designed a function rather quickly to give an excessively exact ratio. F
 #          sex == "m") |> 
 #   pull(pop)
 # 
+# p <- 1:5
+# p[c(TRUE,FALSE,TRUE,TRUE,FALSE)]
 # age <- 0:100
 calc_POADR <- function(p, age, threshold){
   threshold <- threshold[1]
+  
+  # we use this to detect the lower bound of the
+  # age rfoup containing the threshold
   lower_top <- floor(threshold)
+  
+  # the part of p_split that goes to denom
   frac      <- threshold - lower_top
+  
+  # the count we need to split into two
   p_split   <- p[age == lower_top]
+  
   denom     <- sum(p[age < lower_top & age >= 15]) + p_split * frac
+  
   numerator <- sum(p[age > threshold]) + p_split * (1 - frac)
   
   POADR <- numerator / denom
@@ -328,12 +344,13 @@ calc_OADR <- function(p, age){
 ```
 
 ```{r}
-# dependency_ratios <-
+dependency_ratios <-
   thresholds |> 
   left_join(pop_clean,by = c("iso3","year","sex"),
             multiple = "all",
             relationship ="many-to-many") |> 
   filter(!is.na(t15)) |> 
+  group_by(iso3, sex, year) |> 
   summarize(OADR = calc_OADR(p = pop, age = age),
             POADR = calc_POADR(p = pop, age = age, threshold = `t15`),
             .groups = "drop") 
@@ -342,5 +359,19 @@ dependency_ratios |>
   geom_point(alpha = .3)
 ```
 
+```{r}
+dependency_ratios |> 
+  pivot_longer(c(OADR, POADR), 
+               names_to = "Measure", 
+               values_to = "Dep. Ratio") |> 
+  ggplot(mapping = aes(x = year, 
+                       y = `Dep. Ratio`, 
+                       color = sex,
+                       groups = interaction(iso3, sex))) +
+  geom_line() +
+  facet_wrap(~Measure)
+
+
+```
 
 
