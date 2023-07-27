@@ -203,15 +203,16 @@ Calculate all lifetables using the HMD data (remember to group by country, sex, 
 
 ```{r}
 
-hmd |> 
-  filter(country == "Belgium", year == 1914)
+# hmd |> 
+#   filter(country == "Belgium", year == 1914)
 
 thresholds <-
   hmd |> 
   filter(!is.na(mx)) |> 
   select(-mx2) |> 
   group_by(country, sex, year) |> 
-  mutate(qx = calc_qx(mx, ax, n),
+  mutate(n= 1,
+         qx = calc_qx(mx, ax, n),
          lx = calc_lx(qx),
          dx = calc_dx(lx, qx),
          Lx = calc_Lx(lx, dx, ax, n),
@@ -282,18 +283,19 @@ We then automatically translated the HMD names to iso3 to the extent possible, b
 hmd_codes <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/hmd_codes.csv", show_col_types = FALSE)
 ```
 
+Here we add the iso3 code to the HMD-based results (the ad hoc calculated threshold ages)
 ```{r}
 thresholds <-
   thresholds |> 
   rename(hmd_name = country) |> 
-  left_join(hmd_codes, by = "hmd_name") |> 
+  left_join(hmd_codes, by = "hmd_name") 
   filter(!is.na(iso3))
 ```
 
+We then designed a function rather quickly to give an excessively exact ratio. For this, we first add up the denominator, and we are careful to split the population count for the exact age containing the threshold. For example, if the threshold is 64.32, and if there are 1000 people in age 64, then 320 would go to the 
 ```{r}
-
-t15 <- 63.456
-
+# the commented out code was for development, no longer needed
+# t15 <- 63.456
 # p <-
 # pop_clean |> 
 #   filter(iso3 == "USA",
@@ -308,7 +310,7 @@ calc_POADR <- function(p, age, threshold){
   frac      <- threshold - lower_top
   p_split   <- p[age == lower_top]
   denom     <- sum(p[age < lower_top & age >= 15]) + p_split * frac
-  numerator <- sum(p[age > t15]) + p_split * (1 - frac)
+  numerator <- sum(p[age > threshold]) + p_split * (1 - frac)
   
   POADR <- numerator / denom
   return(POADR)
@@ -326,12 +328,16 @@ calc_OADR <- function(p, age){
 ```
 
 ```{r}
-thresholds |> 
+dependency_ratios <-
+  thresholds |> 
   left_join(pop_clean,by = c("iso3","year","sex"),
-            multiple = "all") |> 
+            multiple = "all",
+            relationship ="many-to-many") |> 
+  filter(!is.na(t15)) |> 
   group_by(iso3, year, sex) |> 
   summarize(OADR = calc_OADR(p = pop, age = age),
-            POADR = calc_POADR(p = pop, age = age, threshold = t15)) |> 
+            POADR = calc_POADR(p = pop, age = age, threshold = `t15`)) 
+dependency_ratios |> 
   ggplot(aes(x = OADR, y = POADR, color = sex)) +
   geom_point(alpha = .3)
 ```
