@@ -328,15 +328,15 @@ calc_OADR <- function(p, age){
 ```
 
 ```{r}
-dependency_ratios <-
+# dependency_ratios <-
   thresholds |> 
   left_join(pop_clean,by = c("iso3","year","sex"),
             multiple = "all",
             relationship ="many-to-many") |> 
   filter(!is.na(t15)) |> 
-  group_by(iso3, year, sex) |> 
   summarize(OADR = calc_OADR(p = pop, age = age),
-            POADR = calc_POADR(p = pop, age = age, threshold = `t15`)) 
+            POADR = calc_POADR(p = pop, age = age, threshold = `t15`),
+            .groups = "drop") 
 dependency_ratios |> 
   ggplot(aes(x = OADR, y = POADR, color = sex)) +
   geom_point(alpha = .3)
