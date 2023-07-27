@@ -30,7 +30,7 @@ N0 * exp(r*time)
 
 # stationary age structure
 
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
 
 hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz",
@@ -66,7 +66,9 @@ Why do we need `coord_flip()` For standard pyramids? It's because most pyramids 
 ```{r}
 stationary |> 
   mutate(Cx = if_else(sex == "m", -Cx, Cx)) |> 
-  ggplot(mapping = aes(x = age, y = Cx, fill = sex)) +
+  ggplot(mapping = aes(x = age, 
+                       y = Cx, 
+                       fill = sex)) +
   geom_col(width = 1) +
   # why coord_flip()? See note above
   coord_flip() +
@@ -104,7 +106,9 @@ stationary |>
   # for age_int, or something like that
   mutate(Cx = if_else(sex == "m", -Cx, Cx),
          Cx = Cx / 5) |> 
-  ggplot(mapping = aes(x = age, y = Cx, fill = sex)) +
+  ggplot(mapping = aes(x = age, 
+                       y = Cx, 
+                       fill = sex)) +
   geom_col(width = 5) +
   coord_flip() +
   theme_minimal() +
@@ -140,16 +144,23 @@ stationary |>
          Cx = 100 * Cx / sum(Cx),
          Cx = if_else(sex == "m", -Cx, Cx)) |> 
   # rest is the same
-  ggplot(mapping = aes(x = age, y = Cx, fill = sex)) +
+  ggplot(mapping = aes(x = age, 
+                       y = Cx, 
+                       fill = sex)) +
   geom_col(width = 1) +
   coord_flip() +
   theme_minimal() +
-  scale_y_continuous(labels = c(".6",".4",".2","",".2",".4",".6"), breaks = seq(-.6,.6,by=.2)) +
+  scale_y_continuous(labels = c(".6",".4",".2","",".2",".4",".6"), 
+                     breaks = seq(-.6,.6,by=.2)) +
   scale_x_continuous(breaks = seq(0,100,by=25))+
   scale_fill_manual(values = c(m = "#abd98f", f = "#d9af8f")) +
   guides(fill = "none") +
-  geom_hline(yintercept  = seq(-.6,.6,by=.2), col = "white", linewidth = .5) +
-  geom_vline(xintercept = seq(25,75,by=25), col = "white", linewidth = .5)
+  geom_hline(yintercept = seq(-.6,.6,by=.2), 
+             col = "white", 
+             linewidth = .5) +
+  geom_vline(xintercept = seq(25,75,by=25), 
+             col = "white", 
+             linewidth = .5)
 ```
 
 `cross_join()` can join datasets that don't even have any column in common. That means the dataset expands. Here we make more copies of `stationary`, one for each values of `r`.
@@ -223,7 +234,9 @@ stable_lexis <-
 Visualize the Lexis surface. `grom_tile()` draws every point. For a smooth filled contour, see below.
 ```{r}
 stable_lexis |> 
-  ggplot(mapping = aes(x = period, y = age, fill = Cx)) +
+  ggplot(mapping = aes(x = period, 
+                       y = age, 
+                       fill = Cx)) +
   geom_tile() +
   scale_fill_continuous_sequential("Sunset") +
   coord_equal() +
@@ -269,7 +282,9 @@ Look how regular this is. Can you imagine bending a sheet of paper to conform to
 hmd |> 
   filter(country == "Australia",
          sex == "f") |> 
-  ggplot(mapping = aes(x = year, y = age, z = log(mx))) +
+  ggplot(mapping = aes(x = year, 
+                       y = age, 
+                       z = log(mx))) +
   geom_contour_filled() 
   # scale_fill_continuous_sequential("OrYel",trans = "log")
 ```
@@ -281,7 +296,10 @@ hmd |>
   filter(country == "Australia",
          sex == "f",
          year %% 10 == 0) |> 
-  ggplot(mapping = aes(x = age, y = mx, color = year, group = year)) +
+  ggplot(mapping = aes(x = age, 
+                       y = mx, 
+                       color = year, 
+                       group = year)) +
   scale_y_log10() +
   scale_color_continuous_sequential("OrYel") +
   geom_line()
@@ -293,7 +311,10 @@ hmd |>
   filter(country == "Australia",
          sex == "f",
          age %% 10 == 0) |> 
-  ggplot(mapping = aes(x = year, y = mx, color = age, group = age)) +
+  ggplot(mapping = aes(x = year, 
+                       y = mx, 
+                       color = age, 
+                       group = age)) +
   scale_y_log10() +
   scale_color_continuous_sequential("OrYel") +
   geom_line()
