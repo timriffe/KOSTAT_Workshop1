@@ -43,6 +43,8 @@ Let's pick out a subset and make a pyramid for it?
 ```{r}
 SRB <- 1.05
 PF  <- 1 / (1 + 1.05)
+
+
 stationary <-
   hmd |> 
   filter(country == "Spain", year == 1970) |> 
@@ -54,20 +56,32 @@ stationary <-
          Lx = calc_Lx(lx, dx, ax, n)) |> 
   ungroup() |> 
   select(sex, age, Lx) |> 
+  # make the sex ratio conform to the sex ratio at birth
   mutate(Cx = if_else(sex == "f", Lx * PF, Lx * (1 - PF)),
+  # recale to sum to 100%
          Cx = 100 * Cx / sum(Cx))
+
 stationary |> 
   mutate(Cx = if_else(sex == "m", -Cx, Cx)) |> 
   ggplot(mapping = aes(x = age, y = Cx, fill = sex)) +
   geom_col(width = 1) +
   coord_flip() +
   theme_minimal() +
-  scale_y_continuous(labels = c(".6",".4",".2","",".2",".4",".6"), breaks = seq(-.6,.6,by=.2)) +
+  
+  # all for the sake of grid lines in intuitive units / areas
+  scale_y_continuous(labels = c(".6",".4",".2","",".2",".4",".6"), 
+                     breaks = seq(-.6,.6,by=.2)) +
   scale_x_continuous(breaks = seq(0,100,by=25))+
   scale_fill_manual(values = c(m = "#abd98f", f = "#d9af8f")) +
-  guides(fill = "none") +
-  geom_hline(yintercept  = seq(-.6,.6,by=.2), col = "white", linewidth = .5) +
-  geom_vline(xintercept = seq(25,75,by=25), col = "white", linewidth = .5)
+  geom_hline(yintercept  = seq(-.6,.6,by=.2), 
+             col = "white", 
+             linewidth = .5) +
+  geom_vline(xintercept = seq(25, 75, by = 25), 
+             col = "white", 
+             linewidth = .5) +
+  
+  # turn of fill legend
+  guides(fill = "none") 
 ```
 
 # stable age structure
@@ -75,7 +89,7 @@ stationary |>
 $$ C(x,r) = \frac{\ell(x)\cdot e^{-rx}}{\int_{x=a}^\omega\ell(a)\cdot e^{-ra} \mathrm{d}a}$$
 
 ```{r}
-r <- .005
+r <- -.005
 stationary |> 
   mutate(Cx = Cx * exp(-r * (age + .5)),
          Cx = 100 * Cx / sum(Cx),
@@ -92,13 +106,34 @@ stationary |>
   geom_vline(xintercept = seq(25,75,by=25), col = "white", linewidth = .5)
 ```
 
+`cross_join()` can join datasets that don't even have any column in common. That means the dataset expands.
 ```{r}
 r_table <- tibble(r = seq(-.03,.03,by=.01))
 
-stationary |> 
-  mutate(Cx = Cx * exp(-r * (age + .5)),
-         Cx = 100 * Cx / sum(Cx)) |> 
-  cross_join(r_table)
+stable <-
+  stationary |> 
+  cross_join(r_table) |> 
+  mutate(Cx = Cx * exp(-r * (age + .5))) |> 
+  group_by(r) |> 
+  mutate(Cx = 100 * Cx / sum(Cx)) |> 
+  ungroup()
+```
+
+Visualize the stable structures:
+
+```{r}
+# install.packages("colorspace")
+library(colorspace)
+stable |> 
+  # arrange(sex,r,age) |> 
+  mutate(Cx = if_else(sex == "m", -Cx, Cx)) |> 
+  ggplot(mapping = aes(y = Cx, 
+                       x = age, 
+                       color = r, 
+                       groups = interaction(sex, r))) +
+  geom_line() +
+  coord_flip() +
+  scale_color_binned_diverging("Berlin")
 ```
 
 
