@@ -1,0 +1,112 @@
+---
+title: "Session 5 Notes"
+author: "Tim Riffe"
+date: "2023-07-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Projection
+
+Pick out some data
+```{r}
+library(tidyverse)
+library(colorspace)
+hmd_url <- "https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz"
+hmd <- read_csv(hmd_url, show_col_types = FALSE)
+
+AUS <- hmd |> 
+  filter(country == "Australia",
+         sex=="f") |> 
+  mutate(lmx = log(mx))
+```
+
+## Take a quick look:
+
+```{r}
+AUS |> 
+  ggplot(mapping = aes(x = year, 
+                       y = age, 
+                       z = lmx)) +
+  geom_contour_filled() 
+```
+
+# derive alpha
+
+```{r}
+alpha <- 
+  AUS |> 
+  group_by(age) |> 
+  summarize(alphax = mean(lmx))
+```
+
+# get centered log mortality as matrix
+```{r}
+cent_lM <-
+  AUS |> 
+  left_join(alpha,by="age") |> 
+  mutate(lmx_centered = lmx - alphax) |> 
+  select(age, year, lmx_centered) |> 
+  pivot_wider(names_from = year,
+              values_from = lmx_centered) |> 
+  column_to_rownames("age") |> 
+  as.matrix()
+```
+
+# perform SVD
+
+```{r}
+svd_lM <- svd(cent_lM)
+
+U <- svd_lM$u
+D <- svd_lM$d
+V <- svd_lM$v
+
+# can be recombined:
+(U %*% diag(D) %*% t(V)) 
+```
+
+# derive beta and kappa
+
+```{r}
+u      <- svd_lM$u[, 1]
+v      <- svd_lM$v[, 1]
+d      <- svd_lM$d[1]
+
+Bx <- u / sum(u)
+
+# secular change
+Kt <- v * sum(u) * d
+```
+
+# calculate drift
+```{r}
+lK     <- length(Kt)
+drift  <- (Kt[lK] - Kt[1]) / (lK - 1)
+```
+
+
+# put these back in tidy tables:
+
+```{r}
+beta <- 
+  tibble(betax = Bx,
+       age = 0:110)
+
+kappa <- 
+  tibble(kappat = Kt,
+         year = years)
+```
+
+# combine to predict:
+
+```{r}
+cross_join(beta, kappa) |> 
+  left_join(alpha, by = "age") |> 
+  mutate(lmx_lc = alphax + betax * kappat) |> 
+  left_join(AUS, by = c("age","year")) 
+```
+
