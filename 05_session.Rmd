@@ -16,11 +16,12 @@ Pick out some data
 library(tidyverse)
 library(colorspace)
 hmd_url <- "https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz"
-hmd <- read_csv(hmd_url, show_col_types = FALSE)
+hmd <- read_csv(hmd_url, 
+                show_col_types = FALSE)
 
 AUS <- hmd |> 
   filter(country == "Australia",
-         sex=="f") |> 
+         sex == "f") |> 
   mutate(lmx = log(mx))
 ```
 
@@ -31,25 +32,51 @@ AUS |>
   ggplot(mapping = aes(x = year, 
                        y = age, 
                        z = lmx)) +
-  geom_contour_filled() 
+  geom_contour_filled() +
+  coord_equal()
 ```
 
 # derive alpha
+
+To calculate $\alpha(x)$ just take the mean over time of the log mortality rates in each age. We can do this using `group_by()` and `summarize()`. The line we get, we will use as-is. Notice it's already very smooth, but we risk amplifying any deviations (little bumps and divets) if we project this over time. This gets more serious with $\beta(x)$
 
 ```{r}
 alpha <- 
   AUS |> 
   group_by(age) |> 
   summarize(alphax = mean(lmx))
+
+# take a look
+alpha |> 
+  ggplot(mapping = aes(x = age, y = alphax)) +
+  geom_line() +
+  theme_minimal()
 ```
 
 # get centered log mortality as matrix
 ```{r}
-cent_lM <-
+cent_l <-
   AUS |> 
   left_join(alpha,by="age") |> 
   mutate(lmx_centered = lmx - alphax) |> 
-  select(age, year, lmx_centered) |> 
+  select(age, year, lmx_centered) 
+
+cent_l |> 
+  ggplot(mapping = aes(x = year, y = age, z = lmx_centered)) +
+  geom_contour_filled()+
+  coord_equal()
+
+cent_l |> 
+  filter(age - age %% 10 == 0) |> 
+  ggplot(mapping = aes(x = year, y = lmx_centered, color = age, group = age)) +
+  geom_line() +
+  scale_color_binned_sequential("Inferno")
+
+```
+Turn it into a matrix
+```{r}
+cenlM <-
+  cent_l |> 
   pivot_wider(names_from = year,
               values_from = lmx_centered) |> 
   column_to_rownames("age") |> 
@@ -60,13 +87,15 @@ cent_lM <-
 
 ```{r}
 svd_lM <- svd(cent_lM)
+str(svd_lM)
 
 U <- svd_lM$u
 D <- svd_lM$d
 V <- svd_lM$v
 
 # can be recombined:
-(U %*% diag(D) %*% t(V)) 
+(U %*% diag(D) %*% t(V)) - cent_lM
+
 ```
 
 # derive beta and kappa
@@ -76,18 +105,11 @@ u      <- svd_lM$u[, 1]
 v      <- svd_lM$v[, 1]
 d      <- svd_lM$d[1]
 
-Bx <- u / sum(u)
+Bx     <- u / sum(u)
 
 # secular change
-Kt <- v * sum(u) * d
+Kt     <- v * sum(u) * d
 ```
-
-# calculate drift
-```{r}
-lK     <- length(Kt)
-drift  <- (Kt[lK] - Kt[1]) / (lK - 1)
-```
-
 
 # put these back in tidy tables:
 
@@ -98,7 +120,7 @@ beta <-
 
 kappa <- 
   tibble(kappat = Kt,
-         year = years)
+         year = 1921:2020)
 ```
 
 # combine to predict:
@@ -108,5 +130,19 @@ cross_join(beta, kappa) |>
   left_join(alpha, by = "age") |> 
   mutate(lmx_lc = alphax + betax * kappat) |> 
   left_join(AUS, by = c("age","year")) 
+```
+
+# calculate drift and project kappa
+```{r}
+lK      <- length(Kt)
+drift   <- (Kt[lK] - Kt[1]) / (lK - 1)
+h       <- 1:100
+Kt.fcst <- Kt[lK] + drift * h
+```
+
+# recombine to create projected mortality schedule
+
+```{r}
+
 ```
 
