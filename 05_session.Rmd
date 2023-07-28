@@ -86,7 +86,7 @@ cenlM <-
 # perform SVD
 
 ```{r}
-svd_lM <- svd(cent_lM)
+svd_lM <- svd(cenlM)
 str(svd_lM)
 
 U <- svd_lM$u
@@ -94,7 +94,7 @@ D <- svd_lM$d
 V <- svd_lM$v
 
 # can be recombined:
-(U %*% diag(D) %*% t(V)) - cent_lM
+# (U %*% diag(D) %*% t(V)) - cent_lM
 
 ```
 
@@ -113,6 +113,7 @@ Kt     <- v * sum(u) * d
 
 # put these back in tidy tables:
 
+Recall, a `tibble()` can be created by hand like so:
 ```{r}
 beta <- 
   tibble(betax = Bx,
@@ -125,24 +126,91 @@ kappa <-
 
 # combine to predict:
 
+$$ \widehat{ln(m(x,t))} = \alpha(x)+\beta(x)\cdot\kappa(t)$$
+
 ```{r}
-cross_join(beta, kappa) |> 
+fit <-
+  cross_join(beta, kappa) |> 
   left_join(alpha, by = "age") |> 
   mutate(lmx_lc = alphax + betax * kappat) |> 
+  select(year, age,lmx_lc ) |> 
   left_join(AUS, by = c("age","year")) 
+
+fit |> 
+  ggplot(mapping = aes(x = year, y = age, z = lmx_lc)) +
+  geom_contour_filled() +
+  coord_equal()
+```
+
+# examine the residuals
+
+```{r}
+fit |> 
+  mutate(resid = lmx_lc - lmx) |> 
+  ggplot(mapping = aes(x = year, y = age, fill = resid)) +
+  geom_tile() +
+  scale_fill_continuous_diverging()
+```
+
+# zoom on central residuals
+
+Here we see actual patterns that the LC model will miss; We also see patterns of propagation that will not carry on into the future when we forecast.
+```{r}
+fit |> 
+  mutate(resid = lmx_lc - lmx,
+         resid = if_else(resid > .7,.7,resid),
+         resid = if_else(resid < -.7, -.7, resid)) |> 
+  ggplot(mapping = aes(x = year, y = age, fill = resid)) +
+  geom_tile() +
+  scale_fill_continuous_diverging()
 ```
 
 # calculate drift and project kappa
 ```{r}
 lK      <- length(Kt)
 drift   <- (Kt[lK] - Kt[1]) / (lK - 1)
-h       <- 1:100
-Kt.fcst <- Kt[lK] + drift * h
+horizon <- 1:100
+Kt.fcst <- Kt[lK] + drift * horizon
 ```
 
 # recombine to create projected mortality schedule
 
 ```{r}
+Kappaf <- tibble(year = 2021:2120, kappat = Kt.fcst)
 
+forecast <-
+  cross_join(Kappaf, alpha) |> 
+  left_join(beta, by = "age") |> 
+  mutate(lmx_f = alphax + betax * kappat)
 ```
+
+# check age patterns
+```{r}
+forecast |> 
+  filter(year %% 10 == 1) |> 
+  mutate(mx_f = exp(lmx_f)) |> 
+  ggplot(mapping = aes(x = age, y = mx_f, color = year, group = year)) +
+  geom_line() +
+  scale_y_log10()
+```
+
+```{r}
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_utils.R")
+
+forecast |> 
+  group_by(year) |> 
+  mutate(mx = exp(lmx_f),
+         n = 1,
+         ax = if_else(age == 0, .1, .5),
+         qx = calc_qx(mx, ax, n),
+         lx = calc_lx(qx),
+         dx = calc_dx(lx, qx),
+         Lx = calc_Lx(lx, dx, ax, n),
+         Tx = calc_Tx(Lx),
+         ex = Tx / lx) |> 
+  filter(age == 0) |> 
+  ggplot(mapping = aes(x = year, y = ex)) +
+  geom_line()
+```
+
 
