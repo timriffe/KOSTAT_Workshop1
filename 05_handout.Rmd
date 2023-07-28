@@ -250,7 +250,6 @@ drift
 
 #Forecast
 Kt.fcst <- Kt[lK] + drift * h
-
 plot(Year, Kt, type = "l", ylim=c(min(Kt.fcst), max(Kt)), 
      xlim = c(Year[1], Year[length(Year)]+h[length(h)]),
      ylab = expression(kappa(t)), xlab="Age",
