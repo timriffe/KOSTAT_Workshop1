@@ -1,22 +1,37 @@
 ## 10th KOSTAT-UNFPA Summer Seminar on Population
 # Workshop 1 "R in Demography"
 
-24 - 28 July, 2023. See you in Daejeon!
+24 - 28 July, 2023 at the Statistics Training Institute of KOSTAT in Daejeon, South Korea. For each session, a handout was prepared in advance (files `*_handout.pdf` and the markdown file where it was designed `*_handout.Rmd`). Sessions began with a presentation (files `*_presentation.pdf` and code for figures `*_pres_prep.R`). Live coding and notes from sessions is given in files `*_session.Rmd`. There is material covered in sessions that was not given in the handouts, and there is also material covered in handouts that was not given in the sessions.
 
-## Contents (updated daily)
+## Contents 
 
 - `Data/`
 
 - `01` (Monday, 24 July 2023) "Basic Demographic Data and Concepts"
    1. `01_handout` (`.Rmd`, `.pdf`)
+   2. `01_presentation.pdf`
+   3. `01_pres_prep.R`
+   4. `01_session.Rmd`
 - `02` (Tuesday, 25 July 2023) "Mortality and Fertility" 
    1. `02_handout` (`.Rmd`, `.pdf`)
+   2. `02_presentation.pdf`
+   3. `02_pres_prep.R`
+   4. `02_session.Rmd`
 - `03` (Wednesday, 26 July 2023) "Population Structure"
    1. `03_handout` (`.Rmd`, `.pdf`)
+   2. `03_presentation.pdf`
+   3. `03_pres_prep.R`
+   4. `03_session.Rmd`
 - `04` (Thursday, 27 July 2023) "Population Growth"
    1. `04_handout` (`.Rmd`, `.pdf`)
+   2. `04_presentation.pdf`
+   3. `04_pres_prep.R`
+   4. `04_session.Rmd`
 - `05` (Friday, 28 July 2023) "Projection"
    1. `05_handout` (`.Rmd`, `.pdf`)
+   2. `05_presentation.pdf`
+   3. `05_pres_prep.R`
+   4. `05_session.Rmd`
 
       
 ## Things to install
