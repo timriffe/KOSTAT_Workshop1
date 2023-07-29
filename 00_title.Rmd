@@ -2,7 +2,7 @@
 title: | 
   | \includegraphics{logotip.pdf}
   |
-  | KOSTAT-UNFPA Summer Seminar on Population
+  | 10th KOSTAT-UNFPA Summer Seminar on Population
   | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
   | \vspace{0.3cm} \huge \textbf{Workshop contents}\vspace{0.6cm}
   | 
@@ -48,7 +48,7 @@ knitr::opts_chunk$set(echo = TRUE)
 \end{center}
 \vspace{0.8cm}
 
-This workshop was held daily from 22 July until until 28 July 2023 in hybrid format in Daejeon, South Korea and Zoom, with the following daily themes:
+This workshop was held daily from 24 July until until 28 July 2023 in situ in Daejeon, South Korea, with the following daily themes:
 
 1. Basic Demographic Data and Concepts 
 2. Mortality and Fertility
@@ -56,6 +56,6 @@ This workshop was held daily from 22 July until until 28 July 2023 in hybrid for
 4. Population Growth 
 5. Projection
 
-This document contains each of the five daily handouts that were prepared ahead of lectures, and which serve as guiding and complementary resources to the lectures. Each theoretical lecture was followed by a live coding practical session in RMarkdown (`session.Rmd`), attempting to implement the theoretical concepts delivered. These may contain further content, but where concepts by be less thoroughly explained. These and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
+This document contains each of the five daily handouts that were prepared ahead of lectures, and which serve as guiding and complementary resources to the lectures. Each theoretical lecture (presentations given in `presentation.pdf` files) was followed by a live coding practical session in RMarkdown (`session.Rmd`), attempting to implement the theoretical concepts delivered. These may contain further content, but concepts may be less thoroughly explained in the notes, as they were accompanied by verbal explanations. These and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
 If this workshop repeats in 2024, then the current contents will be held in a snapshot *release* called `v2023` under the same web address.
 
