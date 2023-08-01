@@ -162,7 +162,8 @@ fit |>
          resid = if_else(resid < -.7, -.7, resid)) |> 
   ggplot(mapping = aes(x = year, y = age, fill = resid)) +
   geom_tile() +
-  scale_fill_continuous_diverging()
+  scale_fill_continuous_diverging() +
+  theme_minimal()
 ```
 
 # calculate drift and project kappa
