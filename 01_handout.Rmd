@@ -150,7 +150,7 @@ A cohort is defined as "*the aggregate of all units that experience a particular
 The Lexis diagram is a two-dimensional figure used to represent demographic events across year, age, and cohort. On the diagram, age is one dimension and calendar year is the other. Cohorts advance through life along a 45-degree line. 
 
 ```{r error=F, message=F, warning=F}
-library("LexisPlotR")
+library(LexisPlotR)
 library(ggplot2)
 mylexis <- lexis_grid(year_start = 2010, year_end = 2015, 
                     age_start = 0, age_end = 5)+
