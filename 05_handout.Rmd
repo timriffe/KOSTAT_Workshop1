@@ -37,7 +37,7 @@ knitr::opts_chunk$set(echo = TRUE)
     \centering
     \Large{Instructor: \\ Tim Riffe \texttt{tim.riffe@ehu.eus}\\}
     \vspace{.5cm}
-    \Large{Assistant: \\ Dr. Da eun Kwan: \texttt{dekwan20@kdis.ac.kr}}
+    \Large{Assistant: \\ Inchan Hwang \texttt{inchan@yonsei.ac.kr}}
   \end{minipage}
 }
 
@@ -45,7 +45,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 \vspace{0.8cm}
 \begin{center}
-\large{28 July 2023}
+\large{5 July 2024}
 \end{center}
 \vspace{0.8cm}
 

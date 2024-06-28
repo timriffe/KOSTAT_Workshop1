@@ -37,14 +37,14 @@ knitr::opts_chunk$set(echo = TRUE)
     \centering
     \Large{Instructor: \\ Tim Riffe \texttt{tim.riffe@ehu.eus}\\}
     \vspace{.5cm}
-    \Large{Assistant: \\ Dr. Da eun Kwan: \texttt{dekwan20@kdis.ac.kr}}
+    \Large{Assistant: \\ Inchan Hwang \texttt{inchan@yonsei.ac.kr}}
   \end{minipage}
 }
 
 
 \vspace{0.8cm}
 \begin{center}
-\large{24 July 2023}
+\large{1 July 2024}
 \end{center}
 \vspace{0.8cm}
 
@@ -97,7 +97,7 @@ I will provide a handout to accompany both components, this being the first one.
 
 All material is available in a public `GitHub` repository, here: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1)
 
-The handout for each day is available in its R markdown format and as a built pdf document, following the naming convention `01_handout.Rmd` (pretty document called `01_handout.pdf`), etc. The session materials are also given in `.Rmd` and pdf formats, with the naming convention `01_session.Rmd` (`01_session.pdf`). These will be available after class each day, or by the following morning at the latest. Exercises may be given in the handout for each day, and solutions either provided or derived the following day in a markdown document called e.g. `01_solutions.Rmd` (`01_solutions.pdf`). The `README` file will be updated daily as well as new items are added. 
+The handout for each day is available in its R markdown format and as a built pdf document, following the naming convention `01_handout.Rmd` (pretty document called `01_handout.pdf`), etc. The session materials are also given in `.Rmd` and pdf formats, with the naming convention `01_session.Rmd` (`01_session.pdf`). These will be available after class each day, or by the following morning at the latest. Exercises may be given in the handout for each day, and solutions either provided or derived the following day in a markdown document called e.g. `01_solutions.Rmd` (`01_solutions.pdf`). Presentations for each session are also available as pdf documents (`01_presentation.pdf`). The `README` file will be updated daily as well as new items are added. 
 
 Our Google Doc pastebin is here: [https://tinyurl.com/6ec2zfyy](https://tinyurl.com/6ec2zfyy) . This link gives edit permissions, so you could also use it to paste code that isn't working, or to pose questions. We'll try to not let this get cluttered up.
 
