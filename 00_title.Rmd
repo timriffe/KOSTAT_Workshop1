@@ -2,7 +2,7 @@
 title: | 
   | \includegraphics{logotip.pdf}
   |
-  | 10th KOSTAT-UNFPA Summer Seminar on Population
+  | 11th KOSTAT-UNFPA Summer Seminar on Population
   | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
   | \vspace{0.3cm} \huge \textbf{Workshop contents}\vspace{0.6cm}
   | 
@@ -37,7 +37,7 @@ knitr::opts_chunk$set(echo = TRUE)
     \centering
     \Large{Instructor: \\ Tim Riffe \texttt{tim.riffe@ehu.eus}\\}
     \vspace{.5cm}
-    \Large{Assistant: \\ Dr. Da eun Kwan: \texttt{dekwan20@kdis.ac.kr}}
+    \Large{Assistant: \\ Inchan Hwang \texttt{inchan@yonsei.ac.kr}}
   \end{minipage}
 }
 
@@ -48,7 +48,7 @@ knitr::opts_chunk$set(echo = TRUE)
 \end{center}
 \vspace{0.8cm}
 
-This workshop was held daily from 24 July until until 28 July 2023 in situ in Daejeon, South Korea, with the following daily themes:
+This workshop was held daily from 1 July until until 5 July 2024 in situ in Seoul, South Korea, with the following daily themes:
 
 1. Basic Demographic Data and Concepts 
 2. Mortality and Fertility
@@ -57,7 +57,7 @@ This workshop was held daily from 24 July until until 28 July 2023 in situ in Da
 5. Projection
 
 Each day of the workshop consists in a regular set of standard files. These include `presentation.pdf`, `handout.pdf` (created from `handout.Rmd`), and `session.Rmd`, each numbered in the file name prefix with `01` to `05` according to day of the week. The present compiled document contains the presentation and handout pdf files for each day. The handouts are meant to serve as guiding and complementary resources to the content delivered live in sessions. Each theoretical lecture was followed by a live coding practical session in RMarkdown (`session.Rmd`), attempting to implement the theoretical concepts delivered. Session files may contain further content (beyond the lectures or handouts), but concepts may be less thoroughly explained in the notes, as these were created live in class and accompanied by verbal explanations. All these materials and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
-If this workshop repeats in 2024, then the current contents will be saved in a snapshot *release* called `v2023` under the same web address. Currently previous releases include `v2021` and `v2022`.
+If this workshop repeats in 2025, then the current contents will be saved in a snapshot *release* called `v2024` under the same web address. Currently previous releases include `v2021`, `v2022`, `v2023`.
 
 ```{r, include = FALSE, eval = FALSE}
 # This code compiled the final pdf to deliver
