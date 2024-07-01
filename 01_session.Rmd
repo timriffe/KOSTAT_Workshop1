@@ -261,7 +261,7 @@ KOR |>
 
 # standardize ages
 
-This reads 
+This reads fixed width formatted data from the US SEER (cancer instutute). The file contains a US and a WHO standard, each in single ages. We just filter down to the WHO one. Notice the info that `read_fwf()` needs consists in some info on column positions, it doesn't need much more than that.
 ```{r}
 pos <- fwf_positions(start = c(1,4,7), 
                      end = c(3,6,15),
@@ -344,8 +344,23 @@ if_else(age > 5, 5, age)
 
 ```{r}
 
+KOR |> 
+  mutate(Mx = deaths / exposure) |> 
+  ggplot(mapping = aes(x = age, y = Mx, color = sex)) +
+  geom_line() +
+  scale_y_log10()
+
 ```
 
+Challenge: calculate the sex ratio of mortality rates, and plot its age pattern on a log scale. `scale_y_log10()`.
+
+```{r}
+KOR |> 
+  filter(sex != "total") |> 
+  mutate(Mx = deaths / exposure) |> 
+  select(sex,age,Mx) |> 
+  pivot_wider(names_from = sex, values_from = Mx)
+```
 
 
 
