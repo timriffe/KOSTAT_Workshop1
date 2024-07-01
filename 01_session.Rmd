@@ -358,8 +358,13 @@ Challenge: calculate the sex ratio of mortality rates, and plot its age pattern 
 KOR |> 
   filter(sex != "total") |> 
   mutate(Mx = deaths / exposure) |> 
-  select(sex,age,Mx) |> 
-  pivot_wider(names_from = sex, values_from = Mx)
+  select(sex, age, Mx) |> # try this including deaths and see
+  pivot_wider(names_from = sex, values_from = Mx) |> 
+  mutate(SR = male / female) |> 
+  ggplot(mapping = aes(x = age, y = SR)) +
+  geom_line() +
+  scale_y_log10() +
+  geom_smooth(span = .1)
 ```
 
 
