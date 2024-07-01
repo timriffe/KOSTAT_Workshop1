@@ -259,8 +259,92 @@ KOR |>
   mutate(GFR = 1000 * births / exposure)
 ```
 
+# standardize ages
+
+This reads 
+```{r}
+pos <- fwf_positions(start = c(1,4,7), 
+                     end = c(3,6,15),
+                     col_names = c("standard","age","pop"))
+
+standard <- read_fwf("https://seer.cancer.gov/stdpopulations/stdpop.singleagesthru99.txt", 
+                     col_positions = pos) |> 
+  mutate(age = parse_number(age),
+         pop = parse_number(pop)) |> 
+  filter(standard == "012") |> 
+  mutate(standard = pop / sum(pop))
+
+```
+
+# First plot
+```{r}
+standard |> 
+  select(-pop) |> 
+  ggplot(mapping = aes(x = age, y = standard)) +
+  geom_line()
+
+KOR |> 
+  filter(sex != "total") |> 
+  ggplot(aes(x = age, y = exposure, color = sex)) +
+  geom_line()
+```
+
+# Demonstrate that CDR is a weighted average
+
+$$CDR = \frac{\sum D_x}{\sum E_x}$$
+$$CDR = \sum w_x M_x $$
+where 
+$$ w_x = \frac{E_x}{\sum E_x}$$
+$$M_x = \frac{D_x}{E_x}$$
+
+```{r}
+KOR |> 
+  filter(sex == "total") |> 
+  mutate(Mx = deaths / exposure,
+         wx = exposure / sum(exposure)) |> 
+  summarize(CDR1  = 1000 * sum(deaths) / sum(exposure),
+            CDR2 = 1000 * sum(Mx * wx))
+```
+
+## now we can standardize
+
+Exercise: 
+1. Aggregate deaths and exposures in ages 99+ so that we match the WHO standard
+2. join the standard 
+3. calculate and compare
+
+```{r}
+age <- 0:10
+KOR |> 
+  filter(sex == "total") |> 
+  
+  # These three steps take care of the aggregation for 99+
+  mutate(age = if_else(age > 99, 99, age)) |> 
+  group_by(age) |> # this 
+  summarize(deaths = sum(deaths),
+            exposure = sum(exposure)) |> 
+  # aggregation ends here
+  
+  # this joins the data, matching on age
+  full_left(standard, by = "age") |> 
+  select(-pop) |> 
+  
+  # calculate and compare
+  mutate(Mx = deaths / exposure) |> 
+  summarize(CDR = 1000 * sum(deaths) / sum(exposure),
+            SMR = 1000 * sum(Mx * standard))
+```
+
+This is the sort of thing happening with ages 99+:
+```{r}
+if_else(age > 5, 5, age)
+```
 
 # Make some plots
+
+```{r}
+
+```
 
 
 
