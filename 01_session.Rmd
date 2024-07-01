@@ -1,0 +1,287 @@
+---
+title: "Session 1 Notes"
+author: "Tim Riffe"
+date: "2024-07-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## First steps
+
+Type `Ctrl + Alt i` (`Cmd + Opt + i`)
+Note, when I type inside back-ticks like the above, the built document formats that as code.
+
+```{r}
+summary(cars)
+```
+
+So in this space we can type all the notes we want in any language we want, and this is a good place therefore to describe what code does, or write demographic formulas, and that sort of thing.
+
+## Functions
+
+$$output = f(parameters)$$
+
+Functions take an input and do something to it and return an output. A *mapping* or a *transformation* or *creation*, etc. Functions are the power of `R` because you can define your own.
+
+In general, you know you see a function if you see a name followed by round parentheses:
+
+```{r}
+runif(n = 10)
+rnorm(10)
+```
+Note, we give the argument by name (`n = `) but you don't need to: you can also give by position.
+
+To execute: press `Ctrl + Enter` (`Cmd + Enter`)
+
+Tips for execution:
+Use the green arrow (top right) to execute a particular chunk
+Use `Ctrl + Enter` (`Cmd + Enter`) to execute a particular line. Note the cursor jumps to the next line. So you can hold down `Ctrl` and click `Enter` a bunch to execute lines in sequence:
+OR you can select a range of lines explicitly and press `Ctrl + Enter` once.
+
+## Objects
+
+Now instead of of executing (and then losing the result) we can assign the result to a new object. The object can have an arbitrary name; the `<-` is what performs the assignment (right to left). The object we create is persistent but not permanent, i.e. we can overwrite it or remove it.
+```{r}
+my_first_object <- runif(10)
+
+# my_first_object <- 0
+# rm(my_first_object)
+```
+
+## What can you do with an object?
+
+```{r}
+my_first_object * 10
+
+b <- 1:10
+
+my_first_object + b
+```
+
+You can do arithmetic operations using a scalar (10, above) or using a vector the same length, in which case operations are element-wise (matching to index position).
+
+```{r}
+A <- matrix(runif(80),ncol = 8, nrow = 10)
+A * my_first_object
+```
+
+When multiplying a vector into a matrix, note that the length of the vector needs to match the rows of the matrix. Then we have element-wise operations where the element of the vector is matched to the whole corresponding row of the matrix. If the dimensions don't match you may or may not get a polite warning in the console, so be warned!
+
+## tabular objects
+
+`data.frame`s are the basic tabular object in `R` and almost everything we do in this workshop will be with these. A `data.frame` has columns and rows. Each column is a .... vector, but columns do not need to be the same type of data. Here we have a numeric column and a character column.
+```{r}
+b <- data.frame(x = my_first_object,
+                y = letters[1:10])
+b
+```
+
+When loading in a dataset, usually you get a `data.frame`, in which case you can ask to see the first several rows using `head()`. You can more clearly see the data types using `str()` (structure), and the dimensions using `dim()`.
+
+```{r}
+head(b)
+str(b)
+dim(b)
+```
+
+Selecting from objects:
+When directly selecting from an object, you can index using positions or using names, or a mix. We always use square brackets `[]` to do this. 
+```{r}
+b[8,2] # index using position [row, column]
+b[8,"y"] # columns have names
+b$y[8]
+
+my_first_object[8]
+my_first_object[c(1,8)]
+my_first_object[c(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE)]
+```
+
+You can select several values, for example, using a vector of positions, or a logical vector
+
+```{r}
+ind <- my_first_object > .5
+my_first_object[ind]
+```
+
+## help files
+
+You can get a help file using the `?`, or by typing in the search box of the help tab.
+```{r}
+?runif
+```
+
+# installing packages
+
+Installing packages only needs to happen once (unless you want to update), so I include `eval = FALSE` in the chunk, so as to not do this every time we build this document.
+```{r, eval = FALSE}
+install.packages("tidyverse")
+```
+
+To use functions from a package, load it using `library()`. You can ignore all the chatter that goes to the console when we load the `tidyverse` package.
+```{r}
+library(tidyverse)
+```
+
+Logical selection using `filter()`. We'll want to use `filter()` whenever we need to subset rows. It works by giving logical conditions. For example, picking out year or age ranges, particular sexes, or countries, etc.
+```{r}
+filter(b, x < .5)
+```
+
+## reading in data from the web
+
+The way I got that link for the data:
+(1) go to the repository <https://github.com/timriffe/KOSTAT_Workshop1>
+(2) navigtate to the object
+(3) click `RAW`
+(4) copy the url
+
+Then we read it into `R` using `read_csv()`, because it is a `csv`
+```{r}
+KOR <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/KOR2014.csv", show_col_types = FALSE)
+
+head(KOR)
+str(KOR)
+
+#KOR <- read_delim("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/KOR2014.csv", show_col_types = FALSE, delim = ",")
+```
+
+Note, you can specify a different value delimiter using the `delim` argument. For example, `"\t"`, `";"`, or other things. 
+
+Use the `haven` package to read in proprietary data files. Meaning, files created by SAS, SPSS, STATA, and so on. 
+
+FYI, a compressed csv can get very small, so efficiency in terms of storage isn't really an issue, same goes for efficiency of working with the data.
+
+# let's do some demography
+
+First some tedious clean-up (there are easier ways to do this!)
+```{r}
+rm(A);rm(b)
+rm(a);rm(ind);rm(my_first_object)
+```
+
+# calculate CDR for females
+
+$$ CDR = \frac{\sum D_x}{\sum E_x}$$
+
+How can we do that with this object, givne that it has 333 rows, of which only 111 pertain to females?
+
+Step 1: `filter()` down to females (uses logical selection)
+
+Notice: we *pass* the data to `filter()` using `|>`
+We make the pipe operator (pass-it-on operator) by typing `Ctrl + Shift + m`. You can read aloud a tidy statement like this by inserting *and then* wherever you see `|>`. Yours might look like `%>%`
+
+Step 2: aggregate deaths and exposures using `summarize()`. This function reduces the data dimension to 1 row per group, and since we have just one group, we get just one row. You need to define new columns, in our case by overwriting deaths and exposures. `deaths = sum(deaths)` has 111 values on the right, and just one on the left.
+Note: you can create several columns in `summarize()` by comma separating them. The outgoing data will consist only in those columns explicitly created (plus any grouping columns, but here we had none).
+
+Step 3. `mutate()` = do things to columns (modify or create), they can be used together, and modified in sequence, etc. The number of rows doesn't change.
+
+```{r}
+CDRf <- 
+  KOR |> 
+  filter(sex == "female") |> 
+  summarize(exposure = sum(exposure),
+            deaths = sum(deaths)) |> 
+  mutate(CDR = deaths / exposure,
+         CDR = CDR * 1000)
+```
+
+Mini exercise: calculate the crude birth rate:
+$$CBR = \frac{\sum B_x}{\sum E_x}$$
+Here this is a non-standard CBR, to the extent that we're dividing total births by just the female population.
+
+```{r}
+KOR |> 
+  filter(sex == "total") |> 
+  summarize(births = sum(births),
+            exposure = sum(exposure)) |> 
+  mutate(CBRf = 1000 * births / exposure)
+```
+
+For other fertility measures like GFR, or TFR, you do want just females in the denominator (typically).
+
+$$ GFR = \frac{\sum _{x=15}^{49}B_x}{\sum _{x=15}^{49}E_x}$$
+
+Note, for GFR we have a tricky data situation because the births are in the total subset, whereas the exposure we want is in the female subset. If you filter to females without noticing this, the result evaulates to 0. So we split the calculation into steps.
+
+```{r}
+
+# this evaluates to 0 because births are with total:
+KOR |> 
+  filter(age >= 15,
+         age < 50,
+         sex == "female") |> 
+  summarize(births = sum(births),
+            exposure = sum(exposure)) |> 
+  mutate(GFR = 1000 * births / exposure)
+
+# get total exposure for females
+E <-
+  KOR |> 
+  filter(between(age, 15, 49),
+         sex == "female") |> 
+  summarize(exposure = sum(exposure))
+
+# get total births from "total"
+B <-   KOR |> 
+  filter(between(age, 15, 49),
+         sex == "total") |> 
+  summarize(births = sum(births))
+
+# join them to a dataset
+cross_join(B, E) |> 
+  mutate(GFR = 1000 * births / exposure)
+
+```
+
+`cross_join()` joins two datasets that don't necessarily have any columns in common, such that all possible unique combinations are created. That can make a big dataset get way bigger, but here the datasets we join are very tiny, so no problem.
+
+## a second strategy to calculate GFR
+
+This uses new functions:
+`select()` can be used to keep or remove columns
+`pivot_wider` makes the data wider, in this case placing sex side-by-side instead of stacking them. We will see more of this later
+
+Advantages: it's a single pipeline instead of 3; faster to write
+Disadvantages: it's a bit less legible, required more flexible thinking to produce.
+
+```{r}
+KOR |> 
+  filter(sex != "male",
+         between(age, 15, 49)) |> 
+  select(-deaths,-year) |> 
+  pivot_wider(names_from = sex, 
+              values_from = c(exposure, births)) |> 
+  summarize(exposure = sum(exposure_female),
+            births = sum(births_total)) |> 
+  mutate(GFR = 1000 * births / exposure)
+```
+
+
+# Make some plots
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
