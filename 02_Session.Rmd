@@ -174,6 +174,26 @@ hmd |>
          lx = qx_to_lx(qx=qx,radix=1))
 ```
 
+## the lifetable deaths distribution
+
+$$ d_x = \ell_x \cdot q_x$$
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
