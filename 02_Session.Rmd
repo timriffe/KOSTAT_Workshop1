@@ -260,6 +260,11 @@ hmd |>
          )
 ```
 
+# Big challenge
+1. Calculate lifetables for EVERY subset in the HMD data
+2. make a scatterplot of life expectancy $e_0$ at birth against $q_0$
+`geom_point()`
+
 
 
 
