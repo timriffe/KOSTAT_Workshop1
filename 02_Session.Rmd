@@ -67,7 +67,95 @@ hmd |>
 ```
 
 
-## 
+## explanation of modulo
+
+```{r}
+x <- 0:10
+x %% 2
+(1750:2000) - 1750:2000 %% 50
+```
+
+## Challenge nr 1
+
+Take the following dataset in single ages and group the `value` column into 5-year age group bins.
+You'll be using `%%`
+and the following tidy functions: `mutate()`, `group_by()`, `summarize()`.
+```{r}
+A <- data.frame(age = 0:100, value = rpois(n = 101, lambda = 1000))
+
+A |> 
+  mutate(age = age - age %% 5) |> 
+  group_by(age) |> 
+  summarize(value = sum(value))
+```
+
+## functions
+
+Anatomy of a function
+1. it has a name (name on the left that gets assigned to)
+2. assign the `function()` function to it.
+3. list your arguments (parameters) in the parentheses of `function()`.
+4. define the body between `{ body here }`
+5. use your arguments to do something in the body- only use things that get passed in via arguments.
+6. `return()` some sort of result.
+
+```{r}
+my_first_function <- function(arg1, arg2){
+  step1 <- arg1 * arg2 ^ 2
+  step2 <- sqrt(step1)
+  
+  return(step2)
+}
+my_first_function(arg1 = 10, arg2 = 5)
+
+```
+
+## demonstrat `cumprod()`
+
+This is a vector-in vector-out function that calculates a cumulative product.
+```{r}
+a <- runif(10)
+cumprod(a)
+
+```
+
+## Next example
+
+$$ q_x = \frac{n \cdot M_x}{(1 - (n - a_x) \cdot M_x)}  $$
+
+```{r}
+mx_to_qx <- function(mx, ax, n = 1){
+  num   <- (n * mx) 
+  denom <- (1 - (n - ax) * mx)
+  qx    <- num / denom
+  n     <- length(qx)
+  qx[n] <- 1
+  return(qx)
+}
+```
+
+Here, we split the formula into numerator and denominator steps, just for the sake of legibility. We can make objects inside the function, but the only thnig that gets out is what gets returned (ideally explicitly).
+
+Example usage:
+```{r}
+hmd |> 
+  filter(country == "Australia", 
+         year == 2000,
+         sex == "f") |> 
+  mutate(qx = mx_to_qx(mx = mx,
+                       ax = ax))
+```
+
+## survivorship
+
+$$ \ell_x = \prod_0^{x-1} (1 - q_x)$$
+
+```{r}
+
+```
+
+
+
 
 
 
