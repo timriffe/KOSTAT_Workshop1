@@ -148,10 +148,30 @@ hmd |>
 
 ## survivorship
 
-$$ \ell_x = \prod_0^{x-1} (1 - q_x)$$
-
+$$ \ell_x = \prod_0^{x-1} (1 - q_t)$$
+where 
+$$ \ell_0 = 1 $$
 ```{r}
+qx_to_lx <- function(qx, radix = 1){
+  
+  # the essential bit
+  lx <- c(1, cumprod(1 - qx))
+  
+  # ensure the same length
+  lx <- lx[-length(lx)] 
+  
+  # scale it up, potentially
+  lx <- lx * radix
+  return(lx)
+}
 
+hmd |> 
+  filter(country == "Australia", 
+         year == 2000,
+         sex == "f") |> 
+  mutate(qx = mx_to_qx(mx = mx,
+                       ax = ax),
+         lx = qx_to_lx(qx=qx,radix=1))
 ```
 
 
