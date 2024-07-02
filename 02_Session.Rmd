@@ -1,0 +1,90 @@
+---
+title: "Session 2 Notes"
+author: "Tim Riffe"
+date: "2024-07-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load packages
+
+To use tidyverse functions, we need to load the package
+```{r, message=FALSE}
+library(tidyverse)
+```
+
+## Load HMD dataset
+
+We got this data url by navigating to the file on github and copying the url by right-clicking on the `raw` button.
+
+`read_csv()` is not the same as `read.csv()`
+
+When we read this in, a bunch of metadata prints to the console, which we can toggle off by adding the `show_col_types = FALSE` argument.
+
+```{r}
+hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz", 
+                show_col_types = FALSE)
+```
+
+Take a look. Here are some helpful functions for getting to know an unfamiliar dataset:
+
+```{r}
+head(hmd) # look at first rows
+str(hmd)
+glimpse(hmd)
+
+hmd$sex |> unique()
+hmd$country |> unique()
+```
+
+## Visualize a subset
+
+```{r}
+hmd |> 
+  filter(country == "France",
+         year == 1945) |> 
+  ggplot(mapping = aes(x = age, y = mx, linetype = sex)) +
+  geom_line() +
+  scale_y_log10()
+```
+
+## Visualize the ENTIRE dataset
+
+```{r}
+hmd |> 
+  mutate(mx = if_else(mx == 0, NA, mx),
+         half_century = year - year %% 50) |> 
+  ggplot(aes(x = age, 
+             y = mx, 
+             group = interaction(sex, country, year))) +
+  geom_line(alpha = .03) +
+  scale_y_log10() +
+  facet_wrap(half_century~sex)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
