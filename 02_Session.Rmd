@@ -265,6 +265,30 @@ hmd |>
 2. make a scatterplot of life expectancy $e_0$ at birth against $q_0$
 `geom_point()`
 
+```{r}
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_functions_2024.R")
+hmd |> 
+  group_by(country, sex, year) |> 
+  mutate(qx = mx_to_qx(mx = mx, ax = ax),
+         lx = qx_to_lx(qx = qx, radix = 1),
+         dx = qxlx_to_dx(qx = qx, lx = lx),
+         Lx = lxdx_to_Lx(lx = lx, dx = dx, ax = ax, n = 1),
+         Tx = Lx_to_Tx(Lx = Lx),
+         ex = Txlx_to_ex(Tx = Tx, lx = lx)) |> 
+  ungroup() |> 
+  filter(age == 0) |> 
+  ggplot(mapping = aes(x = ex, y = qx, color = sex)) +
+  geom_point(alpha = .1) +
+  xlim(20,90)
+```
+
+
+
+
+This loads the tiny lifetable functions all at once
+```{r}
+
+```
 
 
 
