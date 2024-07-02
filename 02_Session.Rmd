@@ -53,6 +53,7 @@ hmd |>
 
 ## Visualize the ENTIRE dataset
 
+
 ```{r}
 hmd |> 
   mutate(mx = if_else(mx == 0, NA, mx),
@@ -62,11 +63,11 @@ hmd |>
              group = interaction(sex, country, year))) +
   geom_line(alpha = .03) +
   scale_y_log10() +
-  facet_wrap(half_century~sex)
+  facet_grid(vars(half_century),vars(sex))
 ```
 
 
-
+## 
 
 
 
