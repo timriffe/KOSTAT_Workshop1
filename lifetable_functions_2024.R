@@ -5,6 +5,9 @@ mx_to_qx <- function(mx, ax, n = 1){
   qx    <- num / denom
   n     <- length(qx)
   qx[n] <- 1
+  
+  qx[qx > 1] <- 1
+  qx[qx < 0] <- 0
   return(qx)
 }
 
