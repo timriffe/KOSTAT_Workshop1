@@ -285,9 +285,11 @@ hmd |>
 
 
 
-This loads the tiny lifetable functions all at once
+Or we could use a nice wrapper function that does the whole lifetable!
 ```{r}
-
+hmd |> 
+  group_by(country, sex, year) |> 
+  group_modify(~calc_LT_tidy())
 ```
 
 
