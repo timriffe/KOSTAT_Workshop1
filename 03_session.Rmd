@@ -39,7 +39,6 @@ mx_to_e0 <- function(mx){
   
   return(e0)
 }
-
 ```
 
 Invent two mortality schedules:
@@ -57,9 +56,7 @@ mx_to_e0(mx1)
 mx_to_e0(mx2)
 ```
 
-Simulate what would happen to the total population
-
-
+Combine these into a tidy data structure
 ```{r}
 mx <- data.frame(group = rep(c("a","b"), 
                              each = 101),
@@ -67,6 +64,7 @@ mx <- data.frame(group = rep(c("a","b"),
            mx = c(mx1, mx2)) 
 ```
 
+Blend schedules to create the total population mx
 ```{r}
 mxt <-
   mx |> 
@@ -106,6 +104,7 @@ mx |>
   geom_line() +
   scale_y_log10()
 ```
+What we see: the blue line starts half way between the high and low schedules, but in each age step it approaches the low mortality schedule due to a higher rate of attrition in the high mortality schedule (they lose relative weight in making the total mx). This happens at first gradually (in ages where mortality is low) and then speeds up right around the life expectancy or modal age at death of the high mortality population.
 
 ## Calculate POADR
 
@@ -126,23 +125,6 @@ mx <- read_csv('https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/mx1
 head(pop)
 ```
 
-
-
-2. Reshape each of these objects to tidy format. As-is, the data columns are `mxM`, `mxF`, and `mxB`. To do this, you'll use the `pivot_longer()` function, which I have mentioned but not demonstrated. Here is an example of its use:
-
-```{r}
-A <- tibble(country = rep("a",6),
-            year = rep(2020,6),
-            mx_a = runif(6),
-            mx_b = runif(6))
-A # now we want to stack mx:
-A |> pivot_longer(-c(country, year), 
-                  names_to = "subgroup", 
-                  values_to = "mx")
-```
-
-
-
 2. Let's add the `ex` column of the lifetable to the `mx` object.
 Throw out the `popM`, `popF` columns of `pop` and remove the `MxM` and `MxF` columns of `mx`.
 
@@ -160,13 +142,13 @@ wpp <- left_join(pop, mx, by = c("country_code",
                                  "year","age"))
 ```
 
-# Generate the `ex` column of the lifetable
+3. Generate the `ex` column of the lifetable
 I suggest doing this in a `mutate()` call, going one
 column at a time, but you could also apply our lifetable wrapper function as earlier today, up to you. When done, remove the columns we no longer need.
 
 ```{r}
 ex_example <- 
-wpp |> 
+  wpp |> 
   #group_by(country_code, year) |> 
   filter(country_code == 900, year == 2000) |> 
   mutate(ax = if_else(age == 0, .1, .5),
@@ -184,38 +166,36 @@ wpp |>
 
 ## make a POADR threshold age generator function
 
+I developed this function from the inside out, namely because I did not yet know how I was going to get the job done; The strategy was to get pieces of toy data from a single subset, get the method working, then stick it inside a function.
 ```{r}
-
-ex <- ex_example |> pull(ex)
-age <- ex_example |> pull(age)
-pop  <- ex_example |> pull(pop)
-
-lower_bound <- 15
-
 POADR_linear <- function(age, 
                          ex, 
                          pop, 
                          upper_threshold = 15, 
                          lower_bound = 15){
-# approx(x = ex, y = age, xout = 15)
-P15 <- approxfun(x = ex, y = age)(upper_threshold)
-
-split_age <- floor(P15)
-frac      <- P15 - split_age
-
-denom <- sum(pop[between(age, lower_bound, (split_age - 1))]) +
-         pop[age == split_age] * frac
-
-numerator <- sum(pop[age > split_age]) +
-  pop[age == split_age] * (1 - frac)
-
-POADR <- numerator / denom
-# splinefun(x = ex, y = age)(15)
-return(POADR)
+  
+  # in this age range, for ex, this gives essentially
+  # same result as a spline would.
+  # approx(x = ex, y = age, xout = 15)
+  P15 <- approxfun(x = ex, y = age)(upper_threshold)
+  
+  # which age group is it in?
+  split_age <- floor(P15)
+  
+  # what fraction of the count in said age group 
+  # goes to the denominator?
+  frac      <- P15 - split_age
+  
+  denom <- sum(pop[between(age, lower_bound, (split_age - 1))]) +
+           pop[age == split_age] * frac
+  
+  numerator <- sum(pop[age > split_age]) +
+    pop[age == split_age] * (1 - frac)
+  
+  POADR <- numerator / denom
+  # splinefun(x = ex, y = age)(15)
+  return(POADR)
 }
-
-POADR_linear(age, ex, pop, upper_threshold = 15, lower_bound = 15)
-
 ```
 
 Challenge:
@@ -223,7 +203,6 @@ Make an OADR function. `pop`, `age`, `lower_bound` and `upper_bound` should be i
 
 $$ OADR = \frac{\sum_{x=65}^{\omega}P_x}{\sum_{x=15}^{64}P_x}$$
 ```{r}
-
 OADR_calc <- function(age, 
                  pop, 
                  upper_bound = 65, 
@@ -237,7 +216,6 @@ OADR_calc <- function(age,
  DR <- numerator / denominator
  return(DR)
 }
-
 ```
 
 Final challenge of today:
@@ -251,11 +229,9 @@ oadr <- wpp |>
   # remove anomalous cases
   mutate(keep = !any(is.na(mxB)) &
            mxB[1] < .15) |> 
-  ungroup() |> 
   filter(keep) |> 
-  
   # generate ex (this group_by() possibly extraneous)
-  group_by(country_code, name, year) |> 
+  # group_by(country_code, name, year) |> 
   mutate(ax = if_else(age == 0, .1, .5),
          qx = mx_to_qx(mx = mxB, ax = ax, n = 1),
          lx = qx_to_lx(qx = qx, radix = 1),
@@ -265,8 +241,7 @@ oadr <- wpp |>
          ex = Txlx_to_ex(Tx = Tx, lx = lx)) |> 
   select(country_code, name, year, age, pop, ex) |> 
   
-  # calculate indicators (this group_by() possibly extraneous)
-  group_by(country_code, name, year) |> 
+  # calculate indicators 
   reframe(POADR = POADR_linear(age = age,
                                 pop = pop,
                                 ex = ex,
@@ -289,6 +264,20 @@ oadr |>
   geom_abline(slope=1,intercept=0,color="red")
 ```
 
+
+## an aside: how to use pivot_longer()
+Reshape each of these objects to tidy format. As-is, the data columns are `mxM`, `mxF`, and `mxB`. To do this, you'll use the `pivot_longer()` function, which I have mentioned but not demonstrated. Here is an example of its use:
+
+```{r, eval = FALSE}
+A <- tibble(country = rep("a",6),
+            year = rep(2020,6),
+            mx_a = runif(6),
+            mx_b = runif(6))
+A # now we want to stack mx:
+A |> pivot_longer(-c(country, year), 
+                  names_to = "subgroup", 
+                  values_to = "mx")
+```
 
 
 
