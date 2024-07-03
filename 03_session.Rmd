@@ -246,11 +246,15 @@ That means scale up the calculation of `ex`, then recycle the same groups to cal
 
 ```{r}
 oadr <- wpp |> 
-group_by(country_code, name, year) |> 
+  group_by(country_code, name, year) |> 
+  
+  # remove anomalous cases
   mutate(keep = !any(is.na(mxB)) &
            mxB[1] < .15) |> 
   ungroup() |> 
   filter(keep) |> 
+  
+  # generate ex (this group_by() possibly extraneous)
   group_by(country_code, name, year) |> 
   mutate(ax = if_else(age == 0, .1, .5),
          qx = mx_to_qx(mx = mxB, ax = ax, n = 1),
@@ -260,6 +264,8 @@ group_by(country_code, name, year) |>
          Tx = Lx_to_Tx(Lx = Lx),
          ex = Txlx_to_ex(Tx = Tx, lx = lx)) |> 
   select(country_code, name, year, age, pop, ex) |> 
+  
+  # calculate indicators (this group_by() possibly extraneous)
   group_by(country_code, name, year) |> 
   reframe(POADR = POADR_linear(age = age,
                                 pop = pop,
@@ -269,10 +275,12 @@ group_by(country_code, name, year) |>
             OADR = OADR_calc(age = age, 
                              pop = pop, 
                              lower_bound = 15,
+                             # there was a mistake here before,
+                             # I accidentally put 15 for both bounds!
                              upper_bound = 65))
 ```
 
-plot it
+plot it!
 ```{r}
 oadr |> 
   ggplot(aes(x = OADR, y= POADR, color =year))+
