@@ -115,9 +115,18 @@ POADR = Prospective Old-Age Dependency Ratio
 1. Load WPP 2022 data
 There are 2 datasets on the workshop github site
 1.1 `pop1dt.csv.gz`
-1.2 `Mx1dt.csv.gz`
+1.2 `mx1dt.csv.gz`
 
 Load these into `R` using `read_csv()`. Call the first object `pop` and the second object `mx`.
+
+```{r, message = FALSE}
+pop <- read_csv('https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/pop1dt.csv.gz')
+mx <- read_csv('https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/mx1dt.csv.gz')
+
+head(pop)
+```
+
+
 
 2. Reshape each of these objects to tidy format. As-is, the data columns are `mxM`, `mxF`, and `mxB`. To do this, you'll use the `pivot_longer()` function, which I have mentioned but not demonstrated. Here is an example of its use:
 
@@ -135,6 +144,99 @@ A |> pivot_longer(-c(country, year),
 
 
 2. Let's add the `ex` column of the lifetable to the `mx` object.
+Throw out the `popM`, `popF` columns of `pop` and remove the `MxM` and `MxF` columns of `mx`.
+
+```{r}
+pop <-
+  pop |> 
+  select(-popM, -popF)
+
+mx <-
+  mx |> 
+  select(-mxM, -mxF)
+# join the datasets
+wpp <- left_join(pop, mx, by = c("country_code",
+                                 "name",
+                                 "year","age"))
+```
+
+# Generate the `ex` column of the lifetable
+I suggest doing this in a `mutate()` call, going one
+column at a time, but you could also apply our lifetable wrapper function as earlier today, up to you. When done, remove the columns we no longer need.
+
+```{r}
+ex_example <- 
+wpp |> 
+  #group_by(country_code, year) |> 
+  filter(country_code == 900, year == 2000) |> 
+  mutate(ax = if_else(age == 0, .1, .5),
+         qx = mx_to_qx(mx = mxB, ax = ax, n = 1),
+         lx = qx_to_lx(qx = qx, radix = 1),
+         dx = qxlx_to_dx(qx = qx, lx = lx),
+         Lx = lxdx_to_Lx(lx = lx, dx = dx, ax = ax, n = 1),
+         Tx = Lx_to_Tx(Lx = Lx),
+         ex = Txlx_to_ex(Tx = Tx, lx = lx)) |> 
+  select(country_code, name, year, age, pop, ex) #|> 
+  # ggplot(aes(x = age, y = ex)) +
+  # geom_line() +
+  # geom_hline(yintercept = 15)
+```
+
+## make a POADR threshold age generator function
+
+```{r}
+
+ex <- ex_example |> pull(ex)
+age <- ex_example |> pull(age)
+pop  <- ex_example |> pull(pop)
+
+lower_bound <- 15
+
+POADR_linear <- function(age, 
+                         ex, 
+                         pop, 
+                         upper_threshold = 15, 
+                         lower_bound = 15){
+# approx(x = ex, y = age, xout = 15)
+P15 <- approxfun(x = ex, y = age)(upper_threshold)
+
+split_age <- floor(P15)
+frac      <- P15 - split_age
+
+denom <- sum(pop[between(age, lower_bound, (split_age - 1))]) +
+         pop[age == split_age] * frac
+
+numerator <- sum(pop[age > split_age]) +
+  pop[age == split_age] * (1 - frac)
+
+POADR <- numerator / denom
+# splinefun(x = ex, y = age)(15)
+return(POADR)
+}
+
+POADR_linear(age, ex, pop, upper_threshold = 15, lower_bound = 15)
+
+```
+
+Challenge:
+Make an OADR function. `pop`, `age`, `lower_bound` and `upper_bound` should be its arguments.
+
+$$ OADR = \frac{\sum_{x=65}^{\omega}P_x}{\sum_{x=15}^{64}P_x}$$
+```{r}
+
+OADR <- function(age, pop, upper_bound = 65, lower_bound = 15){
+
+  numerator <- pop[age >= upper_bound] |> 
+    sum()
+  denominator <- pop[between(age, lower_bound, (upper_bound - 1))] |> 
+    sum()
+ DR <- numerator / denominator
+ return(DR)
+}
+
+```
+
+
 
 
 
