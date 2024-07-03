@@ -61,7 +61,7 @@ calc_LT <- function(mx, ax, n, radix){
   Age  <- 1:N - 1
   
   
-  tibble(age = Age,
+  return(tibble(age = Age,
          mx = mx,
          ax = ax,
          qx = qx,
@@ -69,17 +69,17 @@ calc_LT <- function(mx, ax, n, radix){
          dx = dx,
          Lx = Lx,
          Tx = Tx,
-         ex = ex)
+         ex = ex))
 }
 
 # data.frame in, data.frame out!
 calc_LT_tidy <- function(data, radix){
   # this is hacky, but works.
   # just pick out the needed vectors from the group of data
-  calc_LT(mx = data$mx,
+  return(calc_LT(mx = data$mx,
           ax = data$ax,
           n = data$n,
-          radix = radix)
+          radix = radix))
 }
 
 
