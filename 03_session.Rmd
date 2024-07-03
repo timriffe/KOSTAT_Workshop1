@@ -1,0 +1,101 @@
+---
+title: "Session 3 notes"
+author: "Tim Riffe"
+date: "2024-07-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Unobserved heterogeneity
+
+Load some functions we need
+```{r, message = FALSE}
+library(tidyverse)
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_functions_2024.R")
+```
+
+Gompertz mortality
+$$ \mu(x) = \alpha \cdot e^{\beta x}$$
+Make a little Gompertz mx function:
+```{r}
+gomp_mx <- function(alpha, beta, age){
+  mx <- alpha * exp(beta * age)
+  return(mx)
+}
+
+# a cheap life expectancy at birth function:
+mx_to_e0 <- function(mx){
+  ax <- rep(.5, length(mx))
+  e0 <- 
+    calc_LT(mx = mx, 
+          ax = ax, 
+          n = 1, 
+          radix = 1) |> 
+    slice(1) |> 
+    pull(ex)
+  
+  return(e0)
+}
+
+```
+
+Invent two mortality schedules:
+
+```{r}
+alpha1 <- .0001
+alpha2 <- .0004
+beta   <- .075
+age    <- 0:100
+
+mx1    <- gomp_mx(alpha1, beta, age)
+mx2    <- gomp_mx(alpha2, beta, age)
+
+mx_to_e0(mx1)
+mx_to_e0(mx2)
+```
+
+Simulate what would happen to the total population
+
+```{r}
+mx <- data.frame(group = rep(c("a","b"), 
+                             each = 101),
+           age = c(age, age),
+           mx = c(mx1, mx2)) 
+mxt <-
+  mx |> 
+  group_by(group) |> 
+  mutate(ax = rep(.5, n()),
+         n = rep(1, n())) |> 
+  group_modify(~calc_LT_tidy(data = .x)) |> 
+  select(group, age, mx, ax, Lx) |> 
+  mutate(Px = Lx * .5) |> 
+  ungroup() |> 
+  group_by(age) |> 
+  mutate(prevx = Lx / sum(Lx)) |> 
+  summarize(mx = sum(mx * prevx)) |> 
+  mutate(group = "t", .before = 1)
+```
+
+Join the data and plot the phenomenon
+```{r}
+mx |> 
+  bind_rows(mxt) |> 
+  ggplot(mapping = aes(x = age, y = mx, color = group)) +
+  geom_line() +
+  scale_y_log10()
+```
+
+
+
+
+
+
+
+
+
+
+
+
