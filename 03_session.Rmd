@@ -59,23 +59,42 @@ mx_to_e0(mx2)
 
 Simulate what would happen to the total population
 
+
 ```{r}
 mx <- data.frame(group = rep(c("a","b"), 
                              each = 101),
            age = c(age, age),
            mx = c(mx1, mx2)) 
+```
+
+```{r}
 mxt <-
   mx |> 
-  group_by(group) |> 
+  # invent / impute ax and n needed by lifetable function
   mutate(ax = rep(.5, n()),
          n = rep(1, n())) |> 
+  
+  # create lifetables for each subset
+  group_by(group) |> 
   group_modify(~calc_LT_tidy(data = .x)) |> 
+  
+  # Lots of unnecessary columns, just pick what we want
   select(group, age, mx, ax, Lx) |> 
+  
+  # assuming an initial compositon.
   mutate(Px = Lx * .5) |> 
+  
+  # next, calculate prevalence of each group
+  # in each age
   ungroup() |> 
   group_by(age) |> 
   mutate(prevx = Lx / sum(Lx)) |> 
+  
+  # (groups still active) calculate weighted average mortality
   summarize(mx = sum(mx * prevx)) |> 
+  # (summarize removes one of your groups always,
+  # in this case we only had one, so we lose it)
+  
   mutate(group = "t", .before = 1)
 ```
 
