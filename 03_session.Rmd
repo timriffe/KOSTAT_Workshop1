@@ -224,19 +224,62 @@ Make an OADR function. `pop`, `age`, `lower_bound` and `upper_bound` should be i
 $$ OADR = \frac{\sum_{x=65}^{\omega}P_x}{\sum_{x=15}^{64}P_x}$$
 ```{r}
 
-OADR <- function(age, pop, upper_bound = 65, lower_bound = 15){
+OADR_calc <- function(age, 
+                 pop, 
+                 upper_bound = 65, 
+                 lower_bound = 15){
 
   numerator <- pop[age >= upper_bound] |> 
     sum()
-  denominator <- pop[between(age, lower_bound, (upper_bound - 1))] |> 
-    sum()
+  denominator <- pop[between(age, 
+                             lower_bound, 
+                             (upper_bound - 1))] |> sum()
  DR <- numerator / denominator
  return(DR)
 }
 
 ```
 
+Final challenge of today:
+Make a scatterplot (`geom_point()`) of OADR vs POADR.
+That means scale up the calculation of `ex`, then recycle the same groups to calculate the dependency measures inside a `summarize()` call.
 
+```{r}
+oadr <- wpp |> 
+group_by(country_code, name, year) |> 
+  mutate(keep = !any(is.na(mxB)) &
+           mxB[1] < .15) |> 
+  ungroup() |> 
+  filter(keep) |> 
+  group_by(country_code, name, year) |> 
+  mutate(ax = if_else(age == 0, .1, .5),
+         qx = mx_to_qx(mx = mxB, ax = ax, n = 1),
+         lx = qx_to_lx(qx = qx, radix = 1),
+         dx = qxlx_to_dx(qx = qx, lx = lx),
+         Lx = lxdx_to_Lx(lx = lx, dx = dx, ax = ax, n = 1),
+         Tx = Lx_to_Tx(Lx = Lx),
+         ex = Txlx_to_ex(Tx = Tx, lx = lx)) |> 
+  select(country_code, name, year, age, pop, ex) |> 
+  group_by(country_code, name, year) |> 
+  reframe(POADR = POADR_linear(age = age,
+                                pop = pop,
+                                ex = ex,
+                                lower_bound = 15,
+                                upper_threshold = 15),
+            OADR = OADR_calc(age = age, 
+                             pop = pop, 
+                             lower_bound = 15,
+                             upper_bound = 65))
+```
+
+plot it
+```{r}
+oadr |> 
+  ggplot(aes(x = OADR, y= POADR, color =year))+
+  geom_point(alpha=.05) +
+  theme_minimal() +
+  geom_abline(slope=1,intercept=0,color="red")
+```
 
 
 
