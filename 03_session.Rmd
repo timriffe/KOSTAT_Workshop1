@@ -107,6 +107,37 @@ mx |>
   scale_y_log10()
 ```
 
+## Calculate POADR
+
+POADR = Prospective Old-Age Dependency Ratio
+(Sanderson and Scherbov, multiple papers)
+
+1. Load WPP 2022 data
+There are 2 datasets on the workshop github site
+1.1 `pop1dt.csv.gz`
+1.2 `Mx1dt.csv.gz`
+
+Load these into `R` using `read_csv()`. Call the first object `pop` and the second object `mx`.
+
+2. Reshape each of these objects to tidy format. As-is, the data columns are `mxM`, `mxF`, and `mxB`. To do this, you'll use the `pivot_longer()` function, which I have mentioned but not demonstrated. Here is an example of its use:
+
+```{r}
+A <- tibble(country = rep("a",6),
+            year = rep(2020,6),
+            mx_a = runif(6),
+            mx_b = runif(6))
+A # now we want to stack mx:
+A |> pivot_longer(-c(country, year), 
+                  names_to = "subgroup", 
+                  values_to = "mx")
+```
+
+
+
+2. Let's add the `ex` column of the lifetable to the `mx` object.
+
+
+
 
 
 
