@@ -173,24 +173,51 @@ P |>
   theme_minimal() 
 ```
 
+# Fertility Measures (from Day 2)
 
+```{r}
+KOR <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/KOR2014.csv",
+                show_col_types = FALSE)
+E <- KOR |> 
+  filter(sex == "female") |> 
+  select(age, exposure)
 
+B <- KOR |> 
+  filter(sex == "total") |> 
+  select(age, births)
+```
 
+Calculate age-specific fertility rates
+```{r}
+fert <-
+  left_join(E, B, by = "age") |> 
+  filter(births > 0) |> 
+  mutate(fx = births / exposure)
+```
 
+Plot the rates
+```{r}
+fert |> 
+  ggplot(aes(x = age, y = fx)) +
+  geom_line()
+```
 
+Calculate the mean age at childbearing using fx as weights. Remember, weight together age + 1/2 rather than just age. Otherwise the result would be as if people only gave birth on their own birthdays? We use half, for half an interval, assuming, as demographers often do, that events happen midway into time intervals.
 
+```{r}
+fert |> 
+  summarize(MAB = sum(age * fx) / sum(fx) + .5,
+            MAB2 = sum(age * B) / sum(B) + .5)
+```
 
+I drew a picture here. I described the fertility distribution as a smoother. Namely, it spans a range of ages and is itself smooth. And so, even if it is interacting with relatively rough population structure, the outgoing cohort sizes will having diminishing roughness. i.e. fluctuations will tend to attenuate all else take equal.
 
+```{r}
+fert |> 
+  summarize(TFR = sum(fx))
+```
 
-
-
-
-
-
-
-
-
-##  
+## 
 
 
 
