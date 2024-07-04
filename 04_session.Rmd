@@ -101,6 +101,77 @@ stationary |>
   guides(fill = "none")
 ```
 
+# some properties of stationary populations
+1. Population size $P$ is the number of births (= the radix size) times life expectancy
+
+$$ P = e(0) \cdot \ell(0) = b \cdot e(0)$$
+
+2. The crude birth rate $b$ is the crude death rate $m$ is the inverse of life expectancy.
+
+$$ b =  \frac{1}{e(0)} = m$$
+
+3. The age-standardized death rate is the same as the crude death rate (and the previously listed things too)
+
+$$ b = m =\sum _0^\omega C(x) \mu(x) = ASDR = \frac{1}{e(0)}$$
+
+4. The age structure (years lived) is equal to the time-to-death structure (years left)
+
+$$ C(x) = \frac{\ell(x)}{e(0)} = \frac{\ell^\star(y)}{e(0)} = C^\star (y)$$
+(where y stands for remaining years of life). That means that if we invert the pyramid (per the Wednesday structure presentation), we'd end up with the EXACT same pyramid again. 
+
+5. In a stationary population with heterogeneity (like strata), we get the same equalities within strata groups.
+
+6. In a stationary population with transient heterogeneity, analogous findings hold.
+
+Why do we care about these rather hypothetical relationships? 
+1. They are permanent
+2. In some circumstances stationarity is not distant, like for fast-moving demographic parameters held fixed. For example the prevalence of a condition with rather stable patterns of onset and recovery will turn out to be very close in empirical data to the one you would get in a stationary population.
+
+## stable populations
+
+$$ C(x,r) = \frac{C(x)\cdot e^{-rx}}{\sum C(x)\cdot e^{-rx}} $$
+
+```{r}
+r <- seq(-.03,.03, by = .005)
+growth_rates <- tibble(r = r)
+
+stable <- 
+  stationary |> 
+  cross_join(growth_rates) |> 
+  arrange(r, sex, age) |> 
+  mutate(Cxr = Cx * exp(-r * age)) |> 
+  group_by(r) |> 
+  mutate(Cxr = 100 * Cxr / sum(Cxr))
+```
+
+Plot it!
+
+```{r}
+library(colorspace)
+stable |> 
+  mutate(Cxr = Cxr * if_else(sex == "m", -1, 1)) |> 
+  ggplot(mapping = aes(x = age, 
+                       y = Cxr, 
+                       color = r, 
+                       group = interaction(sex,r))) +
+  geom_line(linewidth = 1) +
+  coord_flip() +
+  scale_color_binned_diverging("Blue-Red") +
+  theme_minimal()
+```
+
+```{r}
+growth_rates <- tibble(r = c(-.005,-.01,-.02), P =55000000)
+horizon <- tibble(horizon = 0:200)
+P <- cross_join(growth_rates, horizon) |> 
+  mutate(Pt = P * exp(r * horizon))
+
+P |> 
+  ggplot(aes(x = horizon, y = Pt, color = r, group = r)) +
+  geom_line() +
+  geom_hline(yintercept=10000000) +
+  theme_minimal() 
+```
 
 
 
@@ -112,6 +183,14 @@ stationary |>
 
 
 
+
+
+
+
+
+
+
+##  
 
 
 
