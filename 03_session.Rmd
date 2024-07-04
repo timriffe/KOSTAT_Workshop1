@@ -193,7 +193,7 @@ POADR_linear <- function(age,
     pop[age == split_age] * (1 - frac)
   
   POADR <- numerator / denom
-  # splinefun(x = ex, y = age)(15)
+  
   return(POADR)
 }
 ```
@@ -213,6 +213,7 @@ OADR_calc <- function(age,
   denominator <- pop[between(age, 
                              lower_bound, 
                              (upper_bound - 1))] |> sum()
+  # age >- lower_bound & age < upper_bound
  DR <- numerator / denominator
  return(DR)
 }
@@ -223,12 +224,14 @@ Make a scatterplot (`geom_point()`) of OADR vs POADR.
 That means scale up the calculation of `ex`, then recycle the same groups to calculate the dependency measures inside a `summarize()` call.
 
 ```{r}
+c(FALSE, TRUE, FALSE) |> any()
+
 oadr <- wpp |> 
   group_by(country_code, name, year) |> 
   
   # remove anomalous cases
   mutate(keep = !any(is.na(mxB)) &
-           mxB[1] < .15) |> 
+         mxB[1] < .15) |> 
   filter(keep) |> 
   # generate ex (this group_by() possibly extraneous)
   # group_by(country_code, name, year) |> 
@@ -242,7 +245,7 @@ oadr <- wpp |>
   select(country_code, name, year, age, pop, ex) |> 
   
   # calculate indicators 
-  reframe(POADR = POADR_linear(age = age,
+  summarize(POADR = POADR_linear(age = age,
                                 pop = pop,
                                 ex = ex,
                                 lower_bound = 15,
@@ -253,12 +256,13 @@ oadr <- wpp |>
                              # there was a mistake here before,
                              # I accidentally put 15 for both bounds!
                              upper_bound = 65))
+
 ```
 
 plot it!
 ```{r}
 oadr |> 
-  ggplot(aes(x = OADR, y= POADR, color =year))+
+  ggplot(aes(x = OADR, y= POADR, color = year))+
   geom_point(alpha=.05) +
   theme_minimal() +
   geom_abline(slope=1,intercept=0,color="red")
