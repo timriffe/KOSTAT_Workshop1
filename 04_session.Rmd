@@ -173,6 +173,52 @@ P |>
   theme_minimal() 
 ```
 
+# cohorts and periods in stable population models.
+
+Note, in a stationary time population over time, a cohort's age structure over time is equal to the period age structure. In a stable (growing or shrinking) population, the $e^{-rT}$ discounting (inflation) that we do is all for purposes of making a period snapshot: Each period is proportional, but of a different size, or constant successive ratio over time. However, each cohort selected from a table time series is proportional to the stationary (lifetable survivorship) that was used to generate it. This means that cohorts can acheive stable and predictable age structures over time ... ooooo. That might be important when designing institutions and policies. Pay-as-you-go systems will probably perish in fast-shrinking populations, whereas a system build in the cohort perspective would be stable over time.
+
+I think this is worth demonstrating just so that I can make this point.
+
+```{r}
+r <- -.03
+stable <- 
+  stationary |> 
+  filter(sex == "f") |> 
+  mutate(Cxr = Cx * exp(-r*age)) |> 
+  cross_join(horizon) |> 
+  rename(year = horizon) |> 
+  arrange(year, age) |> 
+  mutate(Cxr = Cxr * exp(r * year))
+```
+
+First, note each year has the same structure, but is strinking in size:
+
+```{r}
+stable |> 
+  group_by(year) |> 
+  mutate(Cxr = 100 * Cxr / sum(Cxr)) |> 
+  ggplot(aes(x = age, y = Cxr, linetype = as.factor(year), color = year)) +
+  geom_line() +
+  guides(linetype = "none", color = "none")
+```
+
+If you extract the cohorts, they are all proportional to stationarity
+```{r}
+stable |> 
+  mutate(cohort = year - age) |> 
+  filter(between(cohort, 0, 90),
+         cohort %% 10 == 0) |> 
+  group_by(cohort) |> 
+  mutate(Cxr = 100 * Cxr / sum(Cxr)) |> 
+  ggplot(aes(x = age, 
+             y = Cxr, 
+             color = cohort, linetype = as.factor(cohort))) +
+  geom_line() +
+  guides(color = "none", linetype = "none")
+```
+
+
+
 # Fertility Measures (from Day 2)
 
 ```{r}
@@ -202,12 +248,16 @@ fert |>
   geom_line()
 ```
 
-Calculate the mean age at childbearing using fx as weights. Remember, weight together age + 1/2 rather than just age. Otherwise the result would be as if people only gave birth on their own birthdays? We use half, for half an interval, assuming, as demographers often do, that events happen midway into time intervals.
+Calculate the mean age at childbearing using fx as weights. Remember, weight together age + 1/2 rather than just age. Otherwise the result would be as if people only gave birth on their own birthdays? We use half, for half an interval, assuming, as demographers often do, that events happen _midway_ into time intervals.
 
 ```{r}
 fert |> 
   summarize(MAB = sum(age * fx) / sum(fx) + .5,
             MAB2 = sum(age * B) / sum(B) + .5)
+
+fert |> 
+  ggplot(aes(x = age, y = fx)) +
+  geom_step()
 ```
 
 I drew a picture here. I described the fertility distribution as a smoother. Namely, it spans a range of ages and is itself smooth. And so, even if it is interacting with relatively rough population structure, the outgoing cohort sizes will having diminishing roughness. i.e. fluctuations will tend to attenuate all else take equal.
@@ -217,7 +267,46 @@ fert |>
   summarize(TFR = sum(fx))
 ```
 
-## 
+## Mortality projection primer
+
+```{r}
+mx |> 
+  filter(name == "Australia",
+         between(year, 1950, 2019)) |> 
+  ggplot(aes(x = year, y = age, z = log(mxF))) +
+  #geom_tile() +
+  geom_contour_filled() +
+ # scale_fill_continuous_sequential("PinkYl", trans = "log") +
+  coord_equal()
+```
+
+```{r}
+mx |> 
+  filter(name == "Australia",
+         between(year, 1950, 2019),
+         age %% 10 == 0) |> 
+  ggplot(aes(x = year, y = mxF, color = age, group = age)) +
+  geom_line() +
+  scale_y_log10()
+```
+
+# example of edges that can make this challenging
+
+Pick out a year with sharp mortality changes over age in younger ages. This is where mortality projections tend to fail the most. Notice
+```{r}
+mx |> 
+  filter(name == "Australia",
+         year == 1980) |> 
+  ggplot(aes(x = age, y = mxM)) +
+  geom_line() +
+  scale_y_log10()
+``` 
+
+
+
+
+
+
 
 
 
