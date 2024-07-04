@@ -9,22 +9,112 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Stationary population
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r, message = FALSE}
+library(tidyverse)
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_functions_2024.R")
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+mx <- read_csv('https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/mx1dt.csv.gz')
 ```
 
-## Including Plots
+Note, lx is proportional to what the stationary population structure would be if the same number of births entered each year and mortality never changed over time.
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+world <-
+  mx |> 
+  filter(country_code == 900,
+         year == 2019) |> 
+  select(-mxB) |> 
+  rename(m = mxM, f = mxF) |> 
+  pivot_longer(c(m,f),
+               names_to = "sex",
+               values_to = "mx") |> 
+  arrange(sex, age)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Now we have a clean subset that can be used for later calculations
+First, derive Lx
+```{r}
+SRB <- 1.05
+(PF <- 1 / (1 + SRB))
+stationary <-
+  world |> 
+  group_by(sex) |> 
+  mutate(ax = if_else(age == 0, .1, .5),
+         n = rep(1,n())) |> 
+  group_modify(~calc_LT_tidy(data = .x)) |> 
+  select(sex, age, Lx) |> 
+  # Cx is structure, implying a shared total radix of 1
+  mutate(Cx = Lx * if_else(sex == "f", PF, 1 - PF)) |> 
+  ungroup() |> 
+  mutate(Cx = 100 * Cx / sum(Cx))
+```
+
+Plot it!
+
+```{r}
+stationary |> 
+  mutate(Cx = Cx * if_else(sex == "m", -1, 1)) |> 
+  ggplot(aes(x = age, y = Cx, fill = sex)) +
+  geom_col(width = 1, alpha = .6) +
+  theme_minimal() +
+  scale_y_continuous(breaks = seq(-.75, .75, by = .25),
+                     labels = c(".75",".50",".25","",".25",".50",".75")) +
+  geom_hline(yintercept = seq(-.75, .75, by = .25), 
+             color = "white",
+             linewidth = .5) +
+  scale_x_continuous(breaks = seq(0,100,by=20)) +
+  geom_vline(xintercept = seq(0,100,by=20), 
+             color = "white", 
+             linewidth = .5) +
+  coord_flip() +
+  scale_fill_manual(values = c(m = "#5c9c6c", f = "#965c9c"))
+```
+
+What about 5-year age groups?
+
+```{r}
+0:10 - 0:10 %% 5
+```
+
+
+```{r}
+stationary |> 
+  mutate(age = age - age %% 5) |> 
+  group_by(sex, age) |> 
+  summarize(Cx = sum(Cx), .groups = "drop") |> 
+  mutate(Cx = Cx * if_else(sex == "m", -1, 1) / 5) |> 
+  
+  ggplot(aes(x = age, y = Cx, fill = sex)) +
+  geom_col(width = 5, alpha = .6) +
+  theme_minimal() +
+  geom_hline(yintercept = seq(-.75, .75, by = .25), 
+             color = "white",
+             linewidth = .5) +
+  scale_x_continuous(breaks = seq(0,100,by=20)) +
+  geom_vline(xintercept = seq(0,100,by=20), 
+             color = "white", 
+             linewidth = .5) +
+  coord_flip() +
+  scale_fill_manual(values = c(m = "#5c9c6c", f = "#965c9c")) +
+  guides(fill = "none")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
