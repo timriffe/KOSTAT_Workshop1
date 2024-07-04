@@ -175,7 +175,7 @@ P |>
 
 # cohorts and periods in stable population models.
 
-Note, in a stationary time population over time, a cohort's age structure over time is equal to the period age structure. In a stable (growing or shrinking) population, the $e^{-rT}$ discounting (inflation) that we do is all for purposes of making a period snapshot: Each period is proportional, but of a different size, or constant successive ratio over time. However, each cohort selected from a table time series is proportional to the stationary (lifetable survivorship) that was used to generate it. This means that cohorts can acheive stable and predictable age structures over time ... ooooo. That might be important when designing institutions and policies. Pay-as-you-go systems will probably perish in fast-shrinking populations, whereas a system build in the cohort perspective would be stable over time.
+Note, in a stationary time population over time, a cohort's age structure over time is equal to the period age structure. In a stable (growing or shrinking) population, the $e^{-rT}$ discounting (inflation) that we do is all for purposes of making a period snapshot: Each period is proportional, but of a different size, or constant successive ratio over time. However, each _cohort_ selected from a stable time series is proportional to the stationary (lifetable survivorship) that was used to generate it. This means that cohorts can acheive stable and predictable age structures over time ... ooooo. That might be important when designing institutions and policies. Pay-as-you-go systems will probably perish in fast-shrinking populations, whereas a system build in the cohort perspective would be stable over time.
 
 I think this is worth demonstrating just so that I can make this point.
 
@@ -217,6 +217,23 @@ stable |>
   guides(color = "none", linetype = "none")
 ```
 
+The time series we start with
+```{r}
+stable |> 
+  ggplot(aes(x = year, y = age, z = Cxr)) +
+  geom_contour_filled()
+```
+
+Periods rescaled, to see period-changes in structure (same as overlapping lines for cohort structure 2 plots ago)- these are stationary: proportional to the original Lx. i.e. with no extra *burden* of old vs young.
+```{r}
+stable |> 
+  mutate(cohort = year - age) |> 
+  filter(between(cohort, 0, 90)) |> 
+  group_by(cohort) |> 
+  mutate(Cxr = 100 * Cxr / sum(Cxr)) |> 
+  ggplot(aes(x = year, y = age, z = Cxr)) +
+  geom_contour_filled()
+```
 
 
 # Fertility Measures (from Day 2)
