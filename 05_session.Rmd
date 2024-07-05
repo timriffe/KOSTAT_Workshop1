@@ -11,37 +11,163 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Get data
 
+```{r}
+library(tidyverse)
+hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz")
+
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_functions_2024.R")
+
+```
+
 # Visualize surface
+
+Just from looking at this surface, you can see that age is a far more powerful source of variation than time or cohorts.
+
+```{r}
+hmd |> 
+  filter(country == "Australia",
+         sex == "f") |> 
+  ggplot(aes(x = year, y = age, z = log(mx))) +
+  geom_contour_filled() +
+  coord_equal()
+```
 
 # derive alpha
 
+```{r}
+alpha <- 
+  hmd |> 
+  filter(country == "Australia",
+         sex == "f") |> 
+  mutate(lmx = log(mx)) |> 
+  group_by(age) |> 
+  summarize(alphax = mean(lmx))
+```
+
+# Look at alpha and how it relates to our original mortality
+```{r}
+hmd |> 
+  filter(country == "Australia",
+         sex == "f") |> 
+  ggplot(aes(x = age, y = log(mx))) +
+  geom_line(mapping = aes(group = year), alpha = .2) +
+  geom_line(data = alpha, 
+            mapping = aes(x = age, y = alphax),
+            color = "red",
+            linewidth = 2)
+```
+
 # make centered log mortality matrix
+
+```{r}
+clmx <-
+  hmd |> 
+  filter(country == "Australia",
+         sex == "f") |> 
+  mutate(lmx = log(mx)) |> 
+  left_join(alpha, by = "age") |> 
+  mutate(clmx = lmx - alphax)
+```
+
+Take a look at how clmx is different from lmx
+
+```{r}
+library(colorspace)
+clmx |> 
+  ggplot(aes(x = age, 
+             y = clmx, 
+             color = year, 
+             group = year)) +
+  geom_line() +
+  scale_color_continuous_sequential("Inferno") #+
+  # better look at how much we shrunk variation:
+  #ylim(-12,0)
+```
+
+Make the matrix
+
+```{r}
+CLMX <-
+  clmx |> 
+  select(year, age, clmx) |> 
+  pivot_wider(names_from = year,
+              values_from = clmx) |> 
+  column_to_rownames("age") |> 
+  as.matrix()
+```
 
 # perform SVD
 
 ```{r}
+duv <- svd(CLMX)
 
+str(duv)
+d <- duv$d
+U <- duv$u
+V <- duv$v
 # can be recombined:
-# (U %*% diag(d) %*% t(V)) 
-
+# (U %*% diag(d) %*% t(V)) - CLMX
 ```
 
 # derive beta and kappa
 
 ```{r}
 #u     first column of U
+u <- U[,1]
 #v     first column of V
+v <- V[,1]
 #d     first element of d
-
+d <- d[1]
 #Bx    rescale u
-
+betax <- u / sum(u)
 # secular change
-#Kt     <- v * sum(u) * d
+kappat     <- v * sum(u) * d
 ```
 
 # put beta and kappa in tidy tables:
 
+```{r}
+
+beta <- tibble(age = 0:110,
+               betax = betax)
+kappa <- tibble(year = 1921:2020,
+                kappat = kappat)
+```
+
+Visualize these components
+
+Beta:
+```{r}
+beta |> 
+  ggplot(aes(x = age, y = betax)) +
+  geom_line()
+```
+Kappa:
+```{r}
+kappa |> 
+  ggplot(aes(x = year, y = kappat)) +
+  geom_line() +
+  geom_smooth(method = "lm")
+```
+
+
 # join and predict:
+
+$$ \widehat{log(m(x))} = \alpha(x) + \beta(x)\cdot\kappa(t)$$
+
+```{r}
+mx_pred <- 
+  kappa |> 
+  cross_join(beta) |> 
+  left_join(alpha, by = "age") |> 
+  relocate(age, .after = year) |> 
+  mutate(lmx_hat = alphax + betax * kappat) |> 
+  left_join(clmx, by = c("year","age"))
+
+```
+
+
+
 
 # examine the residuals
 
