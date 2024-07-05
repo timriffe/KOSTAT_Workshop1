@@ -163,21 +163,94 @@ mx_pred <-
   relocate(age, .after = year) |> 
   mutate(lmx_hat = alphax + betax * kappat) |> 
   left_join(clmx, by = c("year","age"))
+```
 
+# examine the residuals
+
+```{r}
+mx_pred |> 
+  mutate(resid = lmx_hat - lmx,
+         resid = case_when(resid > .3 ~ .3,
+                           resid < -.3 ~ -.3,
+                           TRUE ~ resid)) |> 
+  ggplot(aes(x = year, y = age, fill = resid)) +
+  geom_tile() +
+  scale_fill_continuous_diverging("Blue-Red")
+```
+
+# calculate drift and project kappa
+
+```{r}
+drift <- (kappat[(length(kappat)-1)] - kappat[1]) /
+  (length(kappat) - 2)
+
+horizon <- 1:20
+kappa_future <- kappat[(length(kappat)-1)] + (horizon * drift)
+
+kappa_fut <-
+  tibble(year = 2020 + horizon,
+         kappat = kappa_future)
+```
+
+# recombine to create projected mortality schedule
+
+```{r}
+projection <- 
+  kappa |> 
+  bind_rows(kappa_fut) |> 
+  cross_join(beta) |> 
+  left_join(alpha, by = "age") |> 
+  mutate(lmx_hat = alphax + betax * kappat)
+```
+
+# check age patterns
+
+```{r}
+projection |> 
+  filter(year > 2020) |> 
+  ggplot(aes(x = age, y = lmx_hat, color = year, group = year)) +
+  geom_line() +
+  scale_color_continuous_sequential("Inferno")
+```
+
+# project life expectancy
+
+```{r}
+projection_keep <-
+  projection |> 
+  filter(year > 2020) |> 
+  select(year, age, lmx_hat) |> 
+  mutate(mx = exp(lmx_hat),
+         ax = if_else(age == 0,.14,.5)) |> 
+  select(-lmx_hat)
+
+combined_lt <-
+  combind_mx <-
+  clmx |> 
+  select(year, age, mx, ax) |> 
+  bind_rows(projection_keep) |> 
+  mutate(n = 1) |> 
+  group_by(year) |> 
+  group_modify(~calc_LT_tidy(data = .x))
+
+```
+
+Ready to plot life expectancy:
+
+```{r}
+combined_lt |> 
+  filter(age == 0) |> 
+  ggplot(aes(x = year, y = ex)) +
+  geom_line() +
+  theme_minimal()
 ```
 
 
 
 
-# examine the residuals
 
-# zoom on central residuals
 
-# calculate drift and project kappa
 
-# recombine to create projected mortality schedule
 
-# check age patterns
 
-# project life expectancy
 
