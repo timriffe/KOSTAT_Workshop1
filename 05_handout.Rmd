@@ -54,7 +54,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 # Summary
-This script is in part inherited from Marie-Pier Bergeron Boucher. Her original version of this material forecasts both mortality and fertility using a Lee-Carter model, and then performs a population projection like we did on Thursday but using time-varying forecasted Leslie matrices. That's of coursean excellent exercise, but there's no way we can fit it into this session. Instead we will just do a mortality forecast using the basic Lee-Carter method. Parts of this will be in base `R`, using Marie-Pier's code, unaltered (as of this writing). Others have been reformulated using the tidy approach. You may see some neat tricks for toggling back and forth between tidy objects and matrices.
+This script is in part inherited from Marie-Pier Bergeron Boucher. Her original version of this material forecasts both mortality and fertility using a Lee-Carter model, and then performs a population projection, as we did with stable populations, but using time-varying forecasted Leslie matrices. That's of course an excellent exercise, but there's no way we can fit it into this session. Instead we will just do a mortality forecast using the basic Lee-Carter method. Parts of this will be in base `R`, using Marie-Pier's code, unaltered (as of this writing). Others have been reformulated using the tidy approach. You may see some neat tricks for toggling back and forth between tidy objects and matrices.
 
 # Demographic forecasting
 
@@ -62,7 +62,7 @@ In the previous class, we saw how to project population size, assuming that the 
 
 To obtain a plausible forecast, one must take into account these changes in fertility and mortality over time.
 
-There are four main approaches to forecasting, as defined by @booth2006demographic:
+There are four main approaches to forecasting, as defined by  @booth2006demographic:
 
 1) Extrapolative methods: *This is the most common approach*. It assumes that the future trends will be a continuity of the past. It requires little to no subjective judgment.
 
@@ -78,7 +78,7 @@ For matter of simplicity, migration forecasts are set aside in this class. We wi
 
 # Data
 
-We will use the Spanish females' data from the HMD [@HMD]. Please run the following (pasted in Google doc):
+We will use the Spanish females' data from the HMD [@HMD]. You can read the output file `ESmx.csv` directly from the github site, see code in next chunk.
 
 ```{r, include = FALSE, eval=FALSE}
 library(tidyverse)
@@ -115,16 +115,25 @@ write_csv(ES,"Data/ESmx.csv")
 ```
 
 
+```{r, eval = FALSE}
+library(tidyverse)
+ES <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/ESmx.csv")
+```
+
+```{r, results='hide',echo=FALSE, message=FALSE, warning =FALSE}
+library(tidyverse)
+ES <- read_csv("Data/ESmx.csv")
+```
+
+
 # Mortality forecasting
 
-Since the 1980s, many models have been suggested to forecast mortality. It goes from simple model, such as extrapolating life expectancy, to more complex models including cohort effects and parameterization functions.
+Since the 1980s, many models have been suggested to forecast mortality. From simple models, such as extrapolating life expectancy, to more complex models including cohort effects and parameterization functions.
 
-The great deal of attention to mortality forecasting comes from the observation that death rates have been declining in a log-linear way over time, with (almost) no sign of deceleration.
+A great deal of attention to mortality forecasting comes from the observation that death rates have been declining in a log-linear way over time, with (almost) no sign of deceleration.
 
 
 ```{r error=F, message=F, warning=F}
-library(tidyverse)
-ES <- read_csv("Data/ESmx.csv")
 ES |> 
   filter(age %% 10 == 0) |> 
   ggplot(aes(x = year, y = M, color = age, group = age)) +
@@ -133,7 +142,7 @@ ES |>
   theme_minimal()
 ```
 
-The most popular approach to mortality forecasting is the Lee-Carter model [@lee1992modeling]. Since 1992, most development in mortality forecasting methods has focused on extending and improving the Lee-Carter model[@booth2008mortality, @booth2006demographic]. We will focus on the original Lee-Carter model. This will help understand the mechanics of its extensions in case you ever go looking at those.
+The most popular approach to mortality forecasting is the Lee-Carter model [@lee1992modeling]. Since 1992, most development in mortality forecasting methods has focused on extending and improving the Lee-Carter model [@booth2008mortality, @booth2006demographic]. We will focus on the original Lee-Carter model. This will help understand the mechanics of its extensions in case you ever go looking at those.
 
 ## The Lee-Carter model
 
