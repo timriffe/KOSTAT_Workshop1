@@ -191,7 +191,17 @@ stable <-
   mutate(Cxr = Cxr * exp(r * year))
 ```
 
-First, note each year has the same structure, but is strinking in size:
+
+The time series we start with
+```{r}
+stable |> 
+  ggplot(aes(x = year, y = age, z = Cxr)) +
+  geom_contour_filled() +
+  labs("a fast-shrinking population")
+```
+
+
+First, note each year has the same structure
 
 ```{r}
 stable |> 
@@ -199,8 +209,19 @@ stable |>
   mutate(Cxr = 100 * Cxr / sum(Cxr)) |> 
   ggplot(aes(x = age, y = Cxr, linetype = as.factor(year), color = year)) +
   geom_line() +
-  guides(linetype = "none", color = "none")
+  guides(linetype = "none", color = "none") +
+  labs(title = "each year has the same structure")
 ```
+
+Verify there are in fact different lines above
+```{r}
+stable |> 
+  group_by(year) |> 
+  mutate(Cxr = 100 * Cxr / sum(Cxr)) |> 
+  ggplot(aes(x = year, y = age, z = Cxr)) +
+  geom_contour_filled()
+```
+
 
 If you extract the cohorts, they are all proportional to stationarity
 ```{r}
@@ -217,14 +238,7 @@ stable |>
   guides(color = "none", linetype = "none")
 ```
 
-The time series we start with
-```{r}
-stable |> 
-  ggplot(aes(x = year, y = age, z = Cxr)) +
-  geom_contour_filled()
-```
-
-Periods rescaled, to see period-changes in structure (same as overlapping lines for cohort structure 2 plots ago)- these are stationary: proportional to the original Lx. i.e. with no extra *burden* of old vs young.
+Periods rescaled, to see period-changes in structure (same as overlapping lines for cohort structure 2 plots ago)- these are stationary: proportional to the original Lx. i.e. with no over-sized age groups.
 ```{r}
 stable |> 
   mutate(cohort = year - age) |> 
@@ -232,7 +246,8 @@ stable |>
   group_by(cohort) |> 
   mutate(Cxr = 100 * Cxr / sum(Cxr)) |> 
   ggplot(aes(x = year, y = age, z = Cxr)) +
-  geom_contour_filled()
+  geom_contour_filled() +
+  coord_equal()
 ```
 
 
