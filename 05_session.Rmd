@@ -24,21 +24,30 @@ source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifet
 Just from looking at this surface, you can see that age is a far more powerful source of variation than time or cohorts.
 
 ```{r}
-hmd |> 
+ausf <- hmd |> 
   filter(country == "Australia",
-         sex == "f") |> 
+         sex == "f") 
+
+ausf |> 
   ggplot(aes(x = year, y = age, z = log(mx))) +
   geom_contour_filled() +
   coord_equal()
 ```
 
+# select year range to fit to
+
+```{r}
+ausf <-
+  ausf |> 
+  filter(year > 1975)
+```
+
+
 # derive alpha
 
 ```{r}
 alpha <- 
-  hmd |> 
-  filter(country == "Australia",
-         sex == "f") |> 
+  ausf|> 
   mutate(lmx = log(mx)) |> 
   group_by(age) |> 
   summarize(alphax = mean(lmx))
@@ -46,9 +55,7 @@ alpha <-
 
 # Look at alpha and how it relates to our original mortality
 ```{r}
-hmd |> 
-  filter(country == "Australia",
-         sex == "f") |> 
+ausf |> 
   ggplot(aes(x = age, y = log(mx))) +
   geom_line(mapping = aes(group = year), alpha = .2) +
   geom_line(data = alpha, 
@@ -61,9 +68,7 @@ hmd |>
 
 ```{r}
 clmx <-
-  hmd |> 
-  filter(country == "Australia",
-         sex == "f") |> 
+  ausf |> 
   mutate(lmx = log(mx)) |> 
   left_join(alpha, by = "age") |> 
   mutate(clmx = lmx - alphax)
@@ -130,7 +135,7 @@ kappat     <- v * sum(u) * d
 
 beta <- tibble(age = 0:110,
                betax = betax)
-kappa <- tibble(year = 1921:2020,
+kappa <- tibble(year = 1976:2020,
                 kappat = kappat)
 ```
 
@@ -175,27 +180,45 @@ mx_pred |>
                            TRUE ~ resid)) |> 
   ggplot(aes(x = year, y = age, fill = resid)) +
   geom_tile() +
-  scale_fill_continuous_diverging("Blue-Red")
+  scale_fill_continuous_diverging("Blue-Red") +
+  coord_equal()
 ```
 
 # calculate drift and project kappa
 
+NEW: I double-checked the indices here (we use the first and last points of kappa, dividing by the horizon - 1)
 ```{r}
-drift <- (kappat[(length(kappat)-1)] - kappat[1]) /
-  (length(kappat) - 2)
+lk <- length(kappat)
+drift <- (kappat[lk] - kappat[1]) /
+  (lk - 1)
 
 horizon <- 1:20
-kappa_future <- kappat[(length(kappat)-1)] + (horizon * drift)
+kappa_future <- kappat[lk] + (horizon * drift)
 
 kappa_fut <-
   tibble(year = 2020 + horizon,
          kappat = kappa_future)
 ```
 
+# NEW: quick look at joined kappa series
+
+I see no anomaly here in the joining of kappa
+```{r}
+kappa |> 
+  bind_rows(kappa_fut) |> 
+  ggplot(aes(x=year, y = kappat)) +
+  geom_line() +
+  geom_point(data = kappa |> 
+               filter(year == 2020), 
+             size = 2,
+             color = "red")
+```
+
+
 # recombine to create projected mortality schedule
 
 ```{r}
-projection <- 
+lc_pred <- 
   kappa |> 
   bind_rows(kappa_fut) |> 
   cross_join(beta) |> 
@@ -206,7 +229,7 @@ projection <-
 # check age patterns
 
 ```{r}
-projection |> 
+lc_pred |> 
   filter(year > 2020) |> 
   ggplot(aes(x = age, y = lmx_hat, color = year, group = year)) +
   geom_line() +
@@ -216,21 +239,27 @@ projection |>
 # project life expectancy
 
 ```{r}
-projection_keep <-
-  projection |> 
-  filter(year > 2020) |> 
+projection <-
+  lc_pred |> 
   select(year, age, lmx_hat) |> 
   mutate(mx = exp(lmx_hat),
-         ax = if_else(age == 0,.14,.5)) |> 
-  select(-lmx_hat)
+         n = rep(1,n()),
+         ax = case_when(
+                age == 0 & mx < .02012 ~ .14916 - 2.02536 * mx,
+                age == 0 & mx < .07599 ~ 0.037495 + 3.57055 * mx,
+                age == 0 & mx >= .07599 ~ 0.30663,
+                age == 110 ~ 1 / mx,
+                TRUE ~ n / 2)) |> 
+  select(-lmx_hat) |> 
+  mutate(variant = "lc")
 
 combined_lt <-
-  combind_mx <-
   clmx |> 
-  select(year, age, mx, ax) |> 
-  bind_rows(projection_keep) |> 
   mutate(n = 1) |> 
-  group_by(year) |> 
+  mutate(variant = "empirical") |> 
+  select(year, age, mx, ax, n,variant) |> 
+  bind_rows(projection) |> 
+  group_by(variant,year) |> 
   group_modify(~calc_LT_tidy(data = .x))
 
 ```
@@ -240,11 +269,19 @@ Ready to plot life expectancy:
 ```{r}
 combined_lt |> 
   filter(age == 0) |> 
-  ggplot(aes(x = year, y = ex)) +
+  ggplot(aes(x = year, y = ex, color = variant)) +
   geom_line() +
-  theme_minimal()
+  theme_minimal() +
+  geom_vline(xintercept = 2020)
 ```
 
+```{r}
+combined_lt |> 
+  filter(year %in% c(2019,2020, 2021,2022)) |> 
+  ggplot(aes(x = age, y = mx, color = as.factor(year))) +
+  geom_line() +
+  scale_y_log10()
+```
 
 
 
