@@ -275,13 +275,6 @@ combined_lt |>
   geom_vline(xintercept = 2020)
 ```
 
-```{r}
-combined_lt |> 
-  filter(year %in% c(2019,2020, 2021,2022)) |> 
-  ggplot(aes(x = age, y = mx, color = as.factor(year))) +
-  geom_line() +
-  scale_y_log10()
-```
 
 
 
