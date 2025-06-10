@@ -3,8 +3,8 @@ title: |
   | \includegraphics{logotip.pdf}
   |
   | KOSTAT-UNFPA Summer Seminar on Population
-  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
-  | \vspace{0.3cm} \huge \textbf{Day 3: Population Growth}\vspace{0.6cm}
+  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Introduction to Demography}
+  | \vspace{0.3cm} \huge \textbf{Day 4: Population Growth}\vspace{0.6cm}
   | 
 fontsize: 11pt
 geometry: a4paper, twoside, left=2.5cm, right=2.5cm, top=2cm, bottom=2.8cm, headsep
@@ -22,7 +22,7 @@ output:
     - \usepackage{fancyhdr}
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
-    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[RE]{Workshop~1.~Introduction to Demography}
     - \fancyhead[LO]{{Day 3: Population Growth}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
@@ -46,7 +46,7 @@ rm(us)
 
 \vspace{0.8cm}
 \begin{center}
-\large{4 July 2024}
+\large{26 June 2025}
 \end{center}
 \vspace{0.8cm}
 
@@ -55,7 +55,7 @@ rm(us)
 
 # Summary
 
-As usual we will use tidy coding where possible, but this isn't always possible for things that are iterative or involve matrix algebra, so I'll need to introduce new programming concepts today. Note the concepts around population growth or reproductivity discussed here are often misinterpreted and misused for nationalist and racist agendas. We're smarter than that and understand that these are just partially useful models. These are conceptual models, not forecasts, and many simplifying assumptions are applied when modeling population growth. 
+Today we cover classic concepts of population growth, based on assumptions of constant fertility and mortality dynamics. Note the concepts around population growth or reproductivity discussed here are often misinterpreted and misused for nationalist and racist agendas. We're smarter than that and understand that these are just partially useful models. These are conceptual models, not forecasts, and many simplifying assumptions are applied when modeling population growth. As usual we will use tidy coding where possible, but this isn't always possible for things that are iterative or involve matrix algebra, so I'll need to introduce new programming concepts today.
 
 # Data
 
@@ -112,7 +112,7 @@ LT <- read_delim(LT_url,
 
 ## Balancing equation 
 
-Changes in population size is affected by changes in the number of births, deaths and migration.
+Changes in population size are affected by changes in the number of births, deaths and migration.
 
 * Two ways of entry: Birth and Immigration
 * Two ways of exit: Death and Emigration
@@ -294,7 +294,7 @@ The so-called replacement level of fertility is often set at a TFR of 2.1. This 
 
 As the sex ratio at birth is generally 105 boys per 100 girls and because there is a risk of mortality before reproduction, the TFR has to be greater than 2 for a woman to be able to *replace* herself by a daughter.
 
-* Note: the value 2.1 is a rule of thumb, since it's based on survival it's a moving variable. The lower infant and child mortality is, the closer this value approaches 2. This threshold value can be calculated for a given population, typically by (as usual) abusing the period synthetic population assumption, see e.g. @espenshade2003surprising 
+* Note: the value 2.1 is a rule of thumb, since it's based on survival it's a moving variable, and also the secondary sex ratio at birth can vary. The lower infant and child mortality is, the closer this value approaches 2. This threshold value can be calculated for a given population, typically by (as usual) abusing the period synthetic population assumption, see e.g. @espenshade2003surprising 
 
 
 ## Gross reproductive rate
@@ -356,8 +356,7 @@ NRR
 ```
 
 
-The NRR is a rate-based measure of growth.
-
+The NRR is a rate-based measure of growth. NRR > 1 means that the fertility and mortality would imply growth if held frozen, whereas < 1 means long-term decrease all else equal.
 
 # Population models
 
@@ -376,7 +375,7 @@ Some properties
 * Constant population size and structure
 * CGR= 0
 * $e_0 = \frac{1}{CBR} = \frac{1}{CDR}$
-* All relationships are time-reversible with an altenative interpretation.
+* All relationships are time-reversible with an alternative interpretation.
 * The population structure is proportional to lifetable survivorship
 
 ### Stationary population alternative definition
@@ -432,21 +431,19 @@ The Leslie matrix is a matrix representation of the cohort component method. The
 
 **Step 1**: Project forward the women surviving age-category [x:x+n]
 
-This step consists in finding the survivorship ratio ($s$) to each age group. The survivorship ratio is the proportion of people age x-n to x year that will be alive n years later, in a stationary population. 
+This step consists in finding the survivorship ratio ($s$) to each age group. The survivorship ratio is the proportion of people age x-n to x year that will be alive n years later, in a stationary population.
 
 $$
 s_{x} = \frac{_nL_x}{_nL_{x-n}}
 $$
 
 ```{r}
-
 #Calculate survivorship ratio
 Sx <-
   LT |>  
   mutate(Sx = lead(Lx) / Lx) |> 
   drop_na() |> 
   pull(Sx)
-
 ```
 
 The survivor at t+n time will thus be the people surviving from age x at time t to age x+n:
@@ -457,11 +454,9 @@ $$
 To represent this dynamic in the matrix, place the survivorship ratio as a diagonal in the matrix.
 
 ```{r}
-
 #Place in matrix as diagonal
 
 mat[row(mat) == col(mat) + 1] <- Sx
-
 ```
 
 For the open age interval, the population at time $t+n$ is equal to
@@ -470,11 +465,8 @@ $$
 _{\infty}N_x^W(t+n) = _nN_{x-n}^W(t) * s_x + _{\infty}N_{x}^W(t) *\frac{T_{x+n}}{T_x}
 $$
 ```{r}
-
 #The last cell
-
-mat[nr, nr]<-(LT$Tx[nr] / LT$Tx[nr - 1])
-
+mat[nr, nr] <-(LT$Tx[nr] / LT$Tx[nr - 1])
 ```
 * It's also common to put a zero in that corner. 
 
@@ -657,12 +649,10 @@ $$
 $$
 where I is the identity matrix.
 
-For example (issued from @caswell2001matrix)
+For example (coming from @caswell2001matrix)
 
 ```{r}
-
 #Example
-
 A<-matrix(c(3,2,-6,-5), ncol=2)
 A
 
@@ -675,7 +665,6 @@ lambda<- A%*%x
 
 #x is thus the eigenvector of A and lambda is -3
 lambda
-
 
 ```
 
@@ -698,7 +687,7 @@ log(NRR) / 33
 log(NRR) / r
 ```
 
-The *intrinsic* population structure is the first eigenvector of the Leslie matrix. If you rescale this, then you can compare it to the projected population structure. Eventually there would be perfect overlap.
+The *intrinsic* population structure is the first eigenvector of the Leslie matrix. If you rescale this, then you can compare it to the projected population structure. If you project far enough into the future there will be perfect overlap.
 
 ```{r}
 evec          <- eigen(mat)$vector[, 1]  |>  Re()

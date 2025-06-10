@@ -3,7 +3,7 @@ title: |
   | \includegraphics{logotip.pdf}
   |
   | KOSTAT-UNFPA Summer Seminar on Population
-  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
+  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Introduction to Demography}
   | \vspace{0.3cm} \huge \textbf{Day 1: Basic Demographic Data and Concepts}\vspace{0.6cm}
   | 
 fontsize: 11pt
@@ -22,7 +22,7 @@ output:
     - \usepackage{fancyhdr}
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
-    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[RE]{Workshop~1.~Introduction to Demography}
     - \fancyhead[LO]{{Day 1: Basic Demographic Data and Concepts}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
@@ -44,7 +44,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 \vspace{0.8cm}
 \begin{center}
-\large{1 July 2024}
+\large{23 June 2025}
 \end{center}
 \vspace{0.8cm}
 
@@ -53,7 +53,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # About the instructor
 
-Hi, I'm Tim Riffe, a US-American demographer living in Spain and working at the University of the Basque Country since 2021, thanks to a program that brought me here called Ikerbasque. I defended my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley (2012-2015, USA) then working as a research scientist with the Max Planck Institute for Demographic Research (2015-2021, Germany). I've been hooked on `R` since 2009 when I did the European Doctoral School of Demography, and have since authored several packages, mostly that do demographic things, but sometimes that do plotting things. My own research data prep, analyses, analytic plotting, and presentation-quality plotting are all done in `R`. 
+Hi, I'm Tim Riffe, a US-American demographer living in Spain and working at the University of the Basque Country since 2021, thanks to a program that brought me here called Ikerbasque. I defended my PhD in demography at the Autonomous University of Barcelona in 2013, and spent some years in between working with the Human Mortality Database at the University of California, Berkeley (2012-2015, USA) then working as a research scientist with the Max Planck Institute for Demographic Research (2015-2021, Germany). My own research deals with life expectancy, healthy life expectancy, and methods for comparing values between populations. All my research is reproducible, and implemented in R. I try hard to follow best practices in coding and documentation, and that is part of what I want to impart here.
 
 # About this workshop
 
@@ -89,9 +89,9 @@ The **indirect objectives** are to teach you:
   * Lexis surfaces
 
 
-Each day of the workshop will have a lecture component and a practical component. The lecture component will consist in slides and marker board presentation, whereas the practical component will be based on live coding. The objective of the lecture component will be to introduce basic demographic concepts and teach you the basic perspectives needed in order to think like a demographer. The practical component will introduce basic coding tools and give you a contemporary coding strategy capable of handling most situations.
+Each day of the workshop will have a lecture component and a practical component. The lecture component will consist in slides and marker board presentation, whereas the practical component will be based on live coding. The objective of the lecture component will be to introduce basic demographic concepts and teach you the basic perspectives needed in order to think like a demographer. The practical component will introduce basic coding tools and give you a contemporary coding strategy capable of handling most situations. 
 
-I will provide a handout to accompany both components, this being the first one. The handout sets out the lesson plan for the day, including code examples. When convenient, I will follow these code examples verbatim, however, most code will generally be derived in a live session. When appropriate, I'll also share improvised / derived code with you spontaneously via a Google Doc. The hope is that you will be able to follow along with me. Code will be presented in small units, or *chunks*, and commented live both verbally and in writing, as we progress. This will indirectly introduce you to markdown. In case on any day we do not arrive at the end of a lesson plan, the day's handout is also a reproducible tutorial that you can follow on your own. The markdown document created progressively through the day will be tidied up and posted to the course repository each day after class. I highly recommend going through the handouts and the session code after each session to solidify the material of the day.
+I will provide a handout to accompany both components, this being the first one. The handout sets out the lesson plan for the day, including code examples. When convenient, I will follow these code examples verbatim, however, most code will generally be derived in a live session. When appropriate, I'll also share improvised / derived code with you spontaneously via a Google Doc. The hope is that you will be able to follow along with me. Code will be presented in small units, or *chunks*, and commented live both verbally and in writing, as we progress. This will indirectly introduce you to markdown. In case on any day we do not arrive at the end of a lesson plan, the day's handout is also a reproducible tutorial that you can follow on your own. The markdown document created progressively through the day will be tidied up and posted to the course repository each day after class. I highly recommend going through the handouts and the session code *after* each session to solidify the material of the day.
 
 ## Course materials
 

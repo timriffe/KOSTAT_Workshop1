@@ -22,7 +22,7 @@ output:
     - \usepackage{fancyhdr}
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
-    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[RE]{Workshop~1.~Introduction to Demography}
     - \fancyhead[LO]{{Workshop contents}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
@@ -44,11 +44,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 \vspace{0.8cm}
 \begin{center}
-\large{1 - 5 July, 2024}
+\large{23 - 27 June, 2025}
 \end{center}
 \vspace{0.8cm}
 
-This workshop was held daily from 1 July until until 5 July 2024 in situ in Seoul, South Korea, with the following daily themes:
+This workshop was held daily from 23 until 27 June 2025 in situ in Daejeon, South Korea, with the following daily themes:
 
 1. Basic Demographic Data and Concepts 
 2. Mortality and Fertility
@@ -57,7 +57,7 @@ This workshop was held daily from 1 July until until 5 July 2024 in situ in Seou
 5. Projection
 
 Each day of the workshop consists in a regular set of standard files. These include `presentation.pdf`, `handout.pdf` (created from `handout.Rmd`), and `session.Rmd`, each numbered in the file name prefix with `01` to `05` according to day of the week. The present compiled document contains the presentation and handout pdf files for each day. The handouts are meant to serve as guiding and complementary resources to the content delivered live in sessions. Each theoretical lecture was followed by a live coding practical session in RMarkdown (`session.Rmd`), attempting to implement the theoretical concepts delivered. Session files may contain further content (beyond the lectures or handouts), but concepts may be less thoroughly explained in the notes, as these were created live in class and accompanied by verbal explanations. All these materials and other complementary materials can be found on the workshop website: [https://github.com/timriffe/KOSTAT_Workshop1](https://github.com/timriffe/KOSTAT_Workshop1). 
-If this workshop repeats in 2025, then the current contents will be saved in a snapshot *release* called `v2024` under the same web address. Currently previous releases include `v2021`, `v2022`, `v2023`.
+If this workshop repeats in 2026, then the current contents will be saved in a snapshot *release* called `v2025` under the same web address. Currently previous releases include `v2021`, `v2022`, `v2023`, `v2024`.
 
 ```{r, include = FALSE, eval = FALSE}
 # This code compiled the final pdf to deliver

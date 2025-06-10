@@ -3,7 +3,7 @@ title: |
   | \includegraphics{logotip.pdf}
   |
   | KOSTAT-UNFPA Summer Seminar on Population
-  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
+  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Introduction to Demography}
   | \vspace{0.3cm} \huge \textbf{Day 2: Mortality and Fertility}\vspace{0.6cm}
   | 
 fontsize: 11pt
@@ -22,7 +22,7 @@ output:
     - \usepackage{fancyhdr}
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
-    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[RE]{Workshop~1.~Introduction to Demography}
     - \fancyhead[LO]{{Day 2: Mortality and Fertility}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
@@ -44,7 +44,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 \vspace{0.8cm}
 \begin{center}
-\large{2 July 2024}
+\large{24 June 2025}
 \end{center}
 \vspace{0.8cm}
 
@@ -78,7 +78,7 @@ where $_nA_x$ is the average number of person-years lived in the interval by tho
 
 For single ages or when we're pragmatic, we define ${}_nA_x = n/2$ with the exceptions of the first and the last age group. Other approximations are also available, but these only matter when age groups are wider than a year. In our case, we're working with abridged lifetables, some of which represent high mortality settings, and the ${}_nA_x$ assumptions are consequential. In our case, I provide this value so that we don't need to work so hard at deriving it in class. You could find several popular ${}_nA_x$ approximations in the `DemoTools` package @DemoTools.
 
-Cutting to the chase, we can rather directly convert the ${}_nq_x$ formula to an `R` function: 
+Getting down to business, we can rather directly convert the ${}_nq_x$ formula to an `R` function: 
 
 ```{r}
 calc_nqx <- function(nMx, nAx, n){
@@ -145,7 +145,7 @@ Often we're sure to *close out* the lifetable by making the *final* ${}_nq_x$ va
 
 <!-- I suggest we use this second version for purely pragmatic reasons with these data, unless someone comes along and tells me what's going on with the standard formula, or an error is detected somewhere else. A possibility which I've not explored is that the GHO's delivered `nMx` and `nqx` values are not aligned so as to give an accurate `nAx`. It's possible, but it shouldn't be that way.  -->
 
-Note, this $q(x)$ formula needs to be committed to memory. This is something we either derive or look up as needed. For our needs we are satisfied with our values of $q(x)$, $m(x)$ and $a(x)$, and the remainder of the lifetable is now determined.
+Note, this $q(x)$ formula does not necessarily need to be committed to memory. This is something we either derive or look up as needed. For our needs we are satisfied with our values of $q(x)$, $m(x)$ and $a(x)$, and the remainder of the lifetable is now determined.
 
 ## Survival probabilities between age $x$ and $x+n$, $_np_x$
 
@@ -158,7 +158,7 @@ Really there's no need to program a function for this column, as we can just use
 
 ## Survival probabilities to age $x$, $l_x$
 
-This indicator indicates the chance of surviving from birth to age x ($l_x$) OR the number of survivors at age $x$ relative to the radix $r$ of the life table. The $l_0$ is interpreted as the initial size (radix) of the population, generally set to 1 or 100,000. Here's one of several ways to calculate it given what we have so far:
+This lifetable column indicates the chance of surviving from birth to age x ($l_x$) OR the number of survivors at age $x$ relative to the radix $r$ of the life table. The $l_0=r$ is interpreted as the initial size of the synthetic lifetable population, generally set to 1 or 100,000. Think of this as the number of *sims* in your lifetable. Here's one of several ways to calculate it given what we have so far:
 $$
 l_{x+n} = r \prod_{y=0}^x {}_np_y
 $$
@@ -245,7 +245,8 @@ KOR2014 |>
          nqx = calc_nqx(nMx = nMx, nAx = nAx, n = n),
          lx = calc_lx(nqx = nqx),
          ndx = lx * nqx,
-         nLx = calc_nLx(lx = lx, ndx = ndx, nAx = nAx, n = n))
+         nLx = calc_nLx(lx = lx, ndx = ndx, nAx = nAx, n = n)) |> 
+  head()
 ```
 
 ## Person-years lived above age x $T_x$
@@ -312,6 +313,7 @@ KOR2014 |>
          nLx = calc_nLx(lx = lx, ndx = ndx, nAx = nAx, n = n),
          Tx = calc_Tx(nLx = nLx),
          ex = calc_ex(Tx = Tx, lx = lx)) |> 
+  ungroup() |> 
   filter(age == 0) |> 
   select(sex, ex)
 ```
@@ -364,6 +366,7 @@ Now, this is something you can easily apply in bulk using `group_modify()`. You 
 ```{r}
 KOR2014 |> 
   mutate(nMx = deaths / exposure,
+         # You might change the way nAx is made...
          nAx = if_else(age == 0, .1, .5),
          n = 1) |> 
   group_by(sex) |> 
@@ -397,10 +400,11 @@ KOR2014 |>
             births = sum(births, na.rm = TRUE)) |> 
   mutate(CBR = births / exposure)
 ```
+Often CBR is multiplied by 1000, so we'd have $8.58 / 1000$
 
 ## General fertility rate
 
-The general fertility rate (GFR) is generally considered a better measure of fertility, as only women in their reproductive ages can give birth, and are thus at risk of experiencing the event.
+The general fertility rate (GFR) is generally considered a better measure of fertility, as only women in their reproductive ages can give birth, and are thus at risk of experiencing the event. Sometimes the upper age is truncated at 45 rather than 50.
 
 $$
 GFR[0,T] = \frac{Number~of~births~in~the~population~between~times~T~and~T+t}{Number~of~person-years~lived~by~women~aged~15~to~50~between~times~T~and~T+t}
@@ -426,11 +430,11 @@ KOR2014_2 |>
 
 ```
 
-The GFR does not give unbiased information, however, as the age structure between ages 15 and 50 can vary wildly between populations, as can the shape and location of fertility rates within this range. Ideally, we would like a measure purged of the effects of observed population structure.
+That is to say, about $33$ per thousand. The GFR does not give unbiased information, however, as the age structure between ages 15 and 50 can vary wildly between populations, as can the shape and location of fertility rates within this range. Ideally, we would like a measure free of the effects of observed population structure.
 
 ## Age-specific fertility rates
 
-As with age-specific death rates, age-specific fertility rates ($F$) are less sensitive to the age structure of the population. This measure provides the risk of given birth from women age $x$ to $x+n$:
+As with age-specific death rates, age-specific fertility rates ($F$) are less sensitive to the age structure of the population. This measure provides the rate of giving birth for women age $x$ to $x+n$:
 
 
 $$
@@ -470,7 +474,7 @@ KOR2014_2 |>
 
 ```
 
-This the most commonly calculated and cited fertility metric, but it is not without criticism. For instance, (i) we should not discount the leverage mortality can have on population reproductivity, (ii) if fertility patterns are changing over time a period TFR may not give the best signal of fertility levels, and (iii) TFR is unfortunately sometimes presented as a target.
+This the most commonly calculated and cited fertility metric, but it is not without criticism. For instance, (i) we should not discount the leverage mortality can have on population reproductivity (although it Korea this bias is very low), (ii) if fertility patterns are changing over time a period TFR may not give the best signal of fertility levels, and (iii) TFR is unfortunately sometimes presented as a target.
 
 ## Mean age at childbearing
 The mean age at childbearing is not a rate, but is based on the age-specific fertility rates. The mean age at childbearing (MA) is the average age of mothers at childbearing, standardized for the age-structure of the female population at reproductive age [@HFD].

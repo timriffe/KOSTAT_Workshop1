@@ -3,7 +3,7 @@ title: |
   | \includegraphics{logotip.pdf}
   |
   | KOSTAT-UNFPA Summer Seminar on Population
-  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
+  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Introduction to Demography}
   | \vspace{0.3cm} \huge \textbf{Day 5: Projection}\vspace{0.6cm}
   | 
 fontsize: 11pt
@@ -22,7 +22,7 @@ output:
     - \usepackage{fancyhdr}
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
-    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[RE]{Workshop~1.~Introduction to Demography}
     - \fancyhead[LO]{{Day 5: Projection}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
@@ -45,7 +45,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 \vspace{0.8cm}
 \begin{center}
-\large{5 July 2024}
+\large{27 June 2025}
 \end{center}
 \vspace{0.8cm}
 
@@ -54,7 +54,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 # Summary
-This script is in part inherited from Marie-Pier Bergeron Boucher. Her original version of this material forecasts both mortality and fertility using a Lee-Carter model, and then performs a population projection, as we did with stable populations, but using time-varying forecasted Leslie matrices. That's of course an excellent exercise, but there's no way we can fit it into this session. Instead we will just do a mortality forecast using the basic Lee-Carter method. Parts of this will be in base `R`, using Marie-Pier's code, unaltered (as of this writing). Others have been reformulated using the tidy approach. You may see some neat tricks for toggling back and forth between tidy objects and matrices.
+This session is meant to show one important way to think about forecasting: to abstract the data until the time series can be linearized (easier to project), then transform back to the original scale. This script is in part inherited from Marie-Pier Bergeron Boucher, by now modified and edited numerous times. Her original version of this material forecasts both mortality and fertility using a Lee-Carter model, and then performs a population projection, as we did with stable populations, but using time-varying forecasted Leslie matrices. That's of course an excellent exercise, but there's no way we can fit it into this session. Instead we will just do a mortality forecast using the basic Lee-Carter method. Parts of this will be in base `R`, while others are reformulated using the tidy approach. You may see some neat tricks for toggling back and forth between tidy objects and matrices.
 
 # Demographic forecasting
 

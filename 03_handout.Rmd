@@ -3,7 +3,7 @@ title: |
   | \includegraphics{logotip.pdf}
   |
   | KOSTAT-UNFPA Summer Seminar on Population
-  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Demography in R}
+  | \vspace{1.5cm} \LARGE \emph{Workshop~1.~Introduction to Demography}
   | \vspace{0.3cm} \huge \textbf{Day 3: Population Structure}\vspace{0.6cm}
   | 
 fontsize: 11pt
@@ -22,7 +22,7 @@ output:
     - \usepackage{fancyhdr}
     - \pagestyle{fancy}
     - \fancyhead[LE]{\thepage~\qquad~KOSTAT-UNFPA Summer Seminar on Population}
-    - \fancyhead[RE]{Workshop~1.~Demography in R}
+    - \fancyhead[RE]{Workshop~1.~Introduction to Demography}
     - \fancyhead[LO]{{Day 3: Population Structure}}
     - \fancyhead[RO]{Tim Riffe\qquad~\thepage}
 bibliography: bibliography.bib
@@ -44,7 +44,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 \vspace{0.8cm}
 \begin{center}
-\large{3 July 2024}
+\large{25 June 2025}
 \end{center}
 \vspace{0.8cm}
 
@@ -53,9 +53,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Population structure
 
-Population structure refers either to (i) population definitions (e.g. sex, location, status) that may define universe strata within a dataset with many such strata, or to (ii) risk categories within populations considered together, such as age, health, or separate risk strata being combined to represent a whole population (e.g. life expectancy controlling for educational composition). Often, we wish to control for the effects of within-population structure when comparing metrics. The lifetable is intended to do this, as are measures such as TFR, which we saw yesterday.
+Population structure refers to population definitions (e.g. age, sex, location, status) that may define universe strata within a dataset with many such strata, or differentiate risk categories within populations considered together, such as age, health, or separate risk strata being combined to represent a whole population (e.g. life expectancy controlling for educational composition). Often, we wish to control for the effects of within-population structure when comparing metrics. The lifetable is intended to do this, as are measures such as TFR, which we saw yesterday.
 
-Some aspects of population structure are not observed, or are only observed in retrospect. For example, the frailty of an individual can only be approximated with proxy variables, such as questions on disability. Other important strata might be an individual's social position, which might confer advantages in life. This is most often approximated with observables such as employment categories, educational attainment, wealth, or income. Trying to define and identify such drivers is a key subfield of contemporary demography. How much do such unobservables really determine the demography of a population?
+Some aspects of population structure are not observed, or are only observed in retrospect. For example, the frailty of an individual if inferred using proxy variables, such as questions on disability. Other important strata might be an individual's social position, which might confer advantages in life. This is most often approximated with observable variables such as employment categories, educational attainment, wealth, or income. Trying to define and identify such drivers is a key subfield of contemporary demography. How much do such unobservable aspects of population structure really determine the demography of a population?
 
 ## Observed structure
 
@@ -64,7 +64,7 @@ Demographic structure is often used to infer the economic or demographic potenti
 $$
 PSR = \frac{P(\mathrm{age~}65+)}{P(\mathrm{ages~} 15-64)}
 $$
-That is the ratio of the population size above age 65 to that in working ages, where the threshold ages may move up or down depending on what is common in different populations. This measure gives some information, but it says nothing of the value of work versus the actual costs of support, and ignores that some people of working age do not work, and many above age 65 require no support. These and other biases can push the indicator either up or down, and so when possible we prefer informative indicators, such as those based on more granular demographic data. For example, we may structure a population on health, or social capital.
+That is the ratio of the population size above age 65 to that in working ages, where the threshold ages may move up or down depending on what is common in different populations. Does this measure remind you of the GFR? This measure gives some information, but it says nothing of the value of work versus the actual costs of support, and ignores age structure between ages 15 and 64, that some people of working age do not work, and many above age 65 require no support. These and other biases can push the indicator either up or down, and so when possible we prefer informative indicators, such as those based on more granular demographic data. For example, we may structure a population on health, or social capital.
 
 ## Social structure
 
@@ -80,14 +80,6 @@ wcde <-  read_csv("Data/wcde_data.csv",
   # transform names to lowercase
   rename_with(tolower)
 
-# check which education categories are present in the data
-# looks like we have some excess duplicated info like Under 15 or Total
-# wcde |>
-#   count(education)
-# 
-# # check which countries are present in the data
-# wcde |>
-#   count(area)
 # let us prepare our data
 wcde <- wcde |>
   # remove excess educational cathegories
@@ -146,8 +138,6 @@ wcde |>
           subtitle = "Males are shown on the left and females on the right")
 ```
 
-[checking to see if bars properly stacked]
-
 ### Social structure and mortality
 
 Certainly behavioral outcomes vary by social structure. Unfortunately so does mortality. Let's look at mortality data by low and high educational attainment. These data come from @bramajo2023regional (many thanks to the authors for sharing the data!), and they may give a sense of how much mortality levels can vary along social strata. To calculate lifetable indicators, I've copied our lifetable functions from yesterday's lesson into an `R` script. We can load these into today's workspace, by `source()`ing the file:
@@ -191,7 +181,7 @@ edu_lt |>
 ```
 Just eyeballing premature mortality, it seems that (in the long run) it's worse to be male than to have low education in this particular data.
 
-Note that the there is large heterogeneity in ages at death even within education-sex-specific strata. This is a key observation: We could imagine data with more and finer categorization of risk groups, and so stratify the lifetables even more, but there will be diminishing returns to the variance explained by these groups. Most mortality variation is *within* groups rather than *between* groups. This turns out to be the case even after accounting for plausible levels of unobserved heterogeneity. Age on the other hand, specifically the orders-of-magnitude change in mortality risk over age, explains a lot. It would be hard to find an element of social strata as powerful as age in explaining differences between groups. This is a recent argument of Hal Caswell (reference not yet available as of this writing). This is why we always deal explicitly with age structure when calculating anything in demography.
+Note the large heterogeneity in ages at death even within education-sex-specific strata. This is a key observation: We could imagine data with more and finer categorization of risk groups, and so stratify the lifetables even more, but there will be diminishing returns to the variance explained by these groups. Most mortality variation is *within* groups rather than *between* groups. This turns out to be the case even after accounting for plausible levels of unobserved heterogeneity. Age on the other hand, specifically the orders-of-magnitude change in mortality risk over age, explains a lot. It would be hard to find an element of social strata as powerful as age in explaining differences between groups. This is a recent argument of Hal Caswell (@caswell2023contributions). This is why we always deal explicitly with age structure when calculating anything in demography.
 
 In exercises, we will calculate within-between metrics of mortality inequality for different populations to back this up, and I will give an example of a future scenario of social differences in mortality that runs counter to this lesson.
 
@@ -221,12 +211,12 @@ hmd <- read_csv("Data/hmd.csv.gz",
 Now let's write a function that tells us the threshold age for a given level of $l(x)$ or $e(x)$. Note, we'll want a continuous representation of these two functions. While $l(x)$ is guaranteed to be monotonically decreasing, $e(x)$ is not. However, $x + e(x)$ is guaranteed to monotonically decrease:
 
 ```{r}
-(lx <- hmd |> 
+lx <- hmd |> 
   filter(population == "Sweden", year == 2000, sex == "f") |> 
-  pull(lx))
-(ex <- hmd |> 
+  pull(lx)
+ex <- hmd |> 
   filter(population == "Sweden", year == 2000, sex == "f") |> 
-  pull(ex))
+  pull(ex)
 
 calc_threshold_age <- function(y, x, threshold, closeout = 115, measure = "lx"){
   x <- c(x,115)
@@ -243,7 +233,7 @@ calc_threshold_age(y = lx, x = 0:110, threshold = .2, measure = "lx")
 calc_threshold_age(y = ex, x = 0:110, threshold = 15, measure = "ex")
 ```
 
-Here's an illustration of how the lx-based threshold age is determined. For each different survival curve drawn, we want to find at which age the curve passes the value of 0.2:
+Here's an illustration of how the lx-based threshold age is determined. For each different survival curve drawn, we want to find at which age the curve passes the value of 0.2 (for example):
 
 ```{r}
 hmd |> 
@@ -291,7 +281,7 @@ t_ages |>
   labs(y = "lx-based threshold age")
 ```
 
-From this, the lesson is that while the common definition of age is fixed, the experience of age can change, in this case in response to background mortality. Notably, any dependency ratio statistic will vary greatly depending on which threshold age is chosen, and if said age is a dynamic response to mortality itself, both trends and levels can turn out far more optimistic. In exercises, we will try to calculate trends in different old age indicators.
+From this, the lesson is that while the common definition of age is fixed, the experience of age can change, in this case in response to background mortality, which itself is responding to background health. Notably, any dependency ratio statistic will vary greatly depending on which threshold age is chosen, and if said age is a dynamic response to mortality itself, both trends and levels can turn out far more optimistic. In exercises, we will try to calculate trends in different old age indicators.
 
 ## Different measures imply different burdens
 
@@ -332,6 +322,6 @@ sull |>
   theme_minimal()
 ```
 
-In short, for consequential conditions, longer lives make little difference, whereas for non-lethal conditions (imagine conditions like minor vision impairment, minor hearing loss, mild disability, back pain) longer lives probably imply higher burden, all else equal. 
+In short, for consequential conditions (very lethal conditions), longer lives make little difference, whereas for non-lethal conditions (imagine conditions like minor vision impairment, minor hearing loss, mild disability, back pain) longer lives probably imply higher burden, all else equal. 
 
 # References
