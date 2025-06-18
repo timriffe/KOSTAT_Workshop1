@@ -59,7 +59,7 @@ Today we cover classic concepts of population growth, based on assumptions of co
 
 # Data
 
-We will use the Spanish data from the HMD [@HMD] and HFD [@HFD] today. Please load the following datasets straight from GitHub using this code (I will paste this in the Google Doc as well:
+We will use the Spanish data from the HMD [@HMD] and HFD [@HFD] today. Please load the following datasets (I iwll show you how to load datasets straight from github in class!)
 
 
 ```{r, message = FALSE}
@@ -67,24 +67,19 @@ We will use the Spanish data from the HMD [@HMD] and HFD [@HFD] today. Please lo
 library(tidyverse)
 library(readr)
 #Birth counts in 2014
-B_url <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/BirthsSpain2014.txt"
-B2014 <- read_csv(B_url, 
+B2014 <- read_csv("Data/BirthsSpain2014.txt", 
                   show_col_types = FALSE) 
 # Death counts in 2014
-D_url <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/DeathsSpain2014.txt"
-
 D2014 <- 
-  read_csv(D_url, 
+  read_csv("Data/DeathsSpain2014.txt", 
            show_col_types = FALSE) 
   
 # Population counts on January 1st, 2014
-P1_url <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/PopulationSpain2014.txt"
-P2014 <- read_csv(P1_url,
+P2014 <- read_csv("Data/PopulationSpain2014.txt",
                   show_col_types = FALSE) 
 
 # Population counts on January 1st, 2015
-P2_url <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/PopulationSpain2015.txt"
-P2015 <- read_csv(P2_url,
+P2015 <- read_csv("Data/PopulationSpain2015.txt",
                   show_col_types = FALSE) 
 
 ES2014 <-

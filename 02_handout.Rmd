@@ -416,10 +416,15 @@ This solution looks tricky because births are associated with total sex in our d
 KOR2014_2 <-
   KOR2014 |> 
   select(-deaths) |> 
-  pivot_wider(names_from = sex, values_from = c(exposure,births)) |> 
+  pivot_wider(names_from = sex, 
+              values_from = c(exposure,births)) |> 
   mutate(births_female = births_total) |> 
-  pivot_longer(-c(year,age), names_to = c("measure","sex"), values_to= "value",names_sep="_") |> 
-  pivot_wider(names_from = "measure",values_from="value") |> 
+  pivot_longer(-c(year,age), 
+               names_to = c("measure","sex"), 
+               values_to= "value",
+               names_sep="_") |> 
+  pivot_wider(names_from = "measure",
+              values_from="value") |> 
   filter(sex == "female")
 
 KOR2014_2 |> 

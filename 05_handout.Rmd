@@ -84,9 +84,13 @@ We will use the Spanish females' data from the HMD [@HMD]. You can read the outp
 library(tidyverse)
 library(HMDHFDplus)
 
-ESrates   <- readHMDweb("ESP","fltper_1x1",username = Sys.getenv("us"), password = Sys.getenv("pw")) |> 
+ESrates   <- readHMDweb("ESP","fltper_1x1",
+                        username = Sys.getenv("us"), 
+                        password = Sys.getenv("pw")) |> 
   select(year = Year, age = Age, M = mx)
-ESpop <- readHMDweb("ESP","Exposures_1x1",username = Sys.getenv("us"), password = Sys.getenv("pw")) |> 
+ESpop <- readHMDweb("ESP","Exposures_1x1",
+                    username = Sys.getenv("us"), 
+                    password = Sys.getenv("pw")) |> 
   select(-OpenInterval) |> 
   pivot_longer(Female:Total, names_to = "sex", values_to = "exposure") |> 
   filter(sex == "Female") |> 
@@ -115,15 +119,11 @@ write_csv(ES,"Data/ESmx.csv")
 ```
 
 
-```{r, eval = FALSE}
-library(tidyverse)
-ES <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/Data/ESmx.csv")
-```
-
-```{r, results='hide',echo=FALSE, message=FALSE, warning =FALSE}
+```{r}
 library(tidyverse)
 ES <- read_csv("Data/ESmx.csv")
 ```
+
 
 
 # Mortality forecasting
