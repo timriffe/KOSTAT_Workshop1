@@ -3,6 +3,8 @@
 
 23 - 27 June, 2025 at the Statistics Human Resources Development Institute of KOSTAT in Daejeon, South Korea. For each session, a handout was prepared in advance (files `*_handout.pdf` and the markdown file where it was designed `*_handout.Rmd`). Sessions began with a presentation (files `*_presentation.pdf` and code for figures `*_pres_prep.R`). Live coding and notes from sessions is given in files `*_session.Rmd`. There is material covered in sessions that was not given in the handouts, and there is also material covered in handouts that was not given in the sessions.
 
+Participants were also allowed to submit data to another repository [https://github.com/SSP-Intpopstat/SSP12_Workshop-1](https://github.com/SSP-Intpopstat/SSP12_Workshop-1) and so a Drive folder. These were integrated into sessions to the extent possible.
+
 ## Contents 
 
 - `Data/`
