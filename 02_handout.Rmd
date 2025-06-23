@@ -346,9 +346,22 @@ calc_LT <- function(nMx, nAx, n, radix){
 }
 ```
 
-## reformulate function to use in a tidy pipeline
+This function can be used as-is in a tidy pipeline using the `reframe()` verb. `reframe()` is like a more flexible version of `mutate()` or `summarize()`. The issue is here we have a function that takes vectors as its arguments, but returns a whole `data.frame` as its output.
+```{r}
+KOR2014 |> 
+  mutate(nMx = deaths / exposure,
+         nAx = case_when(age == 0 ~ .1,
+                         age == 110 ~ 1/nMx,
+                         TRUE ~ .5),
+         n = 1) |> 
+  reframe(calc_LT(nMx,nAx,n, radix = 100000)) |> 
+  head()
+```
 
-To use easily in a tidy pipeline, we'll just want to be sure that the input consists in a whole group (or chunk) of data:
+
+## reformulate as `data.frame`-in `data.frame`-out
+
+You could also set the function up to work in a tidy pipeline by making a function that takes a whole data.frame as its input, and that also returns a data.frame. we'll just want to be sure that the input consists in a whole group (or chunk) of data:
 ```{r}
 # data.frame in, data.frame out!
 calc_LT_tidy <- function(data, radix){
@@ -361,7 +374,7 @@ calc_LT_tidy <- function(data, radix){
 }
 ```
 
-Now, this is something you can easily apply in bulk using `group_modify()`. You could design this in many different ways actually. 
+Now, this is something you can easily apply in bulk using `group_modify()` (`reframe()` also still works here!). You could design this in many different ways actually. 
 
 ```{r}
 KOR2014 |> 
@@ -370,6 +383,9 @@ KOR2014 |>
          nAx = if_else(age == 0, .1, .5),
          n = 1) |> 
   group_by(sex) |> 
+  # this also works, but notice we don't use the ~ for reframe,
+  # and that the anonymous name of the incoming data is .data ...
+  # reframe(calc_LT_tidy(data=.data, radix = 1e5))
   group_modify(~calc_LT_tidy(data = .x, radix = 1e5)) |> 
   ungroup()
 ```
