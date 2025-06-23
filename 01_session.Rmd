@@ -1,0 +1,100 @@
+---
+title: "Session 1 Notes"
+author: "Tim Riffe"
+date: "2025-06-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# rmarkdown introduction
+
+The stuff at the top is the metadata header, which creates the title, etc. No need to mess with that.
+Inside the document, you can have sections, separated using hashes.
+The main thing to know how to do is make R chunks:
+
+Ctrl + Alt + i to make an R chunk
+Ctril + Enter to execute the line of code where the cursor is
+library() is to load packages (that you already have installed)
+`<-` is to assign (`=` is the same)
+functions always work like `function_name()`
+specify arguments using their names, to the extent possible
+for more than one argument, use commas to separate them
+to see a function help file, type `?function_name`
+```{r}
+library(tidyverse)
+
+kor_url <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/refs/heads/master/Data/KOR2014.csv"
+
+kor <- read_csv(file = kor_url, show_col_types = FALSE)
+# ?read_csv
+```
+
+# what's inside the data?
+
+One way to see what's in the data is to examine it in the Environment browser
+
+We first looked at `kor` over the in the environment browser, which shows metadata (expand and collapse w blue button)
+We then also opened it by double-clicking in the environment browser
+Executing `View(kor)` also opens it in a data viewer (looks like a spreadsheet but it isn't one!)
+And other helpers, like `str()` for structure, or
+`ncol()`, `nrow()` ask the numbers of columns and rows, respectively...
+```{r}
+# View(kor)
+# str(kor)
+# summary(kor)
+# head(kor)
+# tail(kor)
+dim(kor)    
+nrow(kor)
+ncol(kor)
+```
+
+# CBR, CDR
+
+$$CBR = 1000\cdot\frac{births}{totalpop}$$
+
+`%>%` or `|>` are both pipes. The shortcut is `Ctrl + Shift + m` (`Cmd + up-thingy+ m`)
+
+When pronouncing a tidy sentence the pipes are pronounced as "and then ..."
+Whereas all the other tidy infrastructure can be thought of as verbs.
+All the major tidyverse functions are verbs to the extent that the _do_ things to the data:
+- `filter()` subsets rows of data- you need to give a logical expression (one that evaluates to `TRUE` or `FALSE`), you can use `==` `>`, `>=` inside `filter()`
+`select()` is for selecting columns...
+`summarize()` reduces rows based on some arbitrary operation, which in our case is aggregation. We collapse 111 rows to 1.
+`mutate()` does not change the nr of rows; it can change columns or create new ones.
+```{r}
+CBR <-
+  kor |> 
+  select(-year) |> 
+  filter(sex == "total") |> 
+  summarize(B = sum(births),
+            E = sum(exposure)) |> 
+  mutate(CBR = 1000 * B / E)
+CBR
+```
+
+# Exercise: calculate CDR
+$$ CDR = 1000 \cdot \frac{\sum deaths}{\sum exposure}$$
+
+
+
+# GFR 
+
+# Age-specific fertility rates
+
+# Age-specific mortality rates
+
+# Exercises: Read in Chad fertility inputs
+Data submitted by Yewande Odia :-)
+
+In this data, births are average per 1000 women years 2010-2014, so we want to calculate metrics for the whole period 2010-2014. Populations are given for 2010 and 2015
+1. CBR 
+2. GFR
+3. ASFR
+4. TFR
+
+# Pyramid (if time)
+
