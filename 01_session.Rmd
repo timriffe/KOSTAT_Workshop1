@@ -181,7 +181,7 @@ chad |>
   mutate(CBR = 1000 * B / E)
 ```
 
-Age-specific fertility, in this case means the average rate experienced over a 5-year age interval.
+Age-specific fertility, in this case means the average rate experienced over a 5-year age interval. Remember to recalculate exposure, this time using female populations!
 ```{r}
 # ASFR
 asfr <- 
@@ -190,6 +190,7 @@ asfr <-
          fx = Births / Exposure,
          Age = parse_number(Age)) |> 
   filter(fx > 0)
+
 asfr |> 
   ggplot(mapping = aes(x = Age, y = fx)) +
   geom_line()
@@ -201,7 +202,24 @@ Since each rate covers 5 single-age groups, we need to multiply by 5!
 asfr |> 
   summarize(TFR = sum(fx) * 5)
 ```
+This estimate covers the period 2010-2015; we don't know strictly whether this is a 5-year period or 6-year period. You can compare with external estimates to see how close this one is.
 
+# Back-of-the-envelope life expectancy?
 
-# Pyramid (if time)
+As you'll surely see an the event-history course, survivorship $\ell(x)$ can be calculated as:
+$$\ell(x) = e^{-H(x)}$$
+where H is the cumulative hazard, which in our case we approximate with $m(x)$, which is a step function with tiny single-age steps. Then the sum of survivorship is the expectancy. We down-adjust half an interval just to account for the discrete nature of the data.
+
+```{r}
+mx <- 
+  kor |> 
+  mutate(mx = deaths / exposure) |> 
+  filter(sex == "female") |> 
+  pull(mx)
+mx <- c(0,mx)
+
+lx_hat <- exp(-cumsum(mx))
+sum(lx_hat) - .5
+```
+
 
