@@ -79,11 +79,70 @@ CBR
 # Exercise: calculate CDR
 $$ CDR = 1000 \cdot \frac{\sum deaths}{\sum exposure}$$
 
-
+```{r}
+kor |> 
+  filter(sex == "total") |> 
+  summarize(D = sum(deaths),
+            B = sum(births),
+            E = sum(exposure)) |> 
+  mutate(CDR = 1000 * D / E,
+         CBR = 1000 * B / E)
+```
 
 # GFR 
+General Fertility rate
+$$ GFR = 1000 \cdot \frac{\sum births}{\sum _{x=15}^{49} women}$$
+
+```{r}
+fem <- 
+  kor |> 
+  filter(sex == "female") |> 
+  select(age, exposure)
+births <-
+  kor |> 
+  filter(sex == "total") |> 
+  select(age, births)
+
+gfr <-
+  full_join(fem, 
+            births, 
+            by = join_by(age)) |> 
+  filter(between(x = age, left = 15, right = 49)) |> 
+  summarize(B = sum(births),
+            E = sum(exposure)) |> 
+  mutate(GFR = 1000 * B / E)
+gfr
+
+```
 
 # Age-specific fertility rates
+ Now, GFR beats CBR in terms of signal clarity, but we can do far better: note age structures can still vary greatly within the 35-year span that GFR is calculated over, and so you can't really even calculate the GFR series for a given country and interpret it directly... It might covary with CBR. It might covary with TFR. But it is a biased signal nonetheless.
+$$ ASFR = F_x =\frac{births_x}{exposure_x}$$
+
+To do this: pipe the joined data into `mutate()` to create the fertility rates column, and then optionally filter to rows where fertility (births) > 0
+```{r}
+fert <- 
+ full_join(fem, 
+            births, 
+            by = join_by(age)) |> 
+  mutate(fx = births / exposure) |> 
+  filter(births > 0)
+View(fert)
+```
+
+# Visualize fertiltiy rates
+
+```{r}
+fert |> 
+  ggplot(mapping = aes(x = age,
+                       y = fx)) +
+  geom_line()
+```
+
+
+
+
+
 
 # Age-specific mortality rates
 
