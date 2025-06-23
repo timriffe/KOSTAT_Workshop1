@@ -126,7 +126,7 @@ fert <-
             births, 
             by = join_by(age)) |> 
   mutate(fx = births / exposure) |> 
-  filter(births > 0)
+  filter(fx > 0)
 View(fert)
 ```
 
@@ -136,15 +136,31 @@ View(fert)
 fert |> 
   ggplot(mapping = aes(x = age,
                        y = fx)) +
-  geom_line()
+  geom_line(color = "red", linewidth = 2, alpha = .5) +
+  theme_minimal()
+```
+# TFR
+The total fertility rate is the sum of the age-specific fertility rates in a period. 
+
+```{r}
+fert |> 
+  summarize(tfr = sum(fx))
+```
+It is not a projection (and by extension not a forecast); It is NOT a perfect benchmark for actual fertility conditions, due to further uncontrolled heterogeneity in aspects of population structure beyond age.
+
+# Age-specific mortality rates
+
+```{r}
+kor |> 
+  mutate(mx = deaths / exposure) |> 
+  ggplot(mapping = aes(x = age,
+                       y = mx,
+                       color = sex)) +
+  geom_line() +
+  scale_y_log10()
 ```
 
 
-
-
-
-
-# Age-specific mortality rates
 
 # Exercises: Read in Chad fertility inputs
 Data submitted by Yewande Odia :-)
