@@ -23,7 +23,7 @@ functions always work like `function_name()`
 specify arguments using their names, to the extent possible
 for more than one argument, use commas to separate them
 to see a function help file, type `?function_name`
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
 
 kor_url <- "https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/refs/heads/master/Data/KOR2014.csv"
@@ -54,7 +54,7 @@ ncol(kor)
 
 # CBR, CDR
 
-$$CBR = 1000\cdot\frac{births}{totalpop}$$
+$$CBR = 1000\cdot\frac{\sum births}{\sum exposure}$$
 
 `%>%` or `|>` are both pipes. The shortcut is `Ctrl + Shift + m` (`Cmd + up-thingy+ m`)
 
