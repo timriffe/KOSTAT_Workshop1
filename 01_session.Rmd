@@ -127,7 +127,7 @@ fert <-
             by = join_by(age)) |> 
   mutate(fx = births / exposure) |> 
   filter(fx > 0)
-View(fert)
+# View(fert)
 ```
 
 # Visualize fertiltiy rates
@@ -150,7 +150,7 @@ It is not a projection (and by extension not a forecast); It is NOT a perfect be
 
 # Age-specific mortality rates
 
-```{r}
+```{r, warning=FALSE}
 kor |> 
   mutate(mx = deaths / exposure) |> 
   ggplot(mapping = aes(x = age,
@@ -167,9 +167,41 @@ Data submitted by Yewande Odia :-)
 
 In this data, births are average per 1000 women years 2010-2014, so we want to calculate metrics for the whole period 2010-2014. Populations are given for 2010 and 2015
 1. CBR 
-2. GFR
-3. ASFR
-4. TFR
+2. ASFR
+3. TFR
+
+```{r}
+chad <- read_csv("Data/chad_fertility.csv", show_col_types = FALSE)
+
+# CBR
+chad |> 
+  mutate(Exposure = (Total_2010 + Total_2015)*2.5) |> 
+  summarize(B = sum(Births),
+            E = sum(Exposure)) |> 
+  mutate(CBR = 1000 * B / E)
+```
+
+Age-specific fertility, in this case means the average rate experienced over a 5-year age interval.
+```{r}
+# ASFR
+asfr <- 
+  chad |> 
+  mutate(Exposure = (Females_2010 + Females_2015)/2 * 5,
+         fx = Births / Exposure,
+         Age = parse_number(Age)) |> 
+  filter(fx > 0)
+asfr |> 
+  ggplot(mapping = aes(x = Age, y = fx)) +
+  geom_line()
+```
+
+# TFR
+Since each rate covers 5 single-age groups, we need to multiply by 5!
+```{r}
+asfr |> 
+  summarize(TFR = sum(fx) * 5)
+```
+
 
 # Pyramid (if time)
 
