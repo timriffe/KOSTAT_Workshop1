@@ -125,21 +125,56 @@ es |>
   geom_line()
 ```
 
-# Approximate lifetable exposure
+# Exercise: Approximate lifetable exposure
 
 $$ L_x = \ell_x - (d_x \cdot(1 - a_x))$$
 
 anatomy of a function
 ```{r, eval = FALSE}
-fun_name <- function(args, moreargs){
+fun_name <- function(args, more_args){
   # do stuff with args
   return(result)
 }
 ```
 
+my take:
+```{r}
+calc_Lx <- function(lx,dx,ax){
+  n     <- length(lx)
+  Lx    <- lx - (dx * (1 - ax))
+  Lx[n] <- lx[n] * ax[n]
+  return(Lx)
+}
+```
 
+apply it:
 
+```{r}
 
+es |> 
+  mutate(qx = mx_to_qx(mx = mx, ax = ax),
+         lx = qx_to_lx(qx, radix = 1),
+         dx = lx * qx,
+         Lx = calc_Lx(lx = lx, dx = dx, ax = ax))
+```
+
+# Calculate remaining life expectancy
+
+```{r}
+calc_ex <- function(Lx, lx){
+  # this one is cumbersome:
+  # Tx <- sum(Lx) - c(0,cumsum(Lx[-111]))  
+  # this one makes your head spin:
+  Tx <- Lx |> rev() |> cumsum() |> rev()
+  ex <- Tx / lx # condition it! (scale it up)
+  return(ex)
+}
+```
+
+# apply
+```{r}
+
+```
 
 
 
