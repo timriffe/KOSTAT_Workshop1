@@ -58,6 +58,88 @@ hmd |>
 For single-age data, the formula to convert rates $m_x$ to probabilities $q_x$ is:
 
 $$ q_x = \frac{m_x}{(1 + (1-a_x) \cdot m_x)}$$
+ The formula still works for wider age groups ($n$ years wide) with a small modification:
+ 
+ $$ {}_nq_x = \frac{n \cdot {}_nm_x}{1 + (n- {}_na_x)\cdot{}_nm_x}$$
+Note: $n$ on the left subscript is to indicate that the variable covers an $n$-year wide interval starting at age $x$.
+
+Select a subset-- what countries are available to pick from?
+```{r}
+hmd |> 
+  pull(country) |> 
+  unique()
+```
+
+now calculate qx:
+```{r}
+es <- 
+  hmd |> 
+  filter(country == "Spain",
+         sex == "f",
+         year == 2019) 
+es |> 
+  mutate(qx = mx / (1 + (1 - ax) * mx),
+         qx = if_else(qx > 1, 1, qx), # optional
+         qx = if_else(age == max(age), 1, qx)) # convention
+```
+
+Now let's put that in a function:
+
+```{r}
+mx_to_qx <- function(mx, ax){
+  qx              <- mx / (1 + (1 - ax) * mx)
+  # make sure it obeys the rules!
+  qx[qx > 1]      <- 1
+  # no one gets out!
+  qx[length(qx)]  <- 1
+  return(qx)
+}
+es <- 
+es |> 
+  mutate(qx = mx_to_qx(mx, ax)) 
+```
+
+# now calculate survivorship
+
+survival probabilities are the complement of death probabilities...
+$$ p_x  = 1 - q_x $$
+These are the probabilities can chain together into overall survivorship:
+$$ \ell_x = \prod _{0}^{x-1}p_x$$
+
+```{r}
+qx_to_lx <- function(qx, radix = 1e5){
+  n <- length(qx)
+  qx <- c(0,qx[-n])
+  lx <- radix * cumprod(1-qx)
+  return(lx)
+}
+```
+Now let's try it out:
+
+```{r}
+es |> 
+  mutate(qx = mx_to_qx(mx, ax),
+         lx = qx_to_lx(qx),
+         dx = qx * lx) |> 
+  ggplot(aes(x = age, y = dx)) +
+  geom_line()
+```
+
+# Approximate lifetable exposure
+
+$$ L_x = \ell_x - (d_x \cdot(1 - a_x))$$
+
+anatomy of a function
+```{r, eval = FALSE}
+fun_name <- function(args, moreargs){
+  # do stuff with args
+  return(result)
+}
+```
+
+
+
+
 
 
 
