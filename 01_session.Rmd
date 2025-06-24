@@ -171,11 +171,11 @@ In this data, births are average per 1000 women years 2010-2014, so we want to c
 3. TFR
 
 ```{r}
-chad <- read_csv("Data/chad_fertility.csv", show_col_types = FALSE)
+chad <- read_csv("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/refs/heads/master/Data/chad_fertility.csv", show_col_types = FALSE)
 
 # CBR
 chad |> 
-  mutate(Exposure = (Total_2010 + Total_2015)*2.5) |> 
+  mutate(Exposure = (Total_2010 + Total_2015)/2 * 5) |> 
   summarize(B = sum(Births),
             E = sum(Exposure)) |> 
   mutate(CBR = 1000 * B / E)
@@ -193,7 +193,7 @@ asfr <-
 
 asfr |> 
   ggplot(mapping = aes(x = Age, y = fx)) +
-  geom_line()
+  geom_step()
 ```
 
 # TFR
