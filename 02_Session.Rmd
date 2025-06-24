@@ -208,12 +208,52 @@ source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/refs/heads/m
 1. Make a scatterplot (points), using `geom_point()` of:
 $m_0$ vs $e_0$ (infant mortality vs life expectancy). Maybe log infant mortality scale. That means: calculate the full lifetables, then subset to `age == 0`, then make the plot. sex can be colors
 
+```{r}
+hmd_lt <-
+  hmd |> 
+  group_by(country, sex, year) |> 
+  reframe(calc_LT(mx = mx, ax = ax, age = age, radix = 1e5)) 
+
+hmd_lt |> 
+  filter(age == 0) |> 
+  ggplot(mapping = aes(x = ex, y = mx)) +
+  geom_point(alpha = .05) +
+  scale_y_log10() +
+  facet_wrap(~sex) +
+  theme_minimal()
+```
+
+
 2. Make a function that calculates the standard deviation (at birth) of age at death. That is:
 It takes dx, ax, and age as arguments, and does this:
 $$ var_0 = \sum_0^\infty(x - e_0)^2 \cdot d_x/\ell_0$$
 $$ \sigma_0 = \sqrt(var_x)$$
 The function will only return one value, meaning you'll need to apply it inside `summarize()`, and also save $e_0$ inside that summarize (`e0 = ex[age == 0]`)
-Now make a scatterplot of the standard deviation (at birth) and remaining life expectancy, with sex mapped to color (or in a facet).
+
+```{r}
+calc_sd0 <- function(dx, ax, age){
+  avg_age_at_death_in_interval <- age + ax
+  dx <- dx / sum(dx)
+  e0 <- sum(avg_age_at_death_in_interval * dx)
+  v0 <- sum((avg_age_at_death_in_interval-e0)^2 * dx)
+  sd0 <- sqrt(v0)
+  return(sd0)
+}
+```
+
+
+Now make a scatterplot of the standard deviation (at birth) and life expectancy at birth, with sex mapped to color (or in a facet).
+
+```{r}
+hmd_lt |> 
+  group_by(country, sex, year) |> 
+  summarize(e0 = ex[age==0],
+            sd0 = calc_sd(dx = dx, ax = ax, age = age)) |> 
+  ggplot(aes(x = e0, y = sd0)) +
+  geom_point(alpha = .05) +
+  theme_minimal() +
+  facet_wrap(~sex)
+```
 
 
 
