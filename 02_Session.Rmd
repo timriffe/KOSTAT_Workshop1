@@ -171,11 +171,40 @@ calc_ex <- function(Lx, lx){
 }
 ```
 
-# apply
-```{r}
+# Exercise: apply all steps to calculate a full lifetable
 
+This works by setting up a complete `mutate()` call for a lifetable (all steps), then insert a `group_by()` statement.
+```{r, eval = FALSE}
+hmd |>
+  group_by(country, sex, year) |> 
+  mutate(qx = mx_to_qx(mx=mx,ax),
+         lx = qx_to_lx(qx = qx, radix = 1e5),
+         dx = qx * lx,
+         Lx = calc_Lx(lx = lx, dx = dx, ax = ax),
+         ex = calc_ex(Lx = Lx,lx = lx))
 ```
 
 
+What might a full lifetable function look like?
+
+```{r}
+calc_LT <- function(mx, ax, age, radix = 1e5){
+  lt <- tibble(age, mx, ax) |> 
+          mutate(qx = mx_to_qx(mx = mx, ax = ax),
+                 lx = qx_to_lx(qx = qx, radix = radix),
+                 dx = qx * lx,
+                 Lx = calc_Lx(lx = lx, dx = dx, ax = ax),
+                 ex = calc_ex(Lx = Lx,lx = lx))
+  return(lt)
+} 
+```
+
+Now you can apply this bigger function in the same way, albeit with the `reframe()` verb:
+
+```{r}
+hmd |> 
+  group_by(country, sex, year) |> 
+  reframe(calc_LT(mx = mx, ax = ax, age = age))
+```
 
 
