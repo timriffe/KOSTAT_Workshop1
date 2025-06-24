@@ -199,6 +199,25 @@ calc_LT <- function(mx, ax, age, radix = 1e5){
 } 
 ```
 
+How to load a bunch of your own functions
+
+```{r}
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/refs/heads/master/lifetable_functions2025.R")
+```
+
+# Exercise-
+
+1. Make a scatterplot (points), using `geom_point()` of:
+$m_0$ vs $e_0$ (infant mortality vs life expectancy). Maybe log infant mortality scale. That means: calculate the full lifetables, then subset to `age == 0`, then make the plot. sex can be colors
+
+
+
+
+
+
+
+
+
 Now you can apply this bigger function in the same way, albeit with the `reframe()` verb:
 
 ```{r}
