@@ -32,11 +32,10 @@ hmd |>
 ```{r}
 hmd |> 
   filter(year >= 1950,
-         !country %in% c("ISL","LUX")) |> 
+         !country %in% c("Iceland","Luxembourg")) |> 
   mutate(mx = if_else(mx == 0, NA, mx)) |> 
   ggplot(mapping = aes(x = age, y = mx, group = year))+
   geom_line(alpha = .03) +
-  ylim(1e-5,1) +
   scale_y_log10() +
   facet_wrap(~sex) 
 ```
@@ -56,7 +55,9 @@ hmd |>
 
 # step 1: convert rates to probabilties
 
+For single-age data, the formula to convert rates $m_x$ to probabilities $q_x$ is:
 
+$$ q_x = \frac{m_x}{(1 + (1-a_x) \cdot m_x)}$$
 
 
 
