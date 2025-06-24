@@ -204,12 +204,16 @@ How to load a bunch of your own functions
 ```{r}
 source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/refs/heads/master/lifetable_functions2025.R")
 ```
-
 # Exercise-
-
 1. Make a scatterplot (points), using `geom_point()` of:
 $m_0$ vs $e_0$ (infant mortality vs life expectancy). Maybe log infant mortality scale. That means: calculate the full lifetables, then subset to `age == 0`, then make the plot. sex can be colors
 
+2. Make a function that calculates the standard deviation (at birth) of age at death. That is:
+It takes dx, ax, and age as arguments, and does this:
+$$ var_x = \sum_o^\infty(x - e_0)^2 \cdot d_x/\ell_0$$
+$$ sd_x = \sqrt(var_x)$$
+The function will only return one value, meaning you'll need to apply it inside `summarize()`, and also save $e_0$ inside that summarize (`e0 = ex[age == 0]`)
+Now make a scatterplot of the standard deviation (at birth) and remaining life expectancy, with sex mapped to color (or in a facet).
 
 
 
@@ -217,8 +221,6 @@ $m_0$ vs $e_0$ (infant mortality vs life expectancy). Maybe log infant mortality
 
 
 
-
-Now you can apply this bigger function in the same way, albeit with the `reframe()` verb:
 
 ```{r}
 hmd |> 
