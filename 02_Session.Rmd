@@ -1,0 +1,63 @@
+---
+title: "Session 2 notes"
+author: "Tim Riffe"
+date: "2025-06-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Life tables
+
+For today's practice, we will read in the HMD data
+```{r}
+library(tidyverse)
+hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/refs/heads/master/Data/hmd.csv.gz")
+
+# we have 9352 lifetables
+hmd |> 
+  select(country, sex, year) |> 
+  distinct() |> 
+  nrow()
+
+hmd |> 
+  pull(sex) |> 
+  unique()
+```
+
+# step 0 visualize it
+
+```{r}
+hmd |> 
+  filter(year >= 1950,
+         !country %in% c("ISL","LUX")) |> 
+  mutate(mx = if_else(mx == 0, NA, mx)) |> 
+  ggplot(mapping = aes(x = age, y = mx, group = year))+
+  geom_line(alpha = .03) +
+  ylim(1e-5,1) +
+  scale_y_log10() +
+  facet_wrap(~sex) 
+```
+
+Looks at one:
+
+```{r}
+hmd$country |> unique()
+hmd |> 
+  filter(country == "Sweden",
+         year == 2015) |> 
+  ggplot(mapping = aes(x = age, y =mx, color = sex)) +
+  geom_line() +
+  scale_y_log10()
+```
+
+
+# step 1: convert rates to probabilties
+
+
+
+
+
+
