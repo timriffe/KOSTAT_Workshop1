@@ -215,14 +215,15 @@ hmd_lt <-
   reframe(calc_LT(mx = mx, ax = ax, age = age, radix = 1e5)) 
 
 hmd_lt |> 
-  filter(age == 0) |> 
-  ggplot(mapping = aes(x = ex, y = mx)) +
-  geom_point(alpha = .05) +
+  ungroup() |> 
+  filter(age == 0, year > 1850) |> 
+  ggplot(mapping = aes(x = ex, y = mx, color = year)) +
+  geom_point(alpha = .3) +
+  geom_smooth(method = "loess", color = "red")+
   scale_y_log10() +
   facet_wrap(~sex) +
   theme_minimal()
 ```
-
 
 2. Make a function that calculates the standard deviation (at birth) of age at death. That is:
 It takes dx, ax, and age as arguments, and does this:
@@ -233,9 +234,9 @@ The function will only return one value, meaning you'll need to apply it inside 
 ```{r}
 calc_sd0 <- function(dx, ax, age){
   avg_age_at_death_in_interval <- age + ax
-  dx <- dx / sum(dx)
-  e0 <- sum(avg_age_at_death_in_interval * dx)
-  v0 <- sum((avg_age_at_death_in_interval-e0)^2 * dx)
+  dx  <- dx / sum(dx)
+  e0  <- sum(avg_age_at_death_in_interval * dx)
+  v0  <- sum((avg_age_at_death_in_interval - e0)^2 * dx)
   sd0 <- sqrt(v0)
   return(sd0)
 }
@@ -246,11 +247,13 @@ Now make a scatterplot of the standard deviation (at birth) and life expectancy 
 
 ```{r}
 hmd_lt |> 
+  filter(year > 1850) |> 
   group_by(country, sex, year) |> 
   summarize(e0 = ex[age==0],
-            sd0 = calc_sd(dx = dx, ax = ax, age = age)) |> 
-  ggplot(aes(x = e0, y = sd0)) +
-  geom_point(alpha = .05) +
+            sd0 = calc_sd0(dx = dx, ax = ax, age = age)) |> 
+  ggplot(aes(x = e0, y = sd0, color = year)) +
+  geom_point(alpha = .3) +
+  geom_smooth(color = "red") +
   theme_minimal() +
   facet_wrap(~sex)
 ```
@@ -267,5 +270,47 @@ hmd |>
   group_by(country, sex, year) |> 
   reframe(calc_LT(mx = mx, ax = ax, age = age))
 ```
+
+# Exercise
+
+Make a scatterplot of adult mortality against infant or child mortality.
+
+$$ {}_{45}q_{15}$$
+
+$$ {}_{45}q_{15} = \frac{\sum _{15}^{59} d_x}{\ell_{15}}$$
+
+$$ {}_{45}q_{15} = 1 - (\frac{\ell_{60}}{\ell_{15}})$$
+
+```{r}
+calc_adult_mort <- function(lx, age){
+  l60        <- lx[age == 60]
+  l15        <- lx[age == 15]
+  adult_mort <- 1 - l60 / l15
+  return(adult_mort)
+}
+```
+
+```{r}
+hmd_lt |> 
+  group_by(country, sex, year) |> 
+  summarize(m0 = mx[age == 0],
+            adult_mort = calc_adult_mort(lx = lx, age = age),
+            .groups = "drop") |> 
+  ggplot(mapping = aes(x = m0, y = adult_mort)) +
+  geom_point(alpha = .3) +
+  scale_x_log10()
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
