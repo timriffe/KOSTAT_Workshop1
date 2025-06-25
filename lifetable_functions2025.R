@@ -1,13 +1,26 @@
 # functions created on 24 June, 2025 for the second session of 
-# the Introduction to Demography bloack of the KOSTAT-UNFPA Sum...
-library(tidyverse)
+# the Introduction to Demography block of the KOSTAT-UNFPA Sum...
+library(tidyverse) # used by lifetable function
+
+# calculate qx using the identity between ax, mx, qx
+mx_to_qx <- function(mx, ax){
+  qx              <- mx / (1 + (1 - ax) * mx)
+  # make sure it obeys the rules!
+  qx[qx > 1]      <- 1
+  # no one gets out!
+  qx[length(qx)]  <- 1
+  return(qx)
+}
+
+# convert qx to lx
 qx_to_lx <- function(qx, radix = 1e5){
-  n <- length(qx)
+  n  <- length(qx)
   qx <- c(0,qx[-n])
   lx <- radix * cumprod(1-qx)
   return(lx)
 }
 
+# calculate Lx 
 calc_Lx <- function(lx,dx,ax){
   n     <- length(lx)
   Lx    <- lx - (dx * (1 - ax))
@@ -24,6 +37,7 @@ calc_ex <- function(Lx, lx){
   return(ex)
 }
 
+# put the pieces together
 calc_LT <- function(mx, ax, age, radix = 1e5){
   lt <- tibble(age, mx, ax) |> 
     mutate(qx = mx_to_qx(mx = mx, ax = ax),
