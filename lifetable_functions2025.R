@@ -12,6 +12,7 @@ mx_to_qx <- function(mx, ax){
   return(qx)
 }
 
+
 # convert qx to lx
 qx_to_lx <- function(qx, radix = 1e5){
   n  <- length(qx)
