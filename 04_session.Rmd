@@ -238,6 +238,26 @@ tibble(year = years, decade)
 
 Now you're ready to group by continent (or something else) and decade and use `calc_slope()` inside `summarize()` to tell me the speed of improvement.
 
+```{r}
+e0_fast <- 
+  e0_fast |> 
+  filter(year < 2020) |> 
+  mutate(decade = year - year %% 10)
+```
+
+```{r}
+e0_fast |> 
+  group_by(continent, decade) |> 
+  summarize(pace = calc_slope(year = year, 
+                              e0 = e0)) |> 
+  mutate(pace = round(pace, 2)) |> 
+  pivot_wider(names_from = decade,
+              values_from = pace)
+```
+
+# New exercise
+
+
 
 
 
