@@ -256,6 +256,58 @@ e0_fast |>
 ```
 
 # New exercise
+Within each year, pick out the highest life expectancy at birth. This is a `filter()` line.
+
+Inside `summarize()` use `calc_slope()`.
+
+```{r}
+e0_fast |> 
+  ungroup() |> 
+  filter(year < 2020) |> 
+  group_by(year) |> 
+  filter(e0 == max(e0)) |> 
+  ggplot(mapping = aes(x = year, y = e0)) +
+  geom_point(mapping = aes(color = name)) +
+  geom_smooth(method = "lm")
+
+e0_fast |> 
+  ungroup() |> 
+  filter(year < 2020) |> 
+  group_by(year) |> 
+  filter(e0 == max(e0)) |> 
+  ungroup() |> 
+  summarize(pace = calc_slope(year = year, e0 = e0))
+```
+
+# 
+
+```{r}
+mxwpp |> 
+  filter(year < 2020,
+         iso3 == "AUS",
+         sex == "female") |> 
+  ggplot(mapping = aes(x = year, y = age, z = log(mx))) +
+  coord_equal() +
+  geom_contour_filled()
+```
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
