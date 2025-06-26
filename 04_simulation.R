@@ -25,8 +25,11 @@ cohorts_tidy <- tibble(cohort = cohorts, prev_high = prev30)
 lx_data <- cross_join(cohorts_tidy,lx_tidy) 
 prev_data <- 
   lx_data |> 
-  mutate(prev1 = prev_high * lx1,
-         prev2 = (1 - prev_high) * lx2,
+  mutate(lx1 = prev_high * lx1,
+         lx2 = (1 - prev_high) * lx2,
+         lx = lx1 + lx2,
+         prev1 = lx1 / lx,
+         prev2 = lx2 / lx,
          year = cohort + age) |> 
   select(year, age, prev1, prev2) |> 
   group_by(year) |> 
