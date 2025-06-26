@@ -151,6 +151,88 @@ mxwpp <-
 
 # Exercise: calculate all lifetables.
 
+For very fast calculations you can use this approximation for life expectancy at birth; this returns a scalar (a single value), so you should run this inside `summarize()`.
+
+$$ \ell(x) = e^{-\int_0^x m(t) dt}$$
+
+$$ \ell(x) = 1 - F(x) = e^{-H(x)}$$
+
+
+```{r}
+mx_to_e0_cheap <- function(mx){
+  lx <- c(1,exp(-cumsum(mx)))
+  sum(lx) - .5
+}
+e0_fast <-
+  mxwpp |> 
+  group_by(iso3, country_code, name, sex, year) |> 
+  summarize(e0 = mx_to_e0_cheap(mx), .groups = "drop") 
+```
+
+Here's the rigorous way:
+
+```{r, eval = FALSE}
+mxwpp |> 
+  group_by(iso3, country_code, name, sex, year) |> 
+  reframe(calc_LT(mx = mx, ax = ax, age = age)) |> 
+  filter(age == 0)
+```
+
+# Exercise: add continent names
+
+Add continent names to a new column using the `countrycode` package.
+
+```{r}
+e0_fast <-
+  e0_fast |> 
+  mutate(continent = countrycode(iso3, 
+                                 origin = "iso3c", 
+                                 destination = "continent"))
+```
+
+
+# Make exploratory plot
+
+Make $e(0)$ trajectories as lines? Each country is a line. And the colors of the lines can come from `continent`. You'll want to use `alplha = __` inside `geom_line()`.
+
+```{r}
+e0_fast |> 
+  ggplot(mapping = aes(x = year, 
+                       y = e0, 
+                       color = continent, 
+                       groups = iso3)) +
+  geom_point(alpha = .5) +
+  facet_wrap(~sex)
+```
+
+# highlight a country on top the cloud
+
+```{r}
+e0_fast |> 
+  ggplot(mapping = aes(x = year,
+                       y = e0)) +
+  geom_point(alpha = .05) +
+  geom_line(data = e0_fast |> filter(iso3 == "KOR"),
+            color = "red", linewidth = 2) +
+  facet_wrap(~sex)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
