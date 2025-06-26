@@ -1,6 +1,6 @@
 library(tidyverse)
-
-a2 <- .0003
+a1 <- 0.0001
+a2 <- 0.0003
 b <-.07
 age <- 30:100
 gompmx <- function(a,b,x){
@@ -14,7 +14,6 @@ mx1 <- gompmx(a1,b,age)
 mx2 <- gompmx(a2,b,age)
 lx1 <- mx_to_lx_cheap(mx1)
 lx2 <- mx_to_lx_cheap(mx2)
-
 
 lx_tidy <- tibble(age, lx1, lx2)
 prev30 <- c(rep(.01,70), rep(.1,7), rep(.2,7), rep(.3,7), rep(.4,70))
