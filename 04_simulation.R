@@ -21,7 +21,7 @@ prev30 <- c(rep(.01,70), rep(.1,7), rep(.2,7), rep(.3,7), rep(.4,70))
 cohorts <- seq_along(prev30) + 1900
 cohorts_tidy <- tibble(cohort = cohorts, prev_high = prev30)
 
-
+# redo
 lx_data <- cross_join(cohorts_tidy,lx_tidy) 
 prev_data <- 
   lx_data |> 
