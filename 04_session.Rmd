@@ -217,8 +217,26 @@ e0_fast |>
   facet_wrap(~sex)
 ```
 
+# Calculate speed of improvement
+By continents and decades 1950-2010.
 
+Here, use this handy help function to calculate slopes!!
+```{r}
+calc_slope <- function(year, e0){
+  coefs <- lm(e0~year) |> coef()
+  coefs[["year"]]
+}
+```
 
+Trick to figure out decades:
+The line `years - years %% 10` tells you which decade each year falls within; so you can make a decade column inside `mutate()` using that as the trick.
+```{r}
+years <- 1980:2020
+decade <- years - years %% 10
+tibble(year = years, decade)
+```
+
+Now you're ready to group by continent (or something else) and decade and use `calc_slope()` inside `summarize()` to tell me the speed of improvement.
 
 
 
