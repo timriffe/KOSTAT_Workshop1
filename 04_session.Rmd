@@ -62,7 +62,12 @@ The above code was shared via a script to be sourced from grithub.
 
 # load lifetable functions
 ```{r}
+# gets the lifetable function
 source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/refs/heads/master/lifetable_functions2025.R")
+
+# run the prevalence simulation
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/refs/heads/master/04_simulation.R")
+
 ```
 
 ```{r}
@@ -83,6 +88,15 @@ mx_national <-
 2. filter down to age 30
 3. Make a graph of remaining life expectancy at age 30.
 
+```{r}
+mx_national |> 
+  group_by(year) |> 
+  reframe(calc_LT(mx = mx, ax = ax, age = age)) |> 
+  filter(age == 30) |> 
+  ggplot(mapping = aes(x = year, y = ex + 30)) +
+  geom_line() +
+  theme_minimal()
+```
 
 
 
