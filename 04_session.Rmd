@@ -98,8 +98,58 @@ mx_national |>
   theme_minimal()
 ```
 
+# load wpp mortality rates
 
+```{r}
+mxwpp <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/refs/heads/master/Data/mx1dt.csv.gz")
 
+```
+
+# append country names
+
+```{r}
+library(countrycode)
+mxwpp <-
+  mxwpp |> 
+  mutate(iso3 = countrycode(sourcevar = country_code,
+                            origin = "un",
+                            destination = "iso3c")) |> 
+  filter(!is.na(iso3))
+```
+
+# reshape data to long format
+
+```{r}
+mxwpp <- 
+  mxwpp |> 
+  pivot_longer(starts_with("mx"), 
+               names_to = "sex",
+               values_to = "mx") |> 
+  mutate(sex = case_when(sex == "mxM" ~ "male",
+                         sex == "mxF" ~ "female",
+                         TRUE ~ "total")) |> 
+  arrange(iso3, year, sex, age)
+```
+
+# figure out infant a0
+
+```{r}
+mxwpp <-
+  mxwpp |> 
+  filter(sex != "total") |> 
+  mutate(ax = case_when(
+    sex == "male" & age == 0 & between(mx, 0, 0.02300) ~ 0.14929 - 1.99545 * mx,
+    sex == "male" & age == 0 & between(mx, 0.02300001, 0.08307) ~ 0.02832 + 3.26021 * mx,
+    sex == "male" & age == 0 & between(mx, 0.08307001, 1) ~ 0.29915,
+    sex == "female" & age == 0 & between(mx, 0, 0.01724) ~ 0.14903 - 2.05527 * mx,
+    sex == "female" & age == 0 & between(mx, 0.01724001, 0.06891) ~ 0.04667 + 3.88089 * mx,
+    sex == "female" & age == 0 & between(mx, 0.06891001,1) ~ 0.31411,
+    age == max(age) ~ 1 / mx, # constant mortality for closeout (the mean survival time)
+    TRUE ~ .5                 # if subject to constant mortality is the inverse of the rate
+  ))
+```
+
+# Exercise: calculate all lifetables.
 
 
 
