@@ -1,0 +1,277 @@
+---
+title: "Session 5 Notes"
+author: "Tim Riffe"
+date: "2025-06-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Get data
+
+```{r, message = FALSE}
+library(tidyverse)
+hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz")
+
+source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_functions2025.R")
+
+```
+
+# Visualize surface
+
+```{r}
+ausf <- hmd |> 
+  filter(country == "Australia",
+         sex == "f") 
+
+ausf |> 
+  ggplot(aes(x = year, y = age, z = log(mx))) +
+  geom_contour_filled() +
+  coord_equal()
+```
+
+# Select year range to fit to
+
+```{r}
+ausf <-
+  ausf |> 
+  filter(year > 1975)
+```
+
+
+# derive alpha
+
+```{r}
+alpha <- 
+  ausf|> 
+  mutate(lmx = log(mx)) |> 
+  group_by(age) |> 
+  summarize(alphax = mean(lmx))
+```
+
+# Look at alpha and how it relates to our original mortality
+```{r}
+ausf |> 
+  ggplot(aes(x = age, y = log(mx))) +
+  geom_line(mapping = aes(group = year), alpha = .2) +
+  geom_line(data = alpha, 
+            mapping = aes(x = age, y = alphax),
+            color = "red",
+            linewidth = 2)
+```
+
+# make centered log mortality
+
+```{r}
+clmx <-
+  ausf |> 
+  mutate(lmx = log(mx)) |> 
+  left_join(alpha, by = "age") |> 
+  mutate(clmx = lmx - alphax)
+```
+
+Take a look at how clmx is different from lmx
+
+```{r}
+library(colorspace)
+clmx |> 
+  ggplot(aes(x = age, 
+             y = clmx, 
+             color = year, 
+             group = year)) +
+  geom_line() +
+  scale_color_continuous_sequential("Inferno") #+
+  # better look at how much we shrunk variation:
+  #ylim(-12,0)
+```
+
+Make the matrix
+
+```{r}
+CLMX <-
+  clmx |> 
+  select(year, age, clmx) |> 
+  pivot_wider(names_from = year,
+              values_from = clmx) |> 
+  column_to_rownames("age") |> 
+  as.matrix()
+```
+
+# perform SVD
+
+```{r}
+duv <- svd(CLMX)
+
+str(duv)
+d <- duv$d
+U <- duv$u
+V <- duv$v
+# can be recombined:
+# (U %*% diag(d) %*% t(V)) - CLMX
+```
+
+# derive beta and kappa
+
+```{r}
+#u     first column of U
+u <- U[,1]
+#v     first column of V
+v <- V[,1]
+#d     first element of d
+d <- d[1]
+#Bx    rescale u
+betax <- u / sum(u)
+# the average trend
+kappat     <- v * sum(u) * d
+```
+
+# put beta and kappa in tidy tables:
+
+```{r}
+
+beta <- tibble(age = 0:110,
+               betax = betax)
+kappa <- tibble(year = 1976:2020,
+                kappat = kappat)
+```
+
+Visualize the components
+
+Beta:
+```{r}
+beta |> 
+  ggplot(aes(x = age, y = betax)) +
+  geom_line()
+```
+Kappa:
+```{r}
+kappa |> 
+  ggplot(aes(x = year, y = kappat)) +
+  geom_line() #+
+  #geom_smooth(method = "lm")
+```
+
+
+# join and predict:
+
+$$ \widehat{log(m(x))} = \alpha(x) + \beta(x)\cdot\kappa(t)$$
+
+```{r}
+mx_pred <- 
+  kappa |> 
+  cross_join(beta) |> 
+  left_join(alpha, by = "age") |> 
+  relocate(age, .after = year) |> 
+  mutate(lmx_hat = alphax + betax * kappat) |> 
+  left_join(clmx, by = c("year","age"))
+```
+
+# examine the residuals
+
+```{r}
+mx_pred |> 
+  mutate(resid = lmx_hat - lmx,
+         resid = case_when(resid > .3 ~ .3,
+                           resid < -.3 ~ -.3,
+                           TRUE ~ resid)) |> 
+  ggplot(aes(x = year, y = age, fill = resid)) +
+  geom_tile() +
+  scale_fill_continuous_diverging("Blue-Red") +
+  coord_equal()
+```
+
+# calculate drift and project kappa
+
+```{r}
+lk <- length(kappat)
+drift <- (kappat[lk] - kappat[1]) /
+  (lk - 1)
+
+horizon <- 1:20
+kappa_future <- kappat[lk] + (horizon * drift)
+
+kappa_fut <-
+  tibble(year = 2020 + horizon,
+         kappat = kappa_future)
+```
+
+# Examine the joined kappa series
+
+I see no anomaly here in the joining of kappa
+```{r}
+kappa |> 
+  bind_rows(kappa_fut) |> 
+  ggplot(aes(x=year, y = kappat)) +
+  geom_line() +
+  geom_point(data = kappa |> 
+               filter(year == 2020), 
+             size = 2,
+             color = "red")
+```
+
+
+# recombine to create projected mortality schedule
+
+```{r}
+lc_pred <- 
+  kappa |> 
+  bind_rows(kappa_fut) |> 
+  cross_join(beta) |> 
+  left_join(alpha, by = "age") |> 
+  mutate(lmx_hat = alphax + betax * kappat)
+```
+
+# check age patterns
+
+```{r}
+lc_pred |> 
+  filter(year > 2020) |> 
+  ggplot(aes(x = age, y = lmx_hat, color = year, group = year)) +
+  geom_line() +
+  scale_color_continuous_sequential("Inferno")
+```
+
+# project life expectancy
+
+```{r}
+projection <-
+  lc_pred |> 
+  select(year, age, lmx_hat) |> 
+  mutate(mx = exp(lmx_hat),
+         n = rep(1,n()),
+         ax = mx_to_ax(mx = mx, age = age, sex = "female")) |> 
+  select(-lmx_hat) |> 
+  mutate(variant = "lc")
+
+combined_lt <-
+  clmx |> 
+  mutate(n = 1) |> 
+  mutate(variant = "empirical") |> 
+  select(year, age, mx, ax, n,variant) |> 
+  bind_rows(projection) |> 
+  group_by(variant,year) |> 
+  reframe(calc_LT(mx = mx, ax = ax, age = age))
+```
+
+plot life expectancy:
+
+```{r}
+combined_lt |> 
+  filter(age == 0) |> 
+  ggplot(aes(x = year, y = ex, color = variant)) +
+  geom_line() +
+  theme_minimal() +
+  geom_vline(xintercept = 2020)
+```
+
+
+
+
+
+
+
+
+
+
