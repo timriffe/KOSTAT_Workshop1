@@ -80,7 +80,7 @@ For matter of simplicity, migration forecasts are set aside in this class. We wi
 
 We will use the Spanish females' data from the HMD [@HMD]. You can read the output file `ESmx.csv` directly from the github site, see code in next chunk.
 
-```{r, include = FALSE, eval=FALSE}
+```{r, include = FALSE, eval=FALSE, message=FALSE}
 library(tidyverse)
 library(HMDHFDplus)
 
@@ -119,7 +119,7 @@ write_csv(ES,"Data/ESmx.csv")
 ```
 
 
-```{r}
+```{r, message=FALSE}
 library(tidyverse)
 ES <- read_csv("Data/ESmx.csv")
 ```
