@@ -200,6 +200,8 @@ mx_pred <-
 
 # examine the residuals
 
+In the residuals, on the whole, it seems we did a pretty good job predicting, although you can see we underpredict mortality for those born around the 1950s, and there are other period variations that we fail to pick up, but they are subtle.
+
 ```{r}
 mx_pred |> 
   mutate(resid = lmx_hat - lmx,
