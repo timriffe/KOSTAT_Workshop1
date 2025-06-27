@@ -11,12 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Get data
 
+First let's load the HMD data that we've used before, as well as our lifetable functions that we've been using since Tuesday! We don't need those yet, but we will need them later!
 ```{r, message = FALSE}
 library(tidyverse)
 hmd <- read_csv("https://github.com/timriffe/KOSTAT_Workshop1/raw/master/Data/hmd.csv.gz")
 
 source("https://raw.githubusercontent.com/timriffe/KOSTAT_Workshop1/master/lifetable_functions2025.R")
-
 ```
 
 # Visualize surface
@@ -27,22 +27,31 @@ ausf <- hmd |>
          sex == "f") 
 
 ausf |> 
-  ggplot(aes(x = year, y = age, z = log(mx))) +
+  ggplot(mapping = aes(x = year, y = age, z = log(mx))) +
   geom_contour_filled() +
-  coord_equal()
+  coord_equal() +
+  geom_vline(xintercept = 1975)
 ```
 
 # Select year range to fit to
 
+We looked at the surface and made a subjective decision on how much of it to use to actually fit the data. We need to have more years of data to fit to than we have years of data to try and predict. There's no hard rule- usually one tries different fitting periods to see how much it influences results. We're just going to cut once and be done with it.
 ```{r}
 ausf <-
   ausf |> 
   filter(year > 1975)
 ```
 
-
 # derive alpha
 
+```{r}
+ausf |> 
+  ggplot(mapping = aes(x = age, y = mx, color = year, group = year)) +
+  geom_line() +
+  scale_y_log10()
+```
+
+To derive alpha, the average age pattern of log mortality in the fitting period, just manually calculate log mortality inside `mutate()`, then calculate the mean of `lmx` by age (`group_by(age)` and then `summarize()`).
 ```{r}
 alpha <- 
   ausf|> 
@@ -52,6 +61,8 @@ alpha <-
 ```
 
 # Look at alpha and how it relates to our original mortality
+
+Examine the average log mortality to see if we think it's usable. Observation: in practice, for the sake of a smoother-looking red line, I might have smoothed the original data.
 ```{r}
 ausf |> 
   ggplot(aes(x = age, y = log(mx))) +
@@ -59,11 +70,13 @@ ausf |>
   geom_line(data = alpha, 
             mapping = aes(x = age, y = alphax),
             color = "red",
-            linewidth = 2)
+            linewidth = 2) +
+  ylim(-12,1)
 ```
 
 # make centered log mortality
 
+We take the original aus subset and create a log mortality column (`lmx`), then join `alpha` to it. That means that each age of alpha matches to all years of the corresponding age in `ausf`. We keep the same number of rows in `ausf`, but we get one new column, `alphax`.
 ```{r}
 clmx <-
   ausf |> 
@@ -82,12 +95,22 @@ clmx |>
              color = year, 
              group = year)) +
   geom_line() +
-  scale_color_continuous_sequential("Inferno") #+
+  scale_color_continuous_sequential("Inferno") +
   # better look at how much we shrunk variation:
-  #ylim(-12,0)
+  ylim(-12,1)
 ```
 
-Make the matrix
+Remake this plot turning the direction; that is, make time trends with a different line per age. That is the signal we want to decompose. We select every 10th age using the modulo trick that we used yesterday to create decades.
+
+```{r}
+clmx |> 
+  filter(age %% 10 == 0) |> 
+  ggplot(mapping = aes(x=year, y = clmx, color = age, group = age)) +
+  geom_line() +
+  scale_color_continuous_sequential("Inferno")
+```
+
+Make the matrix. Take the tidy centered log mortality rates, select down to just what we want in the rows and columns, and cells of the final matrix. Then we spread out years over the columns, and populate the cells with `clmx` values. Finally, we move age to the row labels, and then coerce the table to be a matrix.
 
 ```{r}
 CLMX <-
@@ -116,7 +139,7 @@ V <- duv$v
 
 ```{r}
 #u     first column of U
-u <- U[,1]
+u <- U[ ,1] 
 #v     first column of V
 v <- V[,1]
 #d     first element of d
@@ -130,7 +153,6 @@ kappat     <- v * sum(u) * d
 # put beta and kappa in tidy tables:
 
 ```{r}
-
 beta <- tibble(age = 0:110,
                betax = betax)
 kappa <- tibble(year = 1976:2020,
@@ -149,8 +171,8 @@ Kappa:
 ```{r}
 kappa |> 
   ggplot(aes(x = year, y = kappat)) +
-  geom_line() #+
-  #geom_smooth(method = "lm")
+  geom_line() +
+  geom_smooth(method = "lm")
 ```
 
 
@@ -158,14 +180,22 @@ kappa |>
 
 $$ \widehat{log(m(x))} = \alpha(x) + \beta(x)\cdot\kappa(t)$$
 
+Now we can combine all the pieces into a single tidy data structure; `cross_join()` is a greedy exapansion of both kappa and beta so that each combination is represented in the data in a row. Then we merge alpha onto that. It would give the same end result to swap the positions of alpha and beta. Once all three variables are in the dataset, we can calculate the predicted log mortality by applying the LC formula. Then we can join on the empirical ones and compare to see if we did a good job predicting..
 ```{r}
+clmx <- 
+  clmx |> 
+  select(-alphax)
+
 mx_pred <- 
   kappa |> 
   cross_join(beta) |> 
   left_join(alpha, by = "age") |> 
   relocate(age, .after = year) |> 
   mutate(lmx_hat = alphax + betax * kappat) |> 
-  left_join(clmx, by = c("year","age"))
+  left_join(clmx, by = c("year","age")) |> 
+  select(-clmx) |> 
+  relocate(sex, .before = 1) |> 
+  relocate(country, .before = 1)
 ```
 
 # examine the residuals
@@ -265,7 +295,6 @@ combined_lt |>
   theme_minimal() +
   geom_vline(xintercept = 2020)
 ```
-
 
 
 
